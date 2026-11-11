@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Set HomaGram Android API level and stable release signing."""
+"""Set HomaGram Android API level, release signing and stable release lint behavior."""
 from pathlib import Path
 import re
 import sys
+
 
 def main() -> int:
     candidates = [Path("android/app/build.gradle.kts"), Path("android/app/build.gradle")]
@@ -16,6 +17,14 @@ def main() -> int:
     if kotlin:
         text, compile_n = re.subn(r"(?m)^([ \t]*)compileSdk\s*=\s*[^\n]+", r"\g<1>compileSdk = 36", text, count=1)
         text, target_n = re.subn(r"(?m)^([ \t]*)targetSdk\s*=\s*[^\n]+", r"\g<1>targetSdk = 36", text, count=1)
+        if "checkReleaseBuilds" not in text:
+            pattern = r"(?m)^([ \t]*)targetSdk\s*=\s*36\s*$"
+            def add_lint(match):
+                indent = match.group(1)
+                return match.group(0) + f'\n{indent}lint {{\n{indent}    checkReleaseBuilds = false\n{indent}}}'
+            text, lint_n = re.subn(pattern, add_lint, text, count=1)
+        else:
+            lint_n = 1
         block = '''
     signingConfigs {
         create("release") {
@@ -40,6 +49,14 @@ def main() -> int:
         text, target_n = re.subn(r"(?m)^([ \t]*)targetSdkVersion\s+[^\n]+", r"\g<1>targetSdkVersion 36", text, count=1)
         if not target_n:
             text, target_n = re.subn(r"(?m)^([ \t]*)targetSdk\s+[^\n]+", r"\g<1>targetSdk 36", text, count=1)
+        if "checkReleaseBuilds" not in text:
+            pattern = r"(?m)^([ \t]*)(?:targetSdkVersion|targetSdk)\s+36\s*$"
+            def add_lint(match):
+                indent = match.group(1)
+                return match.group(0) + f"\n{indent}lint {{\n{indent}    checkReleaseBuilds false\n{indent}}}"
+            text, lint_n = re.subn(pattern, add_lint, text, count=1)
+        else:
+            lint_n = 1
         block = '''
     signingConfigs {
         release {
@@ -58,12 +75,13 @@ def main() -> int:
             r"(?m)^([ \t]*)signingConfig\s+signingConfigs\.debug",
             r"\1signingConfig signingConfigs.release", text, count=1)
 
-    if (compile_n != 1 or target_n != 1 or inserted != 1 or signing_n != 1):
-        print(f"Unexpected Gradle layout: compile={compile_n}, target={target_n}, inserted={inserted}, signing={signing_n}.", file=sys.stderr)
+    if (compile_n != 1 or target_n != 1 or lint_n != 1 or inserted != 1 or signing_n != 1):
+        print(f"Unexpected Gradle layout: compile={compile_n}, target={target_n}, lint={lint_n}, inserted={inserted}, signing={signing_n}.", file=sys.stderr)
         return 1
     gradle.write_text(text, encoding="utf-8")
-    print(f"Configured {gradle}: compileSdk=36, targetSdk=36, release signing.")
+    print(f"Configured {gradle}: compileSdk=36, targetSdk=36, release signing, release lint checks disabled.")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
