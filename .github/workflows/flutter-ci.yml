@@ -28,10 +28,19 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: '3.35.7'
           cache: true
       - name: Generate Android platform scaffold
         run: flutter create --platforms=android --project-name homagram --org com.homagram .
+      - name: Inspect generated Android toolchain
+        run: |
+          echo "Flutter: $(flutter --version | head -n 1)"
+          echo "Gradle wrapper:"
+          cat android/gradle/wrapper/gradle-wrapper.properties
+          echo "Plugin management repositories and plugin versions:"
+          sed -n '1,180p' android/settings.gradle.kts
+          echo "Gradle version catalog:"
+          if [ -f android/gradle/libs.versions.toml ]; then cat android/gradle/libs.versions.toml; fi
       - name: Configure Android manifest
         run: python3 tool/configure_android_manifest.py
       - name: Configure Android API and signing
