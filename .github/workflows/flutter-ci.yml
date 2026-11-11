@@ -40,8 +40,21 @@ jobs:
         run: flutter analyze --fatal-infos
       - name: Test
         run: flutter test
+      - name: Validate Supabase build configuration
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          test -n "$SUPABASE_URL" || (echo "Missing GitHub Actions variable: SUPABASE_URL" && exit 1)
+          test -n "$SUPABASE_PUBLISHABLE_KEY" || (echo "Missing GitHub Actions variable: SUPABASE_PUBLISHABLE_KEY" && exit 1)
       - name: Build Android debug APK
-        run: flutter build apk --debug
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          flutter build apk --debug \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
 
       - name: Upload Android debug APK
         uses: actions/upload-artifact@v4
