@@ -1,0 +1,44 @@
+name: Generate HomaGram signing key
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    name: Generate one-time private Android signing key
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Generate keystore and private credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p signing-package
+          STORE_PASSWORD="$(openssl rand -hex 32)"
+          KEY_PASSWORD="$STORE_PASSWORD"
+          keytool -genkeypair -v \
+            -keystore signing-package/homagram-upload.jks \
+            -storetype JKS \
+            -storepass "$STORE_PASSWORD" \
+            -keypass "$KEY_PASSWORD" \
+            -alias homagram-upload \
+            -keyalg RSA -keysize 4096 -validity 10000 \
+            -dname "CN=HomaGram Android, OU=Mobile, O=HomaGram, L=NA, ST=NA, C=US"
+          {
+            echo "ANDROID_KEY_ALIAS=homagram-upload"
+            echo "ANDROID_STORE_PASSWORD=$STORE_PASSWORD"
+            echo "ANDROID_KEY_PASSWORD=$KEY_PASSWORD"
+            echo
+            echo "Keep this file private. Do not commit it or share it."
+          } > signing-package/credentials.txt
+          chmod 600 signing-package/homagram-upload.jks signing-package/credentials.txt
+      - name: Upload private signing package
+        uses: actions/upload-artifact@v4
+        with:
+          name: homagram-private-signing-key
+          path: signing-package/
+          if-no-files-found: error
+          retention-days: 1
