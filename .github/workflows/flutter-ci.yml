@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   verify:
-    name: Analyze, test and Android debug build
+    name: Analyze, test and Android release build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,34 +32,71 @@ jobs:
           cache: true
       - name: Generate Android platform scaffold
         run: flutter create --platforms=android --project-name homagram --org com.homagram .
-      - name: Configure internet and auth callback
+      - name: Configure Android manifest
         run: python3 tool/configure_android_manifest.py
+      - name: Configure Android API and signing
+        run: python3 tool/configure_android_build.py
       - name: Install dependencies
         run: flutter pub get
       - name: Analyze
         run: flutter analyze --fatal-infos
       - name: Test
         run: flutter test
-      - name: Validate Supabase build configuration
+      - name: Validate release build configuration
+        if: github.event_name != 'pull_request'
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           test -n "$SUPABASE_URL" || (echo "Missing GitHub Actions variable: SUPABASE_URL" && exit 1)
           test -n "$SUPABASE_PUBLISHABLE_KEY" || (echo "Missing GitHub Actions variable: SUPABASE_PUBLISHABLE_KEY" && exit 1)
-      - name: Build Android debug APK
+          test -n "$ANDROID_KEYSTORE_BASE64" || (echo "Missing GitHub Actions secret: ANDROID_KEYSTORE_BASE64" && exit 1)
+          test -n "$ANDROID_KEY_ALIAS" || (echo "Missing GitHub Actions secret: ANDROID_KEY_ALIAS" && exit 1)
+          test -n "$ANDROID_STORE_PASSWORD" || (echo "Missing GitHub Actions secret: ANDROID_STORE_PASSWORD" && exit 1)
+          test -n "$ANDROID_KEY_PASSWORD" || (echo "Missing GitHub Actions secret: ANDROID_KEY_PASSWORD" && exit 1)
+      - name: Prepare signing key
+        if: github.event_name != 'pull_request'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/homagram-upload.jks"
+          test -s "$RUNNER_TEMP/homagram-upload.jks"
+      - name: Install Android 16 SDK
+        if: github.event_name != 'pull_request'
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Build signed Android APK and AAB
+        if: github.event_name != 'pull_request'
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/homagram-upload.jks
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          flutter build apk --debug \
+          flutter build apk --release \
+            --build-name="0.2.${GITHUB_RUN_NUMBER}" \
+            --build-number="${GITHUB_RUN_NUMBER}" \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
-
-      - name: Upload Android debug APK
+          flutter build appbundle --release \
+            --build-name="0.2.${GITHUB_RUN_NUMBER}" \
+            --build-number="${GITHUB_RUN_NUMBER}" \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
+      - name: Upload signed Android builds
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          name: homagram-android-debug
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          name: homagram-android-release-${{ github.run_number }}
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 30
