@@ -71,10 +71,10 @@ jobs:
         with:
           cmdline-tools-version: latest
           accept-android-sdk-licenses: true
-          packages: |
-            platform-tools
-            platforms;android-36
-            build-tools;36.0.0
+      - name: Install Android SDK packages
+        if: github.event_name != 'pull_request'
+        run: |
+          sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"
       - name: Build signed Android APK and AAB
         if: github.event_name != 'pull_request'
         env:
