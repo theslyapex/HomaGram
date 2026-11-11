@@ -48,14 +48,13 @@ jobs:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_ALIAS: homagram-upload
           ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           test -n "$SUPABASE_URL" || (echo "Missing GitHub Actions variable: SUPABASE_URL" && exit 1)
           test -n "$SUPABASE_PUBLISHABLE_KEY" || (echo "Missing GitHub Actions variable: SUPABASE_PUBLISHABLE_KEY" && exit 1)
           test -n "$ANDROID_KEYSTORE_BASE64" || (echo "Missing GitHub Actions secret: ANDROID_KEYSTORE_BASE64" && exit 1)
-          test -n "$ANDROID_KEY_ALIAS" || (echo "Missing GitHub Actions secret: ANDROID_KEY_ALIAS" && exit 1)
           test -n "$ANDROID_STORE_PASSWORD" || (echo "Missing GitHub Actions secret: ANDROID_STORE_PASSWORD" && exit 1)
           test -n "$ANDROID_KEY_PASSWORD" || (echo "Missing GitHub Actions secret: ANDROID_KEY_PASSWORD" && exit 1)
       - name: Prepare signing key
