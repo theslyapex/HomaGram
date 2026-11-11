@@ -27,8 +27,11 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('رمز عبور تغییر کرد. اکنون با رمز جدید وارد شوید.')));
     } catch (_) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('تغییر رمز انجام نشد. دوباره درخواست بازیابی بدهید.')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('تغییر رمز انجام نشد. دوباره درخواست بازیابی بدهید.'),
+        ));
+      }
     } finally { if (mounted) setState(() => _busy = false); }
   }
 
