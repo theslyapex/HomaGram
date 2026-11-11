@@ -65,15 +65,10 @@ jobs:
         run: |
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/homagram-upload.jks"
           test -s "$RUNNER_TEMP/homagram-upload.jks"
-      - name: Set up Android SDK
-        if: github.event_name != 'pull_request'
-        uses: android-actions/setup-android@v3
-        with:
-          cmdline-tools-version: latest
-          accept-android-sdk-licenses: true
       - name: Install Android SDK packages
         if: github.event_name != 'pull_request'
         run: |
+          yes | sdkmanager --licenses
           sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"
       - name: Build signed Android APK and AAB
         if: github.event_name != 'pull_request'
