@@ -1,51 +1,48 @@
 # معماری اولیه HomaGram
 
 ## اصول
-
 - پروژه و زیرساخت HomaGram مستقل از Alishams و هر پروژه دیگر باقی می‌مانند.
 - اپلیکیشن با Flutter و Dart توسعه می‌یابد.
 - Supabase تنها بک‌اند متصل به پروژه مستقل HomaGram است.
 - ماژول‌های محصول از یکدیگر جدا نگه داشته می‌شوند.
-- منطق دامنه، دسترسی به داده و رابط کاربری در مراحل بعدی از هم تفکیک خواهند شد.
 
 ## ساختار فعلی
-
 ```text
 lib/
   main.dart
   app/
     homagram_app.dart
-    theme/
-      app_theme.dart
+    theme/app_theme.dart
   features/
-    bootstrap/
+    auth/
+      data/auth_service.dart
+      domain/auth_constants.dart
       presentation/
-        bootstrap_screen.dart
+        auth_gate.dart
+        auth_screen.dart
+        password_recovery_screen.dart
+        profile_home_screen.dart
+    bootstrap/presentation/bootstrap_screen.dart
 test/
-  widget_test.dart
 docs/
-supabase/
-  migrations/
+supabase/migrations/
+tool/
 ```
 
-این ساختار فعلاً حداقلی است. پوشه‌های هر قابلیت زمانی اضافه می‌شوند که همان قابلیت وارد مرحله پیاده‌سازی شود.
-
 ## اتصال Supabase
+مقادیر از طریق Dart defines دریافت می‌شوند: `SUPABASE_URL` و `SUPABASE_PUBLISHABLE_KEY`.
+کلید Publishable/Anon برای کلاینت است؛ کلید Secret و service_role فقط سمت سرور مجاز هستند. احراز هویت از PKCE استفاده می‌کند.
 
-مقادیر پیکربندی از طریق Dart defines دریافت می‌شوند:
-
-- `SUPABASE_URL`
-- `SUPABASE_PUBLISHABLE_KEY`
-
-در این مرحله هیچ کلید واقعی در مخزن ثبت نشده است. از کلید Publishable/Anon در کلاینت استفاده می‌شود؛ کلید Secret و service_role فقط در محیط امن سمت سرور مجاز هستند.
-
-## دیتابیس
-
-هنوز هیچ جدول، policy یا migration عملیاتی ایجاد نشده است. طراحی schema باید هم‌زمان با مرحله هسته اپلیکیشن و پس از تعیین مدل دقیق حساب و پروفایل انجام شود. تمام جداول قابل دسترسی از API باید RLS مناسب داشته باشند.
+## حساب و پروفایل
+- Supabase Auth مسئول اعتبارسنجی ایمیل و رمز عبور است.
+- Trigger هنگام ایجاد حساب، پروفایل و تنظیمات پایه می‌سازد.
+- شناسه پروفایل به `auth.users.id` متصل است.
+- نام کاربری یکتا و نرمال‌شده است.
+- RLS فعال است و کاربر فقط ردیف خودش را می‌خواند یا ویرایش می‌کند.
+- مجوز UPDATE فقط برای ستون‌های مجاز داده شده؛ شناسه، نام کاربری و timestamp از کلاینت قابل تغییر نیست.
 
 ## تصمیم‌های باز
-
 - انتخاب نهایی state management پس از شکل‌گیری جریان‌های واقعی اپ
-- طراحی مدل داده و سیاست‌های RLS در مرحله یک
-- طراحی پردازش و ذخیره‌سازی رسانه پیش از ورود به انتشار پست و ویدئو
-- طراحی تماس‌ها و رمزنگاری سرتاسری به‌عنوان پروژه‌های فنی مستقل
+- نمایش پروفایل عمومی و enforcement کامل privacy در مرحله شبکه اجتماعی
+- پردازش و ذخیره‌سازی رسانه پیش از انتشار محتوا
+- تماس‌ها و رمزنگاری سرتاسری به‌عنوان پروژه‌های فنی مستقل
