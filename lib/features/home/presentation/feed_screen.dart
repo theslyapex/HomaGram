@@ -202,18 +202,21 @@ class _PostCardState extends State<PostCard> {
   Future<void> _loadInteractionState() async {
     try {
       final c = AuthService.client;
-      final results = await Future.wait([
-        c.from('post_likes').select('user_id').eq('post_id', _postId),
-        c.from('post_comments').select('id').eq('post_id', _postId),
-        c.from('post_likes').select('post_id').eq('post_id', _postId).eq('user_id', _userId).maybeSingle(),
-        c.from('saved_posts').select('post_id').eq('post_id', _postId).eq('user_id', _userId).maybeSingle(),
-        c.from('post_reposts').select('post_id').eq('post_id', _postId).eq('user_id', _userId).maybeSingle(),
-      ]);
+      final likes = await c.from('post_likes').select('user_id').eq('post_id', _postId);
+      final comments = await c.from('post_comments').select('id').eq('post_id', _postId);
+      final myLike = await c.from('post_likes').select('post_id')
+          .eq('post_id', _postId).eq('user_id', _userId).maybeSingle();
+      final mySave = await c.from('saved_posts').select('post_id')
+          .eq('post_id', _postId).eq('user_id', _userId).maybeSingle();
+      final myRepost = await c.from('post_reposts').select('post_id')
+          .eq('post_id', _postId).eq('user_id', _userId).maybeSingle();
       if (!mounted) return;
       setState(() {
-        _likes = (results[0] as List).length;
-        _comments = (results[1] as List).length;
-        _liked = results[2] != null; _saved = results[3] != null; _reposted = results[4] != null;
+        _likes = likes.length;
+        _comments = comments.length;
+        _liked = myLike != null;
+        _saved = mySave != null;
+        _reposted = myRepost != null;
       });
     } catch (_) {}
   }
@@ -305,7 +308,7 @@ class _PostCardState extends State<PostCard> {
       }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('پست حذف شد.')));
-      onDeleted?.call();
+      widget.onDeleted?.call();
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('حذف پست انجام نشد.')));
