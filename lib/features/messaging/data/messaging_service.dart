@@ -144,8 +144,9 @@ class MessagingService {
 
   static Future<void> sendTextMessage(
     String conversationId,
-    String body,
-  ) async {
+    String body, {
+    String? replyToId,
+  }) async {
     final text = body.trim();
     if (text.isEmpty) return;
     await _client.from('messages').insert({
@@ -153,6 +154,7 @@ class MessagingService {
       'sender_id': _userId,
       'message_type': 'text',
       'body': text,
+      if (replyToId != null) 'reply_to_id': replyToId,
     });
   }
 
