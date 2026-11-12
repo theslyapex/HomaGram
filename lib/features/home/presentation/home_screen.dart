@@ -13,14 +13,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _tab = 0;
 
-  static const _titles = ['خانه', 'جست‌وجو', 'پیام‌ها', 'اعلان‌ها'];
-  static const _icons = [
-    Icons.home_rounded,
-    Icons.search_rounded,
-    Icons.chat_bubble_outline_rounded,
-    Icons.notifications_none_rounded,
-  ];
-
   void _openProfile() {
     Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => const ProfileHomeScreen()),
