@@ -38,10 +38,15 @@ def main() -> int:
         ET.SubElement(intent, "category").set(android + "name", "android.intent.category.DEFAULT")
         ET.SubElement(intent, "category").set(android + "name", "android.intent.category.BROWSABLE")
         ET.SubElement(intent, "data").set(android + "scheme", "homagram")
+    # Android activity declarations must be children of <application>, not <manifest>.
+    application = root.find("application")
+    if application is None:
+        print("application element not found in AndroidManifest.xml", file=sys.stderr)
+        return 1
     # image_cropper requires the native uCrop activity.
     cropper_name = "com.yalantis.ucrop.UCropActivity"
-    if not any(item.get(android + "name") == cropper_name for item in root.iter("activity")):
-        cropper = ET.SubElement(root, "activity")
+    if not any(item.get(android + "name") == cropper_name for item in application.findall("activity")):
+        cropper = ET.SubElement(application, "activity")
         cropper.set(android + "name", cropper_name)
         cropper.set(android + "screenOrientation", "portrait")
         cropper.set(android + "theme", "@style/Theme.AppCompat.Light.NoActionBar")
