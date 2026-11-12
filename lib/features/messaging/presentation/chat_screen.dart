@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:video_player/video_player.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/messaging_service.dart';
@@ -20,6 +22,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
+  final _picker = ImagePicker();
   List<Map<String, dynamic>> _messages = [];
   RealtimeChannel? _channel;
   bool _loading = true;
@@ -53,6 +56,98 @@ class _ChatScreenState extends State<ChatScreen> {
         _loading = false;
         _error = 'دریافت پیام‌ها انجام نشد. اتصال را بررسی کنید.';
       });
+    }
+  }
+
+
+
+  Future<void> _searchMessages() async {
+    final controller = TextEditingController();
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('جست‌وجوی پیام‌ها'),
+        content: TextField(controller: controller, autofocus: true, decoration: const InputDecoration(hintText: 'حداقل دو نویسه')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('جست‌وجو')),
+        ],
+      ),
+    );
+    final term = controller.text.trim();
+    controller.dispose();
+    if (!mounted || term.length < 2) return;
+    try {
+      final results = await MessagingService.searchMessages(widget.conversationId, term);
+      if (!mounted) return;
+      await showModalBottomSheet<void>(
+        context: context, isScrollControlled: true, showDragHandle: true,
+        builder: (context) => SafeArea(
+          child: SizedBox(
+            height: MediaQuery.sizeOf(context).height * .65,
+            child: results.isEmpty
+                ? const Center(child: Text('پیامی پیدا نشد.'))
+                : ListView.separated(
+                    itemCount: results.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final item = results[index];
+                      return ListTile(
+                        title: Text(item['body'] as String? ?? '', maxLines: 2, overflow: TextOverflow.ellipsis),
+                        subtitle: Text(_time(item['created_at'] as String?)),
+                      );
+                    },
+                  ),
+          ),
+        ),
+      );
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('جست‌وجوی پیام‌ها انجام نشد.')),
+      );
+    }
+  }
+
+  Future<void> _pickMedia() async {
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(leading: const Icon(Icons.image_outlined), title: const Text('انتخاب تصویر'), onTap: () => Navigator.pop(context, 'image')),
+          ListTile(leading: const Icon(Icons.video_library_outlined), title: const Text('انتخاب ویدئو'), onTap: () => Navigator.pop(context, 'video')),
+        ]),
+      ),
+    );
+    if (!mounted || choice == null || _sending) return;
+    try {
+      final XFile? file = choice == 'image'
+          ? await _picker.pickImage(source: ImageSource.gallery, imageQuality: 88)
+          : await _picker.pickVideo(source: ImageSource.gallery, maxDuration: const Duration(minutes: 5));
+      if (file == null || !mounted) return;
+      final bytes = await file.readAsBytes();
+      if (bytes.length > 52428800) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('حجم رسانه نباید بیشتر از ۵۰ مگابایت باشد.')));
+        return;
+      }
+      final ext = file.name.toLowerCase().split('.').last;
+      final mime = choice == 'image'
+          ? (ext == 'png' ? 'image/png' : ext == 'webp' ? 'image/webp' : 'image/jpeg')
+          : (ext == 'mov' ? 'video/quicktime' : ext == 'webm' ? 'video/webm' : 'video/mp4');
+      setState(() => _sending = true);
+      await MessagingService.sendMediaMessage(
+        conversationId: widget.conversationId,
+        bytes: bytes,
+        fileName: file.name,
+        mimeType: mime,
+      );
+      await _refresh();
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ارسال رسانه انجام نشد. دوباره تلاش کنید.')),
+      );
+    } finally {
+      if (mounted) setState(() => _sending = false);
     }
   }
 
@@ -116,10 +211,13 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         actions: [
           IconButton(
+            tooltip: 'جست‌وجوی پیام‌ها',
+            onPressed: _searchMessages,
+            icon: const Icon(Icons.search_rounded),
+          ),
+          IconButton(
             tooltip: 'اطلاعات گفتگو',
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('مدیریت گفتگو در مرحله بعد اضافه می‌شود.')),
-            ),
+            onPressed: _showConversationInfo,
             icon: const Icon(Icons.more_vert_rounded),
           ),
         ],
@@ -164,6 +262,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                     child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
+                                      if (!deleted && (message['attachments'] as List? ?? []).isNotEmpty)
+                                        _attachmentPreview((message['attachments'] as List).first as Map<String, dynamic>),
                                       Text(
                                         deleted ? 'این پیام حذف شده است' : (message['body'] as String? ?? ''),
                                         style: TextStyle(
@@ -171,16 +271,22 @@ class _ChatScreenState extends State<ChatScreen> {
                                           height: 1.6,
                                         ),
                                       ),
+                                      if (!deleted && (message['reactions'] as List? ?? []).isNotEmpty)
+                                        _reactionSummary(message),
                                       if (message['edited_at'] != null && !deleted)
                                         const Text('ویرایش‌شده', style: TextStyle(fontSize: 9)),
                                       const SizedBox(height: 3),
-                                      Text(
-                                        _time(message['created_at'] as String?),
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: colors.onSurfaceVariant,
-                                        ),
-                                      ),
+                                      Row(mainAxisSize: MainAxisSize.min, children: [
+                                        if (mine)
+                                          Icon(
+                                            (message['read_count'] as int? ?? 0) > 0 ? Icons.done_all_rounded : Icons.done_rounded,
+                                            size: 13,
+                                            color: (message['read_count'] as int? ?? 0) > 0 ? colors.primary : colors.onSurfaceVariant,
+                                          ),
+                                        const SizedBox(width: 4),
+                                        Text(_time(message['created_at'] as String?),
+                                          style: TextStyle(fontSize: 10, color: colors.onSurfaceVariant)),
+                                      ]),
                                     ],
                                   ),
                                   ),
@@ -217,6 +323,11 @@ class _ChatScreenState extends State<ChatScreen> {
                   Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
+                  IconButton(
+                    tooltip: 'افزودن رسانه',
+                    onPressed: _sending ? null : _pickMedia,
+                    icon: const Icon(Icons.add_circle_outline_rounded),
+                  ),
                   Expanded(
                     child: TextField(
                       controller: _controller,
@@ -253,6 +364,201 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+
+
+
+  Future<void> _showConversationInfo() async {
+    try {
+      final info = await Supabase.instance.client.from('conversations')
+          .select('kind,title').eq('id', widget.conversationId).single();
+      var members = await MessagingService.loadConversationMembers(widget.conversationId);
+      if (!mounted) return;
+      String myRole = 'member';
+      for (final member in members) {
+        if (member['user_id'] == _myId) {
+          myRole = member['role'] as String? ?? 'member';
+          break;
+        }
+      }
+      final isGroup = info['kind'] == 'group';
+      await showModalBottomSheet<void>(
+        context: context, isScrollControlled: true, useSafeArea: true, showDragHandle: true,
+        builder: (sheetContext) => StatefulBuilder(
+          builder: (sheetContext, setSheetState) => SizedBox(
+            height: MediaQuery.sizeOf(sheetContext).height * .72,
+            child: Column(children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                child: Row(children: [
+                  Expanded(child: Text(
+                    isGroup ? (info['title'] as String? ?? 'گروه') : widget.title,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                  )),
+                  if (isGroup && (myRole == 'owner' || myRole == 'admin'))
+                    IconButton(
+                      tooltip: 'تغییر نام گروه', icon: const Icon(Icons.edit_outlined),
+                      onPressed: () async {
+                        final controller = TextEditingController(text: info['title'] as String? ?? '');
+                        final title = await showDialog<String>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('نام گروه'),
+                            content: TextField(controller: controller, maxLength: 100),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
+                              FilledButton(onPressed: () => Navigator.pop(ctx, controller.text), child: const Text('ذخیره')),
+                            ],
+                          ),
+                        );
+                        controller.dispose();
+                        if (title != null && title.trim().isNotEmpty) {
+                          await MessagingService.updateGroupTitle(widget.conversationId, title);
+                          if (mounted) setState(() {});
+                          if (sheetContext.mounted) Navigator.pop(sheetContext);
+                        }
+                      },
+                    ),
+                  if (isGroup && (myRole == 'owner' || myRole == 'admin'))
+                    IconButton(
+                      tooltip: 'افزودن عضو', icon: const Icon(Icons.person_add_alt_1_rounded),
+                      onPressed: () async {
+                        final queryController = TextEditingController();
+                        final query = await showDialog<String>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('افزودن عضو'),
+                            content: TextField(controller: queryController, autofocus: true, decoration: const InputDecoration(hintText: 'نام کاربری')),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
+                              FilledButton(onPressed: () => Navigator.pop(ctx, queryController.text), child: const Text('جست‌وجو')),
+                            ],
+                          ),
+                        );
+                        queryController.dispose();
+                        if (query == null || query.trim().length < 2) return;
+                        final users = await MessagingService.searchUsers(query);
+                        if (!mounted) return;
+                        final selected = await showModalBottomSheet<Map<String, dynamic>>(
+                          context: context, showDragHandle: true,
+                          builder: (ctx) => ListView(
+                            shrinkWrap: true,
+                            children: users.map((user) => ListTile(
+                              leading: const CircleAvatar(child: Icon(Icons.person_outline)),
+                              title: Text(user['display_name'] as String? ?? user['username'] as String),
+                              subtitle: Text('@${user['username']}'),
+                              onTap: () => Navigator.pop(ctx, user),
+                            )).toList(),
+                          ),
+                        );
+                        if (selected == null) return;
+                        await MessagingService.manageGroupMember(widget.conversationId, selected['id'] as String, 'add');
+                        members = await MessagingService.loadConversationMembers(widget.conversationId);
+                        if (sheetContext.mounted) setSheetState(() {});
+                      },
+                    ),
+                ]),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: members.length,
+                  itemBuilder: (ctx, index) {
+                    final member = members[index];
+                    final role = member['role'] as String? ?? 'member';
+                    final isMe = member['user_id'] == _myId;
+                    return ListTile(
+                      leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
+                      title: Text(member['display_name'] as String? ?? ''),
+                      subtitle: Text('@${member['username']} • ${role == 'owner' ? 'مالک' : role == 'admin' ? 'مدیر' : 'عضو'}'),
+                      trailing: isGroup && !isMe && (myRole == 'owner' || (myRole == 'admin' && role == 'member'))
+                          ? PopupMenuButton<String>(
+                              onSelected: (action) async {
+                                await MessagingService.manageGroupMember(widget.conversationId, member['user_id'] as String, action);
+                                members = await MessagingService.loadConversationMembers(widget.conversationId);
+                                if (sheetContext.mounted) setSheetState(() {});
+                              },
+                              itemBuilder: (_) => [
+                                if (myRole == 'owner' && role == 'member')
+                                  const PopupMenuItem(value: 'promote', child: Text('ارتقا به مدیر')),
+                                if (myRole == 'owner' && role == 'admin')
+                                  const PopupMenuItem(value: 'demote', child: Text('تنزل به عضو')),
+                                if (role != 'owner' && (myRole == 'owner' || role == 'member'))
+                                  const PopupMenuItem(value: 'remove', child: Text('حذف از گروه')),
+                              ],
+                            )
+                          : role == 'owner' ? const Icon(Icons.verified_rounded, size: 18) : null,
+                    );
+                  },
+                ),
+              ),
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: SizedBox(width: double.infinity, child: OutlinedButton.icon(
+                    onPressed: () async {
+                      await MessagingService.leaveConversation(widget.conversationId);
+                      if (sheetContext.mounted) Navigator.pop(sheetContext);
+                      if (mounted) Navigator.pop(context);
+                    },
+                    icon: const Icon(Icons.logout_rounded), label: const Text('خروج از گفتگو'),
+                  )),
+                ),
+              ),
+            ]),
+          ),
+        ),
+      );
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('اطلاعات گفتگو دریافت نشد.')),
+      );
+    }
+  }
+
+  Widget _attachmentPreview(Map<String, dynamic> attachment) {
+    final url = attachment['signed_url'] as String?;
+    final mime = attachment['mime_type'] as String? ?? '';
+    if (url == null) return const Padding(padding: EdgeInsets.all(8), child: Text('رسانه در دسترس نیست.'));
+    if (mime.startsWith('image/')) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.network(url, width: 230, height: 190, fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const SizedBox(width: 230, height: 90, child: Center(child: Icon(Icons.broken_image_outlined)))),
+        ),
+      );
+    }
+    if (mime.startsWith('video/')) return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: _VideoMessagePreview(url: url),
+    );
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      const Icon(Icons.attach_file_rounded), const SizedBox(width: 6),
+      Flexible(child: Text(attachment['file_name'] as String? ?? 'فایل')),
+    ]);
+  }
+
+  Widget _reactionSummary(Map<String, dynamic> message) {
+    final reactions = (message['reactions'] as List? ?? []).cast<Map<String, dynamic>>();
+    final counts = <String, int>{};
+    for (final reaction in reactions) {
+      final emoji = reaction['emoji'] as String? ?? '';
+      counts[emoji] = (counts[emoji] ?? 0) + 1;
+    }
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Wrap(spacing: 4, children: counts.entries.map((entry) => ActionChip(
+        visualDensity: VisualDensity.compact,
+        label: Text('${entry.key} ${entry.value}', style: const TextStyle(fontSize: 11)),
+        onPressed: () async {
+          await MessagingService.toggleReaction(message['id'] as String, entry.key);
+          await _refresh();
+        },
+      )).toList()),
+    );
+  }
 
   Future<void> _messageActions(Map<String, dynamic> message) async {
     if (message['deleted_at'] != null) return;
@@ -374,4 +680,43 @@ class _EmptyChat extends StatelessWidget {
           ),
         ),
       );
+}
+
+class _VideoMessagePreview extends StatefulWidget {
+  const _VideoMessagePreview({required this.url});
+  final String url;
+  @override
+  State<_VideoMessagePreview> createState() => _VideoMessagePreviewState();
+}
+
+class _VideoMessagePreviewState extends State<_VideoMessagePreview> {
+  late final VideoPlayerController _controller;
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
+      ..initialize().then((_) { if (mounted) setState(() {}); });
+  }
+  @override
+  void dispose() { _controller.dispose(); super.dispose(); }
+  @override
+  Widget build(BuildContext context) {
+    if (!_controller.value.isInitialized) {
+      return const SizedBox(width: 230, height: 130, child: Center(child: CircularProgressIndicator()));
+    }
+    return GestureDetector(
+      onTap: () {
+        if (_controller.value.isPlaying) { _controller.pause(); } else { _controller.play(); }
+        setState(() {});
+      },
+      child: SizedBox(width: 230, child: AspectRatio(
+        aspectRatio: _controller.value.aspectRatio,
+        child: Stack(alignment: Alignment.center, children: [
+          VideoPlayer(_controller),
+          if (!_controller.value.isPlaying)
+            const CircleAvatar(backgroundColor: Colors.black54, child: Icon(Icons.play_arrow_rounded, color: Colors.white)),
+        ]),
+      )),
+    );
+  }
 }

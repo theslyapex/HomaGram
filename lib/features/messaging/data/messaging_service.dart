@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ConversationPreview {
@@ -139,9 +141,36 @@ class MessagingService {
         .eq('conversation_id', conversationId)
         .order('created_at', ascending: true)
         .limit(200);
-    return rows.map((row) => Map<String, dynamic>.from(row)).toList();
+    final messages = rows.map((row) => Map<String, dynamic>.from(row)).toList();
+    if (messages.isEmpty) return messages;
+    final ids = messages.map((m) => m['id'] as String).toList();
+    final attachments = await _client.from('message_attachments')
+        .select('message_id,storage_path,mime_type,file_name,size_bytes')
+        .inFilter('message_id', ids);
+    for (final item in attachments) {
+      try {
+        item['signed_url'] = await _client.storage.from('chat-media')
+            .createSignedUrl(item['storage_path'] as String, 3600);
+      } catch (_) {
+        item['signed_url'] = null;
+      }
+    }
+    final reactions = await _client.from('message_reactions')
+        .select('message_id,user_id,emoji').inFilter('message_id', ids);
+    final receipts = await _client.from('message_receipts')
+        .select('message_id,user_id,read_at').inFilter('message_id', ids);
+    for (final message in messages) {
+      final id = message['id'];
+      final ownReceipts = receipts.where((r) => r['message_id'] == id).toList();
+      message['attachments'] = attachments.where((a) => a['message_id'] == id).toList();
+      message['reactions'] = reactions.where((r) => r['message_id'] == id).toList();
+      message['read_count'] = ownReceipts.where((r) =>
+          r['user_id'] != message['sender_id'] && r['read_at'] != null).length;
+      message['recipient_count'] = ownReceipts.where((r) =>
+          r['user_id'] != message['sender_id']).length;
+    }
+    return messages;
   }
-
   static Future<void> sendTextMessage(
     String conversationId,
     String body, {
@@ -168,6 +197,100 @@ class MessagingService {
       params: {'p_title': title.trim(), 'p_member_ids': memberIds},
     );
     return result as String;
+  }
+
+
+  static Future<void> sendMediaMessage({
+    required String conversationId,
+    required Uint8List bytes,
+    required String fileName,
+    required String mimeType,
+  }) async {
+    if (bytes.isEmpty || bytes.length > 52428800) {
+      throw ArgumentError('حجم فایل باید کمتر از ۵۰ مگابایت باشد.');
+    }
+    final kind = mimeType.startsWith('image/') ? 'image'
+        : mimeType.startsWith('video/') ? 'video'
+        : mimeType.startsWith('audio/') ? 'audio' : 'file';
+    final label = kind == 'image' ? 'تصویر' : kind == 'video' ? 'ویدئو'
+        : kind == 'audio' ? 'فایل صوتی' : 'فایل';
+    final inserted = await _client.from('messages').insert({
+      'conversation_id': conversationId, 'sender_id': _userId,
+      'message_type': kind, 'body': label,
+    }).select('id').single();
+    final messageId = inserted['id'] as String;
+    final safeName = fileName.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
+    final path = '$conversationId/$_userId/$messageId/$safeName';
+    try {
+      await _client.storage.from('chat-media').uploadBinary(
+        path, bytes, fileOptions: FileOptions(contentType: mimeType, upsert: false),
+      );
+      await _client.from('message_attachments').insert({
+        'message_id': messageId, 'conversation_id': conversationId,
+        'uploader_id': _userId, 'storage_path': path,
+        'mime_type': mimeType, 'size_bytes': bytes.length, 'file_name': safeName,
+      });
+    } catch (_) {
+      try { await _client.storage.from('chat-media').remove([path]); } catch (_) {}
+      try {
+        await _client.from('messages').update({
+          'deleted_at': DateTime.now().toUtc().toIso8601String(),
+        }).eq('id', messageId);
+      } catch (_) {}
+      rethrow;
+    }
+  }
+
+  static Future<void> manageGroupMember(
+    String conversationId, String targetUserId, String action,
+  ) async {
+    await _client.rpc('manage_group_member', params: {
+      'p_conversation_id': conversationId,
+      'p_target_user': targetUserId,
+      'p_action': action,
+    });
+  }
+
+  static Future<void> updateGroupTitle(String conversationId, String title) async {
+    await _client.rpc('update_group_title', params: {
+      'p_conversation_id': conversationId, 'p_title': title.trim(),
+    });
+  }
+
+  static Future<List<Map<String, dynamic>>> loadConversationMembers(
+    String conversationId,
+  ) async {
+    final rows = await _client.from('conversation_members')
+        .select('user_id,role,joined_at')
+        .eq('conversation_id', conversationId).isFilter('left_at', null)
+        .order('joined_at');
+    if (rows.isEmpty) return [];
+    final ids = rows.map((row) => row['user_id'] as String).toList();
+    final profiles = await _client.from('profiles')
+        .select('id,username,display_name,avatar_path').inFilter('id', ids);
+    final byId = {for (final profile in profiles) profile['id'] as String: profile};
+    return rows.map((row) {
+      final profile = byId[row['user_id']] ?? <String, dynamic>{};
+      return <String, dynamic>{
+        ...Map<String, dynamic>.from(row),
+        'username': profile['username'] ?? '',
+        'display_name': profile['display_name'] ?? '',
+        'avatar_path': profile['avatar_path'],
+      };
+    }).toList();
+  }
+
+  static Future<List<Map<String, dynamic>>> searchMessages(
+    String conversationId, String query,
+  ) async {
+    final term = query.trim();
+    if (term.length < 2) return [];
+    final rows = await _client.from('messages')
+        .select('id,sender_id,body,message_type,created_at,deleted_at')
+        .eq('conversation_id', conversationId).isFilter('deleted_at', null)
+        .ilike('body', '%$term%')
+        .order('created_at', ascending: false).limit(50);
+    return rows.map((row) => Map<String, dynamic>.from(row)).toList();
   }
 
   static Future<void> editMessage(String messageId, String body) async {
@@ -296,6 +419,12 @@ class MessagingService {
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'message_receipts',
+          callback: (_) => onChange(),
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'message_attachments',
           callback: (_) => onChange(),
         )
         .subscribe();
