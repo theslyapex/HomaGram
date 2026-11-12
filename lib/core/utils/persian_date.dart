@@ -6,7 +6,7 @@ String persianDate(DateTime date) {
   final y = gy + 4800 - a;
   final m = gm + 12 * a - 3;
   final jdn = gd + ((153 * m + 2) ~/ 5) + 365 * y + (y ~/ 4) - (y ~/ 100) + (y ~/ 400) - 32045;
-  var depoch = jdn - 1948320;
+  var depoch = jdn - _jalaliToJdn(475, 1, 1);
   final cycle = depoch ~/ 1029983;
   final cyear = depoch % 1029983;
   int ycycle;
