@@ -3,8 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:video_trimmer/video_trimmer.dart';
 
-import '../../../app/theme/app_theme.dart';
-
 class VideoTrimScreen extends StatefulWidget {
   const VideoTrimScreen({required this.file, super.key});
 
