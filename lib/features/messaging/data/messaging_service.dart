@@ -156,6 +156,85 @@ class MessagingService {
     });
   }
 
+
+  static Future<String> createGroupConversation({
+    required String title,
+    required List<String> memberIds,
+  }) async {
+    final result = await _client.rpc(
+      'create_group_conversation',
+      params: {'p_title': title.trim(), 'p_member_ids': memberIds},
+    );
+    return result as String;
+  }
+
+  static Future<void> editMessage(String messageId, String body) async {
+    final text = body.trim();
+    if (text.isEmpty || text.length > 10000) {
+      throw ArgumentError('متن پیام باید بین ۱ تا ۱۰۰۰۰ نویسه باشد.');
+    }
+    await _client.from('messages').update({'body': text}).eq('id', messageId);
+  }
+
+  static Future<void> deleteMessage(String messageId) async {
+    await _client.from('messages').update({
+      'deleted_at': DateTime.now().toUtc().toIso8601String(),
+    }).eq('id', messageId);
+  }
+
+  static Future<void> markConversationRead(String conversationId) async {
+    final rows = await _client
+        .from('messages')
+        .select('id')
+        .eq('conversation_id', conversationId)
+        .neq('sender_id', _userId)
+        .isFilter('deleted_at', null)
+        .order('created_at', ascending: false)
+        .limit(200);
+    if (rows.isEmpty) return;
+    final ids = rows.map((row) => row['id'] as String).toList();
+    final now = DateTime.now().toUtc().toIso8601String();
+    for (final id in ids) {
+      await _client.from('message_receipts').upsert({
+        'message_id': id,
+        'user_id': _userId,
+        'delivered_at': now,
+        'read_at': now,
+      }, onConflict: 'message_id,user_id');
+    }
+  }
+
+  static Future<void> toggleReaction(String messageId, String emoji) async {
+    final existing = await _client
+        .from('message_reactions')
+        .select('message_id')
+        .eq('message_id', messageId)
+        .eq('user_id', _userId)
+        .eq('emoji', emoji)
+        .maybeSingle();
+    if (existing != null) {
+      await _client.from('message_reactions')
+          .delete()
+          .eq('message_id', messageId)
+          .eq('user_id', _userId)
+          .eq('emoji', emoji);
+    } else {
+      await _client.from('message_reactions').insert({
+        'message_id': messageId,
+        'user_id': _userId,
+        'emoji': emoji,
+      });
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> loadReactions(String messageId) async {
+    final rows = await _client
+        .from('message_reactions')
+        .select('emoji,user_id')
+        .eq('message_id', messageId);
+    return rows.map((row) => Map<String, dynamic>.from(row)).toList();
+  }
+
   static RealtimeChannel watchInbox(void Function() onChange) {
     return _client
         .channel('homagram-inbox-$_userId')
