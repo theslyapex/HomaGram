@@ -191,11 +191,11 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
                                         (_startValue / 1000).clamp(
                                           0.0,
                                           _durationSeconds,
-                                        ),
+                                        ).toDouble(),
                                         (_endValue / 1000).clamp(
                                           0.0,
                                           _durationSeconds,
-                                        ),
+                                        ).toDouble(),
                                       ),
                                       labels: RangeLabels(
                                         _formatTime(_startValue),
