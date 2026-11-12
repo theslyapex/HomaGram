@@ -260,6 +260,12 @@ class MessagingService {
           table: 'messages',
           callback: (_) => onChange(),
         )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'conversations',
+          callback: (_) => onChange(),
+        )
         .subscribe();
   }
 
@@ -278,6 +284,18 @@ class MessagingService {
             column: 'conversation_id',
             value: conversationId,
           ),
+          callback: (_) => onChange(),
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'message_reactions',
+          callback: (_) => onChange(),
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'message_receipts',
           callback: (_) => onChange(),
         )
         .subscribe();
