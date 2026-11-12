@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../auth/presentation/profile_home_screen.dart';
 import 'feed_screen.dart';
+import '../../messaging/presentation/messaging_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -29,11 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: 'کشف HomaGram',
         description: 'جست‌وجوی افراد، موضوعات و محتوای موردعلاقه در مرحله بعد فعال می‌شود.',
       ),
-      const _ComingSoonPage(
-        icon: Icons.forum_outlined,
-        title: 'گفت‌وگوها',
-        description: 'فضای پیام‌های خصوصی در مرحله پیام‌رسانی ساخته خواهد شد.',
-      ),
+      const MessagingScreen(),
       const _ComingSoonPage(
         icon: Icons.notifications_none_rounded,
         title: 'اعلان‌ها',
