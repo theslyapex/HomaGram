@@ -193,14 +193,27 @@ class MessagingService {
         .limit(200);
     if (rows.isEmpty) return;
     final ids = rows.map((row) => row['id'] as String).toList();
+    final existing = await _client
+        .from('message_receipts')
+        .select('message_id')
+        .eq('user_id', _userId)
+        .inFilter('message_id', ids);
+    final existingIds = existing.map((row) => row['message_id'] as String).toSet();
     final now = DateTime.now().toUtc().toIso8601String();
-    for (final id in ids) {
-      await _client.from('message_receipts').upsert({
+    if (existingIds.isNotEmpty) {
+      await _client.from('message_receipts')
+          .update({'read_at': now})
+          .eq('user_id', _userId)
+          .inFilter('message_id', existingIds.toList());
+    }
+    final missing = ids.where((id) => !existingIds.contains(id)).toList();
+    if (missing.isNotEmpty) {
+      await _client.from('message_receipts').insert(missing.map((id) => {
         'message_id': id,
         'user_id': _userId,
         'delivered_at': now,
         'read_at': now,
-      }, onConflict: 'message_id,user_id');
+      }).toList());
     }
   }
 
