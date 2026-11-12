@@ -38,6 +38,13 @@ def main() -> int:
         ET.SubElement(intent, "category").set(android + "name", "android.intent.category.DEFAULT")
         ET.SubElement(intent, "category").set(android + "name", "android.intent.category.BROWSABLE")
         ET.SubElement(intent, "data").set(android + "scheme", "homagram")
+    # image_cropper requires the native uCrop activity.
+    cropper_name = "com.yalantis.ucrop.UCropActivity"
+    if not any(item.get(android + "name") == cropper_name for item in root.iter("activity")):
+        cropper = ET.SubElement(root, "activity")
+        cropper.set(android + "name", cropper_name)
+        cropper.set(android + "screenOrientation", "portrait")
+        cropper.set(android + "theme", "@style/Theme.AppCompat.Light.NoActionBar")
     tree.write(manifest, encoding="utf-8", xml_declaration=True)
     print(f"Configured {manifest}")
     return 0
