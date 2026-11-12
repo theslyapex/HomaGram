@@ -25,6 +25,8 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _loading = true;
   bool _sending = false;
   String? _error;
+  String? _replyToId;
+  String? _replyToBody;
 
   String get _myId => Supabase.instance.client.auth.currentUser!.id;
 
@@ -38,6 +40,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _refresh() async {
     try {
       final messages = await MessagingService.loadMessages(widget.conversationId);
+      await MessagingService.markConversationRead(widget.conversationId);
       if (!mounted) return;
       setState(() {
         _messages = messages;
@@ -59,7 +62,12 @@ class _ChatScreenState extends State<ChatScreen> {
     _controller.clear();
     setState(() => _sending = true);
     try {
-      await MessagingService.sendTextMessage(widget.conversationId, text);
+      await MessagingService.sendTextMessage(
+        widget.conversationId,
+        text,
+        replyToId: _replyToId,
+      );
+      if (mounted) setState(() { _replyToId = null; _replyToBody = null; });
       await _refresh();
     } catch (_) {
       if (mounted) {
@@ -151,7 +159,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                       bottomRight: Radius.circular(mine ? 5 : 18),
                                     ),
                                   ),
-                                  child: Column(
+                                  child: GestureDetector(
+                                    onLongPress: () => _messageActions(message),
+                                    child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
                                       Text(
@@ -161,6 +171,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                           height: 1.6,
                                         ),
                                       ),
+                                      if (message['edited_at'] != null && !deleted)
+                                        const Text('ویرایش‌شده', style: TextStyle(fontSize: 9)),
                                       const SizedBox(height: 3),
                                       Text(
                                         _time(message['created_at'] as String?),
@@ -170,6 +182,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         ),
                                       ),
                                     ],
+                                  ),
                                   ),
                                 ),
                               );
@@ -184,7 +197,24 @@ class _ChatScreenState extends State<ChatScreen> {
                 color: Theme.of(context).scaffoldBackgroundColor,
                 border: Border(top: BorderSide(color: colors.outlineVariant.withValues(alpha: .5))),
               ),
-              child: Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_replyToId != null)
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 7),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: colors.primaryContainer.withValues(alpha: .55),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(children: [
+                        Expanded(child: Text('پاسخ به: ${_replyToBody ?? 'پیام'}', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                        IconButton(onPressed: () => setState(() { _replyToId = null; _replyToBody = null; }), icon: const Icon(Icons.close, size: 18)),
+                      ]),
+                    ),
+                  Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
@@ -214,11 +244,107 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 ],
               ),
+                ],
+              ),
             ),
           ),
         ],
       ),
     );
+  }
+
+
+  Future<void> _messageActions(Map<String, dynamic> message) async {
+    if (message['deleted_at'] != null) return;
+    final mine = message['sender_id'] == _myId;
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.reply_rounded),
+              title: const Text('پاسخ به پیام'),
+              onTap: () => Navigator.pop(context, 'reply'),
+            ),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 10,
+              children: ['👍', '❤️', '😂', '😮', '😢', '🔥'].map((emoji) =>
+                TextButton(
+                  onPressed: () => Navigator.pop(context, 'reaction:$emoji'),
+                  child: Text(emoji, style: const TextStyle(fontSize: 24)),
+                ),
+              ).toList(),
+            ),
+            if (mine) ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: const Text('ویرایش پیام'),
+              onTap: () => Navigator.pop(context, 'edit'),
+            ),
+            if (mine) ListTile(
+              leading: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+              title: const Text('حذف برای همه', style: TextStyle(color: Colors.red)),
+              onTap: () => Navigator.pop(context, 'delete'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || action == null) return;
+    try {
+      if (action == 'reply') {
+        setState(() {
+          _replyToId = message['id'] as String;
+          _replyToBody = message['body'] as String? ?? '';
+        });
+      } else if (action.startsWith('reaction:')) {
+        await MessagingService.toggleReaction(message['id'] as String, action.substring(9));
+        await _refresh();
+      } else if (action == 'edit') {
+        final controller = TextEditingController(text: message['body'] as String? ?? '');
+        final updated = await showDialog<String>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('ویرایش پیام'),
+            content: TextField(controller: controller, autofocus: true, maxLines: 5, maxLength: 10000),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text('انصراف')),
+              FilledButton(onPressed: () => Navigator.pop(context, controller.text), child: const Text('ذخیره')),
+            ],
+          ),
+        );
+        controller.dispose();
+        if (updated != null) {
+          await MessagingService.editMessage(message['id'] as String, updated);
+          await _refresh();
+        }
+      } else if (action == 'delete') {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('حذف پیام'),
+            content: const Text('این پیام برای همه اعضای گفتگو حذف شود؟'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('انصراف')),
+              FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف')),
+            ],
+          ),
+        );
+        if (confirmed == true) {
+          await MessagingService.deleteMessage(message['id'] as String);
+          await _refresh();
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('عملیات انجام نشد. دوباره تلاش کنید.')),
+        );
+      }
+    }
   }
 
   String _time(String? value) {
