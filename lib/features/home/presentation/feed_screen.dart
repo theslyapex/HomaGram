@@ -4,6 +4,7 @@ import 'package:video_player/video_player.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
 import 'create_post_screen.dart';
+import 'public_profile_screen.dart';
 import '../../../core/utils/persian_date.dart';
 
 class FeedScreen extends StatefulWidget {
@@ -190,7 +191,7 @@ class _PostCard extends StatelessWidget {
     final mediaUrl = post['media_url'] as String?;
     final mediaType = post['media_type'] as String?;
     final date = DateTime.tryParse(post['created_at'] as String? ?? '')?.toLocal();
-    final dateText = date == null ? '' : '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
+    final dateText = date == null ? '' : persianDate(date);
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardTheme.color,
@@ -204,7 +205,12 @@ class _PostCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(15, 14, 15, 12),
             child: Row(children: [
-              CircleAvatar(
+              InkWell(
+                borderRadius: BorderRadius.circular(30),
+                onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                  builder: (_) => PublicProfileScreen(userId: post['author_id'] as String),
+                )),
+                child: CircleAvatar(
                 radius: 21,
                 backgroundColor: const Color(0x223FD6D0),
                 backgroundImage: (post['author_avatar_url'] as String?) != null
@@ -213,16 +219,22 @@ class _PostCard extends StatelessWidget {
                 child: (post['author_avatar_url'] as String?) == null
                     ? const Icon(Icons.person_outline_rounded, color: HomaGramTheme.turquoise)
                     : null,
+                ),
               ),
               const SizedBox(width: 11),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Expanded(child: InkWell(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                  builder: (_) => PublicProfileScreen(userId: post['author_id'] as String),
+                )),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(post['author_display_name'] as String? ?? 'کاربر HomaGram',
                     style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
                 const SizedBox(height: 2),
                 Text('@${post['author_username'] ?? 'user'} • $dateText',
                     textDirection: TextDirection.ltr,
                     style: const TextStyle(fontSize: 10, color: Color(0xFF8490A4))),
-              ])),
+              ]),
+              )),
               const Icon(Icons.more_horiz_rounded, color: Color(0xFF8490A4)),
             ]),
           ),
