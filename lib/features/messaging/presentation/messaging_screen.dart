@@ -42,6 +42,25 @@ class _MessagingScreenState extends State<MessagingScreen> {
     }
   }
 
+  Future<void> _newGroup() async {
+    final id = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => const _NewGroupSheet(),
+    );
+    if (!mounted || id == null) return;
+    await _load();
+    var title = 'گروه جدید';
+    for (final item in _items) {
+      if (item.id == id) { title = item.title; break; }
+    }
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => ChatScreen(conversationId: id, title: title),
+    ));
+  }
+
   Future<void> _newChat() async {
     final id = await showModalBottomSheet<String>(
       context: context,
@@ -79,6 +98,11 @@ class _MessagingScreenState extends State<MessagingScreen> {
         automaticallyImplyLeading: false,
         title: const Text('پیام‌ها', style: TextStyle(fontWeight: FontWeight.w900)),
         actions: [
+          IconButton(
+            tooltip: 'ساخت گروه',
+            onPressed: _newGroup,
+            icon: const Icon(Icons.group_add_outlined),
+          ),
           IconButton(
             tooltip: 'گفت‌وگوی جدید',
             onPressed: _newChat,
@@ -274,6 +298,127 @@ class _NewChatSheetState extends State<_NewChatSheet> {
             padding: EdgeInsets.all(12),
             child: CircularProgressIndicator(),
           )),
+        ],
+      ),
+    );
+  }
+}
+
+class _NewGroupSheet extends StatefulWidget {
+  const _NewGroupSheet();
+  @override
+  State<_NewGroupSheet> createState() => _NewGroupSheetState();
+}
+
+class _NewGroupSheetState extends State<_NewGroupSheet> {
+  final _title = TextEditingController();
+  final _search = TextEditingController();
+  final Set<String> _selected = {};
+  List<Map<String, dynamic>> _users = [];
+  bool _searching = false, _creating = false;
+  String? _error;
+
+  Future<void> _find(String value) async {
+    if (value.trim().length < 2) { setState(() => _users = []); return; }
+    setState(() => _searching = true);
+    try {
+      final users = await MessagingService.searchUsers(value);
+      if (mounted) setState(() { _users = users; _error = null; });
+    } catch (_) {
+      if (mounted) setState(() => _error = 'جست‌وجوی کاربران انجام نشد.');
+    } finally {
+      if (mounted) setState(() => _searching = false);
+    }
+  }
+
+  Future<void> _create() async {
+    if (_creating) return;
+    if (_title.text.trim().isEmpty) {
+      setState(() => _error = 'نام گروه را وارد کنید.');
+      return;
+    }
+    setState(() { _creating = true; _error = null; });
+    try {
+      final id = await MessagingService.createGroupConversation(
+        title: _title.text,
+        memberIds: _selected.toList(),
+      );
+      if (mounted) Navigator.pop(context, id);
+    } catch (_) {
+      if (mounted) setState(() {
+        _creating = false;
+        _error = 'ساخت گروه انجام نشد. دوباره تلاش کنید.';
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _title.dispose();
+    _search.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(18, 8, 18, 20 + MediaQuery.viewInsetsOf(context).bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('ساخت گروه جدید', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 14),
+          TextField(controller: _title, maxLength: 100,
+            decoration: const InputDecoration(labelText: 'نام گروه', prefixIcon: Icon(Icons.groups_outlined))),
+          const SizedBox(height: 8),
+          TextField(controller: _search, autofocus: true, onChanged: _find,
+            decoration: const InputDecoration(hintText: 'جست‌وجوی اعضا با نام کاربری', prefixIcon: Icon(Icons.search_rounded))),
+          if (_searching) const LinearProgressIndicator(minHeight: 2),
+          if (_selected.isNotEmpty)
+            Padding(padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text('${_selected.length} عضو انتخاب شده‌اند')),
+          if (_users.isNotEmpty)
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 250),
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: _users.length,
+                itemBuilder: (context, index) {
+                  final user = _users[index];
+                  final id = user['id'] as String;
+                  final selected = _selected.contains(id);
+                  return CheckboxListTile(
+                    value: selected,
+                    onChanged: (value) => setState(() {
+                      if (value == true) {
+                        if (_selected.length < 99) _selected.add(id);
+                      } else {
+                        _selected.remove(id);
+                      }
+                    }),
+                    secondary: const CircleAvatar(child: Icon(Icons.person_outline)),
+                    title: Text(user['display_name'] as String? ?? user['username'] as String),
+                    subtitle: Text('@${user['username']}'),
+                    controlAffinity: ListTileControlAffinity.leading,
+                  );
+                },
+              ),
+            ),
+          if (_error != null)
+            Padding(padding: const EdgeInsets.only(top: 8),
+              child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error))),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _creating ? null : _create,
+              icon: _creating
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.group_add_rounded),
+              label: const Text('ایجاد گروه'),
+            ),
+          ),
         ],
       ),
     );
