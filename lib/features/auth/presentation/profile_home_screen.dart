@@ -6,7 +6,9 @@ import '../../../app/theme/app_theme.dart';
 import '../data/auth_service.dart';
 
 class ProfileHomeScreen extends StatefulWidget {
-  const ProfileHomeScreen({super.key});
+  const ProfileHomeScreen({this.onCompleted, super.key});
+
+  final VoidCallback? onCompleted;
 
   @override
   State<ProfileHomeScreen> createState() => _ProfileHomeScreenState();
@@ -188,6 +190,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
       if (!mounted) return;
       setState(() => _onboarding = false);
       _message('پروفایل ذخیره شد.');
+      widget.onCompleted?.call();
     } on PostgrestException catch (e) {
       if (e.code == '23505') {
         _message('این نام کاربری قبلاً انتخاب شده است.', error: true);
