@@ -159,7 +159,7 @@ class _FeedScreenState extends State<FeedScreen> {
                 padding: const EdgeInsets.fromLTRB(14, 8, 14, 28),
                 itemCount: posts.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, index) => _PostCard(post: posts[index], onDeleted: () => _refresh()),
+                itemBuilder: (context, index) => PostCard(post: posts[index], onDeleted: () => _refresh()),
               ),
             );
           },
@@ -182,8 +182,8 @@ class _FeedScreenState extends State<FeedScreen> {
       ));
 }
 
-class _PostCard extends StatefulWidget {
-  const _PostCard({required this.post, this.onDeleted});
+class PostCard extends StatefulWidget {
+  const PostCard({required this.post, this.onDeleted});
   final Map<String, dynamic> post;
   final VoidCallback? onDeleted;
   @override
