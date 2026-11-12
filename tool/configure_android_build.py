@@ -28,12 +28,13 @@ def main() -> int:
         # Flutter's generated Gradle template can omit a dependencies block.
         # Insert into it when present; otherwise create the block at EOF.
         text, dependency_n = re.subn(
-            r"(?m)^([ \\t]*)dependencies\\s*\\{",
-            lambda match: match.group(0) + "\\n" + dependency,
+            r"(?m)^([ \t]*)dependencies\s*\{",
+            lambda match: match.group(0) + "\n" + dependency,
             text, count=1)
         if dependency_n == 0:
-            text = text.rstrip() + "\\n\\ndependencies {\\n" + dependency + "\\n}\\n"
+            text = text.rstrip() + "\n\ndependencies {\n" + dependency + "\n}\n"
             dependency_n = 1
+
     if dependency_n != 1:
         print("Could not add the required OkHttp dependency.", file=sys.stderr)
         return 1
