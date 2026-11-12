@@ -204,6 +204,7 @@ class MessagingService {
       await _client.from('message_receipts')
           .update({'read_at': now})
           .eq('user_id', _userId)
+          .isFilter('read_at', null)
           .inFilter('message_id', existingIds.toList());
     }
     final missing = ids.where((id) => !existingIds.contains(id)).toList();
