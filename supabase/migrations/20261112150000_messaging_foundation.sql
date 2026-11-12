@@ -99,9 +99,28 @@ revoke all on public.conversations,public.conversation_members,public.messages,
 grant select on public.conversations,public.conversation_members,public.messages,
   public.message_reactions,public.message_receipts to authenticated;
 grant select,insert,delete on public.user_blocks to authenticated;
-grant insert,update,delete on public.messages to authenticated;
+grant insert,delete on public.messages to authenticated;
+grant update (body,edited_at,deleted_at,updated_at) on public.messages to authenticated;
 grant insert,delete on public.message_reactions to authenticated;
 grant insert,update on public.message_receipts to authenticated;
+
+create or replace function private.is_active_conversation_member(target_conversation_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $
+  select exists (
+    select 1 from public.conversation_members cm
+    where cm.conversation_id = target_conversation_id
+      and cm.user_id = (select auth.uid())
+      and cm.left_at is null
+  );
+$;
+revoke all on function private.is_active_conversation_member(uuid) from public, anon;
+grant usage on schema private to authenticated;
+grant execute on function private.is_active_conversation_member(uuid) to authenticated;
 
 create policy "Members can read their conversations"
 on public.conversations for select to authenticated
@@ -112,11 +131,7 @@ using (exists (
 
 create policy "Members can read membership of their conversations"
 on public.conversation_members for select to authenticated
-using (exists (
-  select 1 from public.conversation_members mine
-  where mine.conversation_id = conversation_id
-    and mine.user_id = (select auth.uid()) and mine.left_at is null
-));
+using (private.is_active_conversation_member(conversation_id));
 
 create policy "Active members can read messages"
 on public.messages for select to authenticated
