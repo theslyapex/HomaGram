@@ -6,7 +6,7 @@ String persianDate(DateTime date) {
   final y = gy + 4800 - a;
   final m = gm + 12 * a - 3;
   final jdn = gd + ((153 * m + 2) ~/ 5) + 365 * y + (y ~/ 4) - (y ~/ 100) + (y ~/ 400) - 32045;
-  var depoch = jdn - _jalaliToJdn(475, 1, 1);
+  var depoch = jdn - 1948320;
   final cycle = depoch ~/ 1029983;
   final cyear = depoch % 1029983;
   int ycycle;
@@ -23,7 +23,9 @@ String persianDate(DateTime date) {
   final yday = jdn - jalaliNewYear + 1;
   final jm = yday <= 186 ? ((yday - 1) ~/ 31) + 1 : ((yday - 187) ~/ 30) + 7;
   final jd = yday <= 186 ? ((yday - 1) % 31) + 1 : ((yday - 187) % 30) + 1;
-  return '${jy.toString().padLeft(4, '0')}/${jm.toString().padLeft(2, '0')}/${jd.toString().padLeft(2, '0')}';
+  final value = '${jy.toString().padLeft(4, '0')}/${jm.toString().padLeft(2, '0')}/${jd.toString().padLeft(2, '0')}';
+  const digits = '۰۱۲۳۴۵۶۷۸۹';
+  return value.replaceAllMapped(RegExp(r'[0-9]'), (match) => digits[int.parse(match.group(0)!)]);
 }
 
 int _jalaliToJdn(int jy, int jm, int jd) {
