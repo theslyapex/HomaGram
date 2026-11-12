@@ -6,6 +6,7 @@ import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
 import 'create_post_screen.dart';
 import 'public_profile_screen.dart';
+import 'stories_screen.dart';
 import '../../../core/utils/persian_date.dart';
 
 class FeedScreen extends StatefulWidget {
@@ -82,6 +83,7 @@ class _FeedScreenState extends State<FeedScreen> {
   @override
   Widget build(BuildContext context) => Column(
     children: [
+      const StoriesStrip(),
       Padding(
         padding: const EdgeInsets.fromLTRB(18, 14, 18, 8),
         child: InkWell(
