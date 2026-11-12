@@ -98,7 +98,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       if (_following) {
         await client.from('user_follows').delete()
             .eq('follower_id', _myId).eq('following_id', widget.userId);
-        setState(() { _following = false; _followers = (_followers - 1).clamp(0, 1 << 30); });
+        setState(() { _following = false; if (_followers > 0) _followers--; });
       } else {
         await client.from('user_follows').insert({
           'follower_id': _myId, 'following_id': widget.userId,
