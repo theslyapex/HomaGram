@@ -84,7 +84,6 @@ class StoryService {
         'media_path': path,
         'media_type': mediaType,
         'caption': caption.trim(),
-        'expires_at': DateTime.now().toUtc().add(const Duration(hours: 24)).toIso8601String(),
       });
     } catch (_) {
       try { await _client.storage.from('story-media').remove([path]); } catch (_) {}
@@ -113,12 +112,16 @@ class StoryService {
     final profiles = await _client.from('profiles')
         .select('id,username,display_name,avatar_path').inFilter('id', ids);
     final byId = {for (final p in profiles) p['id'] as String: p};
+    final reactions = await _client.from('story_reactions')
+        .select('user_id,emoji').eq('story_id', storyId);
+    final reactionByUser = {for (final r in reactions) r['user_id'] as String: r['emoji'] as String};
     return rows.map((r) {
       final p = byId[r['viewer_id']] ?? <String,dynamic>{};
       return <String,dynamic>{
         'username': p['username'] ?? 'user',
         'display_name': p['display_name'] ?? 'کاربر',
         'viewed_at': r['viewed_at'],
+        'reaction': reactionByUser[r['viewer_id']],
       };
     }).toList();
   }
