@@ -52,12 +52,15 @@ class _MessagingScreenState extends State<MessagingScreen> {
     );
     if (!mounted || id == null) return;
     await _load();
-    final item = _items.where((entry) => entry.id == id).firstOrNull;
+    var title = 'گفت‌وگوی خصوصی';
+    for (final item in _items) {
+      if (item.id == id) {
+        title = item.title;
+        break;
+      }
+    }
     Navigator.of(context).push(MaterialPageRoute<void>(
-      builder: (_) => ChatScreen(
-        conversationId: id,
-        title: item?.title ?? 'گفت‌وگوی خصوصی',
-      ),
+      builder: (_) => ChatScreen(conversationId: id, title: title),
     ));
   }
 
@@ -79,7 +82,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
           IconButton(
             tooltip: 'گفت‌وگوی جدید',
             onPressed: _newChat,
-            icon: const Icon(Icons.edit_square),
+            icon: const Icon(Icons.edit_outlined),
           ),
           const SizedBox(width: 8),
         ],
