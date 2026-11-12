@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/auth_service.dart';
-import '../../../home/presentation/home_screen.dart';
+import '../../home/presentation/home_screen.dart';
 import 'auth_screen.dart';
 import 'password_recovery_screen.dart';
 import 'profile_home_screen.dart';
