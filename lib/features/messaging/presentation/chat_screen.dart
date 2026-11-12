@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -65,6 +66,23 @@ class _ChatScreenState extends State<ChatScreen> {
 
 
 
+
+  String _documentMime(String extension) {
+    switch (extension) {
+      case 'pdf': return 'application/pdf';
+      case 'doc': return 'application/msword';
+      case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      case 'xls': return 'application/vnd.ms-excel';
+      case 'xlsx': return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      case 'ppt': return 'application/vnd.ms-powerpoint';
+      case 'pptx': return 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+      case 'csv': return 'text/csv';
+      case 'txt': return 'text/plain';
+      case 'zip': return 'application/zip';
+      default: return 'application/octet-stream';
+    }
+  }
+
   Future<void> _searchMessages() async {
     final controller = TextEditingController();
     await showDialog<void>(
@@ -120,10 +138,48 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           ListTile(leading: const Icon(Icons.image_outlined), title: const Text('انتخاب تصویر'), onTap: () => Navigator.pop(context, 'image')),
           ListTile(leading: const Icon(Icons.video_library_outlined), title: const Text('انتخاب ویدئو'), onTap: () => Navigator.pop(context, 'video')),
+          ListTile(leading: const Icon(Icons.attach_file_rounded), title: const Text('انتخاب فایل'), onTap: () => Navigator.pop(context, 'file')),
         ]),
       ),
     );
     if (!mounted || choice == null || _sending) return;
+    if (choice == 'file') {
+      try {
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: ['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','csv','zip'],
+          allowMultiple: false,
+          withData: true,
+        );
+        if (result == null || result.files.isEmpty) return;
+        final picked = result.files.single;
+        final bytes = picked.bytes;
+        if (bytes == null || bytes.isEmpty) throw StateError('File bytes unavailable');
+        if (bytes.length > 52428800) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('حجم فایل نباید بیشتر از ۵۰ مگابایت باشد.')),
+          );
+          return;
+        }
+        final ext = (picked.extension ?? '').toLowerCase();
+        final mime = _documentMime(ext);
+        setState(() => _sending = true);
+        await MessagingService.sendMediaMessage(
+          conversationId: widget.conversationId,
+          bytes: bytes,
+          fileName: picked.name,
+          mimeType: mime,
+        );
+        await _refresh();
+      } catch (_) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('ارسال فایل انجام نشد. دوباره تلاش کنید.')),
+        );
+      } finally {
+        if (mounted) setState(() => _sending = false);
+      }
+      return;
+    }
     try {
       final XFile? file = choice == 'image'
           ? await _picker.pickImage(source: ImageSource.gallery, imageQuality: 88)
