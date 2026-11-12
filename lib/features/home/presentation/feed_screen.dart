@@ -187,10 +187,10 @@ class PostCard extends StatefulWidget {
   final Map<String, dynamic> post;
   final VoidCallback? onDeleted;
   @override
-  State<_PostCard> createState() => _PostCardState();
+  State<PostCard> createState() => _PostCardState();
 }
 
-class _PostCardState extends State<_PostCard> {
+class _PostCardState extends State<PostCard> {
   bool _liked = false, _saved = false, _reposted = false, _busy = false;
   int _likes = 0, _comments = 0;
   String get _userId => AuthService.client.auth.currentUser!.id;
