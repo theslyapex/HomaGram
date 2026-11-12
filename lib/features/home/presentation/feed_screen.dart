@@ -4,6 +4,7 @@ import 'package:video_player/video_player.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
 import 'create_post_screen.dart';
+import '../../../core/utils/persian_date.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
@@ -27,9 +28,27 @@ class _FeedScreenState extends State<FeedScreen> {
         .select('id,author_id,author_username,author_display_name,caption,media_path,media_type,created_at')
         .order('created_at', ascending: false)
         .limit(50);
+    final authorIds = rows.map((row) => row['author_id'] as String).toSet().toList();
+    final profiles = authorIds.isEmpty
+        ? <dynamic>[]
+        : await AuthService.client.from('profiles')
+            .select('id,avatar_path')
+            .inFilter('id', authorIds);
+    final profileById = <String, Map<String, dynamic>>{
+      for (final profile in profiles)
+        profile['id'] as String: Map<String, dynamic>.from(profile),
+    };
     final result = <Map<String, dynamic>>[];
     for (final item in rows) {
       final post = Map<String, dynamic>.from(item);
+      final author = profileById[post['author_id'] as String];
+      final avatarPath = author?['avatar_path'] as String?;
+      if (avatarPath != null) {
+        try {
+          post['author_avatar_url'] = await AuthService.client.storage
+              .from('avatars').createSignedUrl(avatarPath, 3600);
+        } catch (_) {}
+      }
       final path = post['media_path'] as String?;
       if (path != null) {
         try {
@@ -185,10 +204,15 @@ class _PostCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(15, 14, 15, 12),
             child: Row(children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 21,
-                backgroundColor: Color(0x223FD6D0),
-                child: Icon(Icons.person_outline_rounded, color: HomaGramTheme.turquoise),
+                backgroundColor: const Color(0x223FD6D0),
+                backgroundImage: (post['author_avatar_url'] as String?) != null
+                    ? NetworkImage(post['author_avatar_url'] as String)
+                    : null,
+                child: (post['author_avatar_url'] as String?) == null
+                    ? const Icon(Icons.person_outline_rounded, color: HomaGramTheme.turquoise)
+                    : null,
               ),
               const SizedBox(width: 11),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
