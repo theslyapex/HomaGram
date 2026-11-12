@@ -159,7 +159,7 @@ class _FeedScreenState extends State<FeedScreen> {
                 padding: const EdgeInsets.fromLTRB(14, 8, 14, 28),
                 itemCount: posts.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, index) => _PostCard(post: posts[index]),
+                itemBuilder: (context, index) => _PostCard(post: posts[index], onDeleted: () => _refresh()),
               ),
             );
           },
@@ -183,8 +183,9 @@ class _FeedScreenState extends State<FeedScreen> {
 }
 
 class _PostCard extends StatefulWidget {
-  const _PostCard({required this.post});
+  const _PostCard({required this.post, this.onDeleted});
   final Map<String, dynamic> post;
+  final VoidCallback? onDeleted;
   @override
   State<_PostCard> createState() => _PostCardState();
 }
@@ -246,12 +247,95 @@ class _PostCardState extends State<_PostCard> {
   }
 
   Future<void> _share() async {
-    final link = 'https://homagram.app/post/$_postId';
-    try { await Share.share('این پست را در HomaGram ببین:
-$link'); }
-    catch (_) {
+    final link = Uri(scheme: 'homagram', host: 'post', path: '/$_postId');
+    try {
+      await SharePlus.instance.share(ShareParams(
+        text: 'این پست را در HomaGram ببین:\n$link',
+        subject: 'پست در HomaGram',
+      ));
+    } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('اشتراک‌گذاری در این دستگاه در دسترس نیست.')));
+    }
+  }
+
+  Future<void> _editCaption() async {
+    final controller = TextEditingController(text: widget.post['caption'] as String? ?? '');
+    final value = await showDialog<String>(context: context, builder: (ctx) => AlertDialog(
+      title: const Text('ویرایش متن پست'),
+      content: TextField(controller: controller, autofocus: true, maxLength: 2200,
+        minLines: 2, maxLines: 7, decoration: const InputDecoration(hintText: 'متن پست')),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
+        FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+          child: const Text('ذخیره تغییرات')),
+      ],
+    ));
+    controller.dispose();
+    if (value == null || value.length > 2200) return;
+    try {
+      await AuthService.client.from('posts').update({'caption': value}).eq('id', _postId).eq('author_id', _userId);
+      if (mounted) {
+        setState(() => widget.post['caption'] = value);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('متن پست ویرایش شد.')));
+      }
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ویرایش پست انجام نشد.')));
+    }
+  }
+
+  Future<void> _deletePost() async {
+    final confirmed = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
+      title: const Text('حذف پست'),
+      content: const Text('این پست برای همیشه حذف شود؟'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
+        FilledButton(onPressed: () => Navigator.pop(ctx, true),
+          style: FilledButton.styleFrom(backgroundColor: Colors.red),
+          child: const Text('حذف')),
+      ],
+    ));
+    if (confirmed != true) return;
+    try {
+      final path = widget.post['media_path'] as String?;
+      await AuthService.client.from('posts').delete().eq('id', _postId).eq('author_id', _userId);
+      if (path != null) {
+        try { await AuthService.client.storage.from('post-media').remove([path]); } catch (_) {}
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('پست حذف شد.')));
+      onDeleted?.call();
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('حذف پست انجام نشد.')));
+    }
+  }
+
+  Future<void> _reportPost() async {
+    const reasons = <String, String>{
+      'spam': 'هرزنامه یا تبلیغات',
+      'harassment': 'آزار و اذیت',
+      'misinformation': 'اطلاعات نادرست',
+      'inappropriate': 'محتوای نامناسب',
+      'other': 'سایر موارد',
+    };
+    final reason = await showModalBottomSheet<String>(context: context, showDragHandle: true,
+      builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        const ListTile(title: Text('دلیل گزارش این پست را انتخاب کنید')),
+        ...reasons.entries.map((e) => ListTile(title: Text(e.value),
+          onTap: () => Navigator.pop(ctx, e.key))),
+      ])));
+    if (reason == null) return;
+    try {
+      await AuthService.client.from('post_reports').insert({
+        'post_id': _postId, 'reporter_id': _userId, 'reason': reason,
+      });
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('گزارش شما ثبت شد.')));
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('این پست قبلاً گزارش شده یا ثبت گزارش ممکن نیست.')));
     }
   }
 
@@ -266,10 +350,23 @@ $link'); }
           onTap: () => Navigator.pop(ctx, 'repost')),
         ListTile(leading: const Icon(Icons.ios_share_outlined), title: const Text('ارسال پست'),
           onTap: () => Navigator.pop(ctx, 'share')),
+        if (widget.post['author_id'] == _userId) ...[
+          const Divider(height: 1),
+          ListTile(leading: const Icon(Icons.edit_outlined), title: const Text('ویرایش متن پست'),
+            onTap: () => Navigator.pop(ctx, 'edit')),
+          ListTile(leading: const Icon(Icons.delete_outline, color: Colors.red),
+            title: const Text('حذف پست', style: TextStyle(color: Colors.red)),
+            onTap: () => Navigator.pop(ctx, 'delete')),
+        ] else
+          ListTile(leading: const Icon(Icons.flag_outlined), title: const Text('گزارش پست'),
+            onTap: () => Navigator.pop(ctx, 'report')),
       ])));
     if (choice == 'save') await _toggle('saved_posts', _saved, (v) => setState(() => _saved = v));
     if (choice == 'repost') await _toggle('post_reposts', _reposted, (v) => setState(() => _reposted = v));
     if (choice == 'share') await _share();
+    if (choice == 'edit') await _editCaption();
+    if (choice == 'delete') await _deletePost();
+    if (choice == 'report') await _reportPost();
   }
 
   @override
