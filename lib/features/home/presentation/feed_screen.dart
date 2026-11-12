@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
@@ -181,94 +182,244 @@ class _FeedScreenState extends State<FeedScreen> {
       ));
 }
 
-class _PostCard extends StatelessWidget {
+class _PostCard extends StatefulWidget {
   const _PostCard({required this.post});
   final Map<String, dynamic> post;
+  @override
+  State<_PostCard> createState() => _PostCardState();
+}
+
+class _PostCardState extends State<_PostCard> {
+  bool _liked = false, _saved = false, _reposted = false, _busy = false;
+  int _likes = 0, _comments = 0;
+  String get _userId => AuthService.client.auth.currentUser!.id;
+  String get _postId => widget.post['id'] as String;
+
+  @override
+  void initState() { super.initState(); _loadInteractionState(); }
+
+  Future<void> _loadInteractionState() async {
+    try {
+      final c = AuthService.client;
+      final results = await Future.wait([
+        c.from('post_likes').select('user_id').eq('post_id', _postId),
+        c.from('post_comments').select('id').eq('post_id', _postId),
+        c.from('post_likes').select('post_id').eq('post_id', _postId).eq('user_id', _userId).maybeSingle(),
+        c.from('saved_posts').select('post_id').eq('post_id', _postId).eq('user_id', _userId).maybeSingle(),
+        c.from('post_reposts').select('post_id').eq('post_id', _postId).eq('user_id', _userId).maybeSingle(),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _likes = (results[0] as List).length;
+        _comments = (results[1] as List).length;
+        _liked = results[2] != null; _saved = results[3] != null; _reposted = results[4] != null;
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _toggle(String table, bool current, void Function(bool) update) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      final q = AuthService.client.from(table);
+      if (current) {
+        await q.delete().eq('post_id', _postId).eq('user_id', _userId);
+      } else {
+        await q.insert({'post_id': _postId, 'user_id': _userId});
+      }
+      if (mounted) update(!current);
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('عملیات انجام نشد؛ دوباره تلاش کنید.')));
+    } finally { if (mounted) setState(() => _busy = false); }
+  }
+
+  Future<void> _like() => _toggle('post_likes', _liked, (v) {
+    setState(() { _liked = v; _likes += v ? 1 : -1; });
+  });
+
+  Future<void> _commentsPage() async {
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => PostCommentsScreen(postId: _postId),
+    ));
+    _loadInteractionState();
+  }
+
+  Future<void> _share() async {
+    final link = 'https://homagram.app/post/$_postId';
+    try { await Share.share('این پست را در HomaGram ببین:
+$link'); }
+    catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('اشتراک‌گذاری در این دستگاه در دسترس نیست.')));
+    }
+  }
+
+  Future<void> _menu() async {
+    final choice = await showModalBottomSheet<String>(context: context, showDragHandle: true,
+      builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        ListTile(leading: Icon(_saved ? Icons.bookmark_remove_outlined : Icons.bookmark_add_outlined),
+          title: Text(_saved ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره پست'),
+          onTap: () => Navigator.pop(ctx, 'save')),
+        ListTile(leading: Icon(_reposted ? Icons.repeat_on : Icons.repeat),
+          title: Text(_reposted ? 'لغو بازنشر' : 'بازنشر در صفحه من'),
+          onTap: () => Navigator.pop(ctx, 'repost')),
+        ListTile(leading: const Icon(Icons.ios_share_outlined), title: const Text('ارسال پست'),
+          onTap: () => Navigator.pop(ctx, 'share')),
+      ])));
+    if (choice == 'save') await _toggle('saved_posts', _saved, (v) => setState(() => _saved = v));
+    if (choice == 'repost') await _toggle('post_reposts', _reposted, (v) => setState(() => _reposted = v));
+    if (choice == 'share') await _share();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final post = widget.post;
     final caption = (post['caption'] as String? ?? '').trim();
     final mediaUrl = post['media_url'] as String?;
     final mediaType = post['media_type'] as String?;
     final date = DateTime.tryParse(post['created_at'] as String? ?? '')?.toLocal();
     final dateText = date == null ? '' : persianDate(date);
     return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
+      decoration: BoxDecoration(color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: .16)),
-      ),
+        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: .16))),
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(15, 14, 15, 12),
-            child: Row(children: [
-              InkWell(
-                borderRadius: BorderRadius.circular(30),
-                onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-                  builder: (_) => PublicProfileScreen(userId: post['author_id'] as String),
-                )),
-                child: CircleAvatar(
-                radius: 21,
-                backgroundColor: const Color(0x223FD6D0),
-                backgroundImage: (post['author_avatar_url'] as String?) != null
-                    ? NetworkImage(post['author_avatar_url'] as String)
-                    : null,
-                child: (post['author_avatar_url'] as String?) == null
-                    ? const Icon(Icons.person_outline_rounded, color: HomaGramTheme.turquoise)
-                    : null,
-                ),
-              ),
-              const SizedBox(width: 11),
-              Expanded(child: InkWell(
-                onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-                  builder: (_) => PublicProfileScreen(userId: post['author_id'] as String),
-                )),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(post['author_display_name'] as String? ?? 'کاربر HomaGram',
-                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
-                const SizedBox(height: 2),
-                Text('@${post['author_username'] ?? 'user'} • $dateText',
-                    textDirection: TextDirection.ltr,
-                    style: const TextStyle(fontSize: 10, color: Color(0xFF8490A4))),
-              ]),
-              )),
-              const Icon(Icons.more_horiz_rounded, color: Color(0xFF8490A4)),
-            ]),
-          ),
-          if (caption.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-              child: Text(caption, style: const TextStyle(height: 1.85, fontSize: 13)),
-            ),
-          if (mediaUrl != null)
-            if (mediaType == 'video')
-              _FeedVideo(url: mediaUrl)
-            else
-              Image.network(mediaUrl, fit: BoxFit.cover,
-                loadingBuilder: (context, child, progress) => progress == null
-                    ? child
-                    : const AspectRatio(aspectRatio: 1, child: Center(child: CircularProgressIndicator())),
-                errorBuilder: (_, __, ___) => const _MediaError()),
-          if (post['media_unavailable'] == true) const _MediaError(),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(15, 10, 15, 12),
-            child: Row(children: [
-              const Icon(Icons.favorite_border_rounded, size: 21, color: Color(0xFF8792A5)),
-              const SizedBox(width: 6),
-              const Text('پسندیدن', style: TextStyle(fontSize: 11, color: Color(0xFF8792A5))),
-              const Spacer(),
-              const Icon(Icons.chat_bubble_outline_rounded, size: 19, color: Color(0xFF8792A5)),
-              const SizedBox(width: 6),
-              const Text('گفت‌وگو', style: TextStyle(fontSize: 11, color: Color(0xFF8792A5))),
-            ]),
-          ),
-        ],
-      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Padding(padding: const EdgeInsets.fromLTRB(15, 14, 8, 12), child: Row(children: [
+          InkWell(borderRadius: BorderRadius.circular(30),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+              builder: (_) => PublicProfileScreen(userId: post['author_id'] as String))),
+            child: CircleAvatar(radius: 21, backgroundColor: const Color(0x223FD6D0),
+              backgroundImage: post['author_avatar_url'] == null ? null : NetworkImage(post['author_avatar_url'] as String),
+              child: post['author_avatar_url'] == null
+                ? const Icon(Icons.person_outline_rounded, color: HomaGramTheme.turquoise) : null)),
+          const SizedBox(width: 11),
+          Expanded(child: InkWell(onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+            builder: (_) => PublicProfileScreen(userId: post['author_id'] as String))),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(post['author_display_name'] as String? ?? 'کاربر HomaGram',
+                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+              Text('@${post['author_username'] ?? 'user'} • $dateText', textDirection: TextDirection.ltr,
+                style: const TextStyle(fontSize: 10, color: Color(0xFF8490A4))),
+            ]))),
+          IconButton(onPressed: _menu, icon: const Icon(Icons.more_horiz_rounded, color: Color(0xFF8490A4))),
+        ])),
+        if (caption.isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+          child: Text(caption, style: const TextStyle(height: 1.85, fontSize: 13))),
+        if (mediaUrl != null) mediaType == 'video' ? _FeedVideo(url: mediaUrl)
+          : Image.network(mediaUrl, fit: BoxFit.cover,
+            loadingBuilder: (context, child, progress) => progress == null ? child
+              : const AspectRatio(aspectRatio: 1, child: Center(child: CircularProgressIndicator())),
+            errorBuilder: (_, __, ___) => const _MediaError()),
+        if (post['media_unavailable'] == true) const _MediaError(),
+        Padding(padding: const EdgeInsets.fromLTRB(8, 4, 8, 8), child: Row(children: [
+          TextButton.icon(onPressed: _busy ? null : _like,
+            icon: Icon(_liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+              color: _liked ? Colors.redAccent : const Color(0xFF8792A5), size: 20),
+            label: Text('پسندیدن $_likes')),
+          TextButton.icon(onPressed: _commentsPage,
+            icon: const Icon(Icons.mode_comment_outlined, size: 19),
+            label: Text('دیدگاه $_comments')),
+          const Spacer(),
+          IconButton(tooltip: 'ارسال', onPressed: _share, icon: const Icon(Icons.send_outlined)),
+          IconButton(tooltip: 'گزینه‌ها', onPressed: _menu, icon: const Icon(Icons.more_vert)),
+        ])),
+      ]),
     );
   }
+}
+
+class PostCommentsScreen extends StatefulWidget {
+  const PostCommentsScreen({required this.postId, super.key});
+  final String postId;
+  @override
+  State<PostCommentsScreen> createState() => _PostCommentsScreenState();
+}
+
+class _PostCommentsScreenState extends State<PostCommentsScreen> {
+  final _controller = TextEditingController();
+  List<Map<String, dynamic>> _comments = [];
+  bool _loading = true, _sending = false;
+  String? _replyTo;
+  String? _replyName;
+  String get _uid => AuthService.client.auth.currentUser!.id;
+
+  @override
+  void initState() { super.initState(); _load(); }
+  @override
+  void dispose() { _controller.dispose(); super.dispose(); }
+
+  Future<void> _load() async {
+    try {
+      final rows = await AuthService.client.from('post_comments')
+        .select('id,user_id,parent_id,body,created_at')
+        .eq('post_id', widget.postId).order('created_at');
+      final ids = rows.map((e) => e['user_id'] as String).toSet().toList();
+      final profiles = ids.isEmpty ? <dynamic>[] : await AuthService.client.from('profiles')
+        .select('id,username,display_name,avatar_path').inFilter('id', ids);
+      final map = {for (final p in profiles) p['id'] as String: Map<String,dynamic>.from(p)};
+      if (!mounted) return;
+      setState(() { _comments = rows.map((r) {
+        final m = Map<String,dynamic>.from(r); m['profile'] = map[m['user_id']]; return m;
+      }).toList(); _loading = false; });
+    } catch (_) { if (mounted) setState(() => _loading = false); }
+  }
+
+  Future<void> _send() async {
+    final body = _controller.text.trim();
+    if (body.isEmpty || _sending) return;
+    setState(() => _sending = true);
+    try {
+      await AuthService.client.from('post_comments').insert({
+        'post_id': widget.postId, 'user_id': _uid, 'parent_id': _replyTo, 'body': body,
+      });
+      _controller.clear(); _replyTo = null; _replyName = null; await _load();
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ثبت دیدگاه انجام نشد.')));
+    } finally { if (mounted) setState(() => _sending = false); }
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('دیدگاه‌ها')),
+    body: Column(children: [
+      Expanded(child: _loading ? const Center(child: CircularProgressIndicator())
+        : _comments.isEmpty ? const Center(child: Text('هنوز دیدگاهی ثبت نشده است.'))
+        : ListView.builder(padding: const EdgeInsets.all(14), itemCount: _comments.length,
+          itemBuilder: (context, i) {
+            final c = _comments[i], p = c['profile'] as Map<String,dynamic>?;
+            final isReply = c['parent_id'] != null;
+            return Padding(padding: EdgeInsets.only(bottom: 12, right: isReply ? 28 : 0),
+              child: ListTile(dense: true, tileColor: Theme.of(context).cardTheme.color,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                leading: CircleAvatar(child: Text(((p?['display_name'] as String?) ?? 'ک').characters.first)),
+                title: Text(p?['display_name'] as String? ?? 'کاربر',
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+                subtitle: Text(c['body'] as String),
+                trailing: TextButton(onPressed: () => setState(() {
+                  _replyTo = c['parent_id'] == null ? c['id'] as String : c['parent_id'] as String;
+                  _replyName = p?['display_name'] as String? ?? 'کاربر';
+                }), child: const Text('پاسخ'))));
+          })),
+      SafeArea(top: false, child: Padding(padding: const EdgeInsets.all(12),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          if (_replyTo != null) Row(children: [
+            Expanded(child: Text('پاسخ به $_replyName', style: const TextStyle(fontSize: 12))),
+            IconButton(onPressed: () => setState(() { _replyTo = null; _replyName = null; }),
+              icon: const Icon(Icons.close, size: 18)),
+          ]),
+          Row(children: [
+            Expanded(child: TextField(controller: _controller, minLines: 1, maxLines: 4,
+              maxLength: 2000, decoration: const InputDecoration(hintText: 'دیدگاه خود را بنویسید…'))),
+            IconButton(onPressed: _sending ? null : _send,
+              icon: _sending ? const SizedBox(width: 18,height:18,child:CircularProgressIndicator(strokeWidth:2))
+                : const Icon(Icons.send_rounded, color: HomaGramTheme.turquoise)),
+          ]),
+        ]))),
+    ]),
+  );
 }
 
 class _FeedVideo extends StatefulWidget {
