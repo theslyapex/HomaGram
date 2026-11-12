@@ -12,6 +12,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   supabase_flutter: 2.18.3
+  image_picker: 1.2.2
 
 dev_dependencies:
   flutter_test:
