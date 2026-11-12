@@ -14,6 +14,30 @@ def main() -> int:
 
     text = gradle.read_text(encoding="utf-8")
     kotlin = gradle.suffix == ".kts"
+
+    # uCrop 2.2.11 references OkHttp directly for URI downloads; R8
+    # requires these classes to be present in the release runtime.
+    if kotlin:
+        dependency = '    implementation("com.squareup.okhttp3:okhttp:4.12.0")'
+        if "com.squareup.okhttp3:okhttp" not in text:
+            text, dependency_n = re.subn(
+                r"(?m)^dependencies\\s*\\{",
+                lambda match: match.group(0) + "\\n" + dependency,
+                text, count=1)
+        else:
+            dependency_n = 1
+    else:
+        dependency = "    implementation 'com.squareup.okhttp3:okhttp:4.12.0'"
+        if "com.squareup.okhttp3:okhttp" not in text:
+            text, dependency_n = re.subn(
+                r"(?m)^dependencies\\s*\\{",
+                lambda match: match.group(0) + "\\n" + dependency,
+                text, count=1)
+        else:
+            dependency_n = 1
+    if dependency_n != 1:
+        print("Could not add the required OkHttp dependency.", file=sys.stderr)
+        return 1
     if kotlin:
         text, compile_n = re.subn(r"(?m)^([ \t]*)compileSdk\s*=\s*[^\n]+", r"\g<1>compileSdk = 36", text, count=1)
         text, target_n = re.subn(r"(?m)^([ \t]*)targetSdk\s*=\s*[^\n]+", r"\g<1>targetSdk = 36", text, count=1)
@@ -63,7 +87,7 @@ def main() -> int:
         print(f"Unexpected Gradle layout: compile={compile_n}, target={target_n}, inserted={inserted}, signing={signing_n}.", file=sys.stderr)
         return 1
     gradle.write_text(text, encoding="utf-8")
-    print(f"Configured {gradle}: compileSdk=36, targetSdk=36, release signing.")
+    print(f"Configured {gradle}: compileSdk=36, targetSdk=36, OkHttp dependency, release signing.")
     return 0
 
 
