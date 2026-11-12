@@ -20,6 +20,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   Map<String, dynamic>? _profile;
   String? _avatarUrl;
   List<Map<String, dynamic>> _posts = [];
+  List<Map<String, dynamic>> _repostPosts = [];
   int _followers = 0;
   int _followingCount = 0;
   int _reposts = 0;
@@ -56,6 +57,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       final following = results[1] as List;
       final reposts = results[2] as List;
       final postRows = results[3] as List;
+      final repostIds = reposts.map((r) => r['post_id'] as String).toList();
+      final repostRows = repostIds.isEmpty ? <dynamic>[] : await client.from('posts')
+          .select('id,author_id,author_username,author_display_name,caption,media_path,media_type,created_at')
+          .inFilter('id', repostIds).order('created_at', ascending: false);
       final myFollow = await client.from('user_follows').select('following_id')
           .eq('follower_id', _myId).eq('following_id', widget.userId).maybeSingle();
       String? avatar;
@@ -64,6 +69,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         try { avatar = await client.storage.from('avatars').createSignedUrl(avatarPath, 3600); } catch (_) {}
       }
       final posts = <Map<String, dynamic>>[];
+      final repostPostList = <Map<String, dynamic>>[];
       for (final row in postRows) {
         final post = Map<String, dynamic>.from(row);
         final path = post['media_path'] as String?;
@@ -74,6 +80,14 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         }
         posts.add(post);
       }
+      for (final row in repostRows) {
+        final post = Map<String, dynamic>.from(row);
+        final path = post['media_path'] as String?;
+        if (path != null) {
+          try { post['media_url'] = await client.storage.from('post-media').createSignedUrl(path, 3600); } catch (_) {}
+        }
+        repostPostList.add(post);
+      }
       if (!mounted) return;
       setState(() {
         _profile = Map<String, dynamic>.from(profile);
@@ -82,6 +96,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         _followingCount = following.length;
         _reposts = reposts.length;
         _posts = posts;
+        _repostPosts = repostPostList;
         _following = myFollow != null;
         _loading = false;
       });
@@ -138,6 +153,50 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                   Text('پست‌ها', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
                 ]),
                 const SizedBox(height: 12),
+                const SizedBox(height: 26),
+                const Row(children: [
+                  Icon(Icons.repeat_rounded, size: 19, color: HomaGramTheme.turquoise),
+                  SizedBox(width: 8),
+                  Text('بازنشرها', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+                ]),
+                const SizedBox(height: 12),
+                if (_repostPosts.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text('هنوز بازنشری ثبت نشده است.', textAlign: TextAlign.center,
+                      style: TextStyle(color: Color(0xFF8490A4))),
+                  )
+                else
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _repostPosts.length,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3, crossAxisSpacing: 4, mainAxisSpacing: 4,
+                    ),
+                    itemBuilder: (context, index) {
+                      final post = _repostPosts[index];
+                      final url = post['media_url'] as String?;
+                      return GestureDetector(
+                        onTap: () => _showPost(post),
+                        child: Container(
+                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          child: url == null
+                            ? Center(child: Padding(padding: const EdgeInsets.all(8),
+                                child: Text((post['caption'] as String? ?? '').isEmpty ? 'پست متنی' : post['caption'] as String,
+                                  maxLines: 5, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center,
+                                  style: const TextStyle(fontSize: 11))))
+                            : Stack(fit: StackFit.expand, children: [
+                                Image.network(url, fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined)),
+                                if (post['media_type'] == 'video')
+                                  const Positioned(right: 6, top: 6,
+                                    child: Icon(Icons.play_arrow_rounded, color: Colors.white)),
+                              ]),
+                        ),
+                      );
+                    },
+                  ),
                 if (_posts.isEmpty)
                   const Padding(
                     padding: EdgeInsets.all(32),
