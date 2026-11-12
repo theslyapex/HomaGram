@@ -408,7 +408,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
                   : ListView.builder(itemCount: viewers.length, itemBuilder: (_, i) => ListTile(
                       leading: const CircleAvatar(child: Icon(Icons.person_outline)),
                       title: Text(viewers[i]['display_name'] as String),
-                      subtitle: Text('@${viewers[i]['username']}'),
+                      subtitle: Text('@${viewers[i]['username']}${viewers[i]['reaction'] == null ? '' : ' • واکنش ${viewers[i]['reaction']}'}'),
                     ))),
             ]),
           ),
