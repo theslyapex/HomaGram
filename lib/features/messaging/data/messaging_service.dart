@@ -430,6 +430,33 @@ class MessagingService {
         .subscribe();
   }
 
+
+  static Future<void> updatePresence(bool online) async {
+    final now = DateTime.now().toUtc().toIso8601String();
+    await _client.from('user_presence').upsert({
+      'user_id': _userId, 'is_online': online,
+      'last_seen_at': now, 'updated_at': now,
+    }, onConflict: 'user_id');
+  }
+
+  static Future<List<Map<String, dynamic>>> loadConversationPresence(String conversationId) async {
+    final members = await _client.from('conversation_members')
+        .select('user_id').eq('conversation_id', conversationId)
+        .isFilter('left_at', null).neq('user_id', _userId);
+    if (members.isEmpty) return [];
+    final ids = members.map((row) => row['user_id'] as String).toList();
+    final rows = await _client.from('user_presence')
+        .select('user_id,is_online,last_seen_at').inFilter('user_id', ids);
+    return rows.map((row) => Map<String, dynamic>.from(row)).toList();
+  }
+
+  static RealtimeChannel watchPresence(void Function() onChange) {
+    return _client.channel('homagram-presence-$_userId')
+        .onPostgresChanges(event: PostgresChangeEvent.all, schema: 'public',
+          table: 'user_presence', callback: (_) => onChange())
+        .subscribe();
+  }
+
   static Future<void> removeChannel(RealtimeChannel channel) async {
     await _client.removeChannel(channel);
   }

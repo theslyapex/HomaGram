@@ -25,6 +25,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final _picker = ImagePicker();
   List<Map<String, dynamic>> _messages = [];
   RealtimeChannel? _channel;
+  RealtimeChannel? _presenceChannel;
+  String _presenceLabel = '';
   bool _loading = true;
   bool _sending = false;
   String? _error;
@@ -38,6 +40,8 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     _refresh();
     _channel = MessagingService.watchConversation(widget.conversationId, _refresh);
+    _presenceChannel = MessagingService.watchPresence(_refreshPresence);
+    _refreshPresence();
   }
 
   Future<void> _refresh() async {
@@ -182,6 +186,8 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollController.dispose();
     final channel = _channel;
     if (channel != null) MessagingService.removeChannel(channel);
+    final presenceChannel = _presenceChannel;
+    if (presenceChannel != null) MessagingService.removeChannel(presenceChannel);
     super.dispose();
   }
 
@@ -200,11 +206,19 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(
-                widget.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                  if (_presenceLabel.isNotEmpty)
+                    Text(_presenceLabel, style: TextStyle(
+                      fontSize: 10,
+                      color: _presenceLabel == 'آنلاین'
+                          ? colors.primary : colors.onSurfaceVariant,
+                    )),
+                ],
               ),
             ),
           ],
@@ -366,6 +380,32 @@ class _ChatScreenState extends State<ChatScreen> {
 
 
 
+
+
+  Future<void> _refreshPresence() async {
+    try {
+      final info = await Supabase.instance.client.from('conversations')
+          .select('kind').eq('id', widget.conversationId).single();
+      final rows = await MessagingService.loadConversationPresence(widget.conversationId);
+      final now = DateTime.now().toUtc();
+      final online = rows.where((row) {
+        final last = DateTime.tryParse(row['last_seen_at'] as String? ?? '');
+        return row['is_online'] == true && last != null && now.difference(last).inMinutes < 2;
+      }).length;
+      String label;
+      if (info['kind'] == 'group') {
+        label = online > 0 ? '$online نفر آنلاین' : 'گروه';
+      } else if (online > 0) {
+        label = 'آنلاین';
+      } else if (rows.isNotEmpty && rows.first['last_seen_at'] != null) {
+        final last = DateTime.tryParse(rows.first['last_seen_at'] as String);
+        label = last == null ? 'آفلاین' : 'آخرین بازدید ${last.toLocal().hour.toString().padLeft(2, '0')}:${last.toLocal().minute.toString().padLeft(2, '0')}';
+      } else {
+        label = 'آفلاین';
+      }
+      if (mounted && label != _presenceLabel) setState(() => _presenceLabel = label);
+    } catch (_) {}
+  }
 
   Future<void> _showConversationInfo() async {
     try {

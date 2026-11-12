@@ -6,6 +6,7 @@ import '../features/auth/presentation/auth_gate.dart';
 import '../features/bootstrap/presentation/bootstrap_screen.dart';
 import '../features/home/presentation/shared_post_screen.dart';
 import '../features/auth/data/auth_service.dart';
+import '../features/messaging/data/messaging_service.dart';
 import 'theme/app_theme.dart';
 
 final GlobalKey<NavigatorState> homagramNavigatorKey = GlobalKey<NavigatorState>();
@@ -17,17 +18,60 @@ class HomaGramApp extends StatefulWidget {
   State<HomaGramApp> createState() => _HomaGramAppState();
 }
 
-class _HomaGramAppState extends State<HomaGramApp> {
+class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
   final AppLinks _appLinks = AppLinks();
   StreamSubscription<Uri>? _linkSubscription;
+  StreamSubscription<dynamic>? _authSubscription;
+  Timer? _presenceHeartbeat;
+  bool? _lastPresenceState;
+  String? _lastPresenceUserId;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (widget.supabaseConfigured) {
+      _authSubscription = AuthService.client.auth.onAuthStateChange.listen((_) => _syncPresence());
+      _syncPresence();
       _linkSubscription = _appLinks.uriLinkStream.listen(_handleUri);
       _appLinks.getInitialLink().then(_handleUri).catchError((_) {});
     }
+  }
+
+
+  void _syncPresence() {
+    final user = AuthService.client.auth.currentUser;
+    if (user == null) {
+      _presenceHeartbeat?.cancel();
+      _presenceHeartbeat = null;
+      _lastPresenceState = null;
+      _lastPresenceUserId = null;
+      return;
+    }
+    _setPresence(AuthService.client.auth.currentSession != null);
+  }
+
+  void _setPresence(bool online) {
+    final user = AuthService.client.auth.currentUser;
+    if (!widget.supabaseConfigured || user == null) return;
+    if (_lastPresenceUserId != user.id) {
+      _lastPresenceUserId = user.id;
+      _lastPresenceState = null;
+    }
+    if (_lastPresenceState == online) return;
+    _lastPresenceState = online;
+    _presenceHeartbeat?.cancel();
+    MessagingService.updatePresence(online).catchError((_) {});
+    if (online) {
+      _presenceHeartbeat = Timer.periodic(const Duration(seconds: 60), (_) {
+        MessagingService.updatePresence(true).catchError((_) {});
+      });
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _setPresence(state == AppLifecycleState.resumed);
   }
 
   void _handleUri(Uri? uri) {
@@ -42,7 +86,13 @@ class _HomaGramAppState extends State<HomaGramApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _linkSubscription?.cancel();
+    _authSubscription?.cancel();
+    _presenceHeartbeat?.cancel();
+    if (widget.supabaseConfigured && AuthService.client.auth.currentUser != null) {
+      MessagingService.updatePresence(false).catchError((_) {});
+    }
     super.dispose();
   }
 
