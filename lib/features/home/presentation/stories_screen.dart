@@ -23,6 +23,7 @@ class _StoriesStripState extends State<StoriesStrip> {
   }
 
   Future<void> _refresh() async {
+    if (!mounted) return;
     final next = StoryService.loadActiveStories();
     setState(() => _future = next);
     await next;
@@ -241,7 +242,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     }
     setState(() => _busy = true);
     try {
-      final mime = file.mimeType ?? (type == 'video' ? 'video/mp4' : _imageMime(file.name));
+      final mime = file.mimeType ?? (type == 'video'
+          ? (file.name.toLowerCase().endsWith('.mov') ? 'video/quicktime' : 'video/mp4')
+          : _imageMime(file.name));
       await StoryService.publish(
         file: File(file.path),
         mediaType: type,
