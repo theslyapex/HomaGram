@@ -16,16 +16,17 @@ class _AuthScreenState extends State<AuthScreen> {
   final _form = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _confirmPassword = TextEditingController();
   final _username = TextEditingController();
   final _displayName = TextEditingController();
   _Mode _mode = _Mode.signIn;
-  bool _busy = false, _obscure = true, _verificationSent = false;
+  bool _busy = false, _obscure = true, _obscureConfirmation = true, _verificationSent = false;
   String? _pendingEmail;
   bool get _registering => _mode == _Mode.signUp;
 
   @override
   void dispose() {
-    _email.dispose(); _password.dispose(); _username.dispose(); _displayName.dispose();
+    _email.dispose(); _password.dispose(); _confirmPassword.dispose(); _username.dispose(); _displayName.dispose();
     super.dispose();
   }
 
@@ -200,6 +201,27 @@ class _AuthScreenState extends State<AuthScreen> {
       decoration: InputDecoration(labelText: 'رمز عبور', prefixIcon: const Icon(Icons.lock_outline),
         suffixIcon: IconButton(onPressed: () => setState(() => _obscure = !_obscure),
           icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined)))),
+    if (_registering) ...[
+      const SizedBox(height: 14),
+      TextFormField(
+        controller: _confirmPassword,
+        obscureText: _obscureConfirmation,
+        textDirection: TextDirection.ltr,
+        validator: (v) {
+          if ((v ?? '').isEmpty) return 'تکرار رمز عبور را وارد کنید.';
+          if (v != _password.text) return 'رمزهای عبور با یکدیگر مطابقت ندارند.';
+          return null;
+        },
+        decoration: InputDecoration(
+          labelText: 'تکرار رمز عبور',
+          prefixIcon: const Icon(Icons.lock_reset_outlined),
+          suffixIcon: IconButton(
+            onPressed: () => setState(() => _obscureConfirmation = !_obscureConfirmation),
+            icon: Icon(_obscureConfirmation ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+          ),
+        ),
+      ),
+    ],
     if (!_registering) Align(alignment: Alignment.centerLeft,
       child: TextButton(onPressed: _busy ? null : _forgotPassword, child: const Text('رمز عبور را فراموش کرده‌اید؟'))),
     if (_registering) ...[
@@ -214,6 +236,7 @@ class _AuthScreenState extends State<AuthScreen> {
     TextButton(onPressed: _busy ? null : () => setState(() {
       _mode = _registering ? _Mode.signIn : _Mode.signUp;
       _form.currentState?.reset();
+      _confirmPassword.clear();
     }), child: Text(_registering ? 'از قبل حساب دارید؟ ورود' : 'حساب ندارید؟ ثبت‌نام کنید')),
   ]));
 

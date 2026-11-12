@@ -13,6 +13,7 @@ abstract final class HomaGramTheme {
 
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'Estedad',
       colorScheme: scheme,
       scaffoldBackgroundColor: const Color(0xFFF5F7FB),
       cardTheme: CardThemeData(
@@ -34,6 +35,7 @@ abstract final class HomaGramTheme {
 
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'Estedad',
       colorScheme: scheme,
       scaffoldBackgroundColor: const Color(0xFF0B1224),
       cardTheme: CardThemeData(

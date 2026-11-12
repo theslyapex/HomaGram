@@ -20,3 +20,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: Estedad
+      fonts:
+        - asset: assets/fonts/Estedad[wght].ttf
+          weight: 100
