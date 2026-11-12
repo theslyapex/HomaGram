@@ -1,0 +1,278 @@
+import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../data/messaging_service.dart';
+import 'chat_screen.dart';
+
+class MessagingScreen extends StatefulWidget {
+  const MessagingScreen({super.key});
+
+  @override
+  State<MessagingScreen> createState() => _MessagingScreenState();
+}
+
+class _MessagingScreenState extends State<MessagingScreen> {
+  List<ConversationPreview> _items = [];
+  RealtimeChannel? _channel;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+    _channel = MessagingService.watchInbox(_load);
+  }
+
+  Future<void> _load() async {
+    try {
+      final items = await MessagingService.loadInbox();
+      if (!mounted) return;
+      setState(() {
+        _items = items;
+        _loading = false;
+        _error = null;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = 'فهرست گفتگوها دریافت نشد. اتصال را بررسی کنید.';
+      });
+    }
+  }
+
+  Future<void> _newChat() async {
+    final id = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => const _NewChatSheet(),
+    );
+    if (!mounted || id == null) return;
+    await _load();
+    final item = _items.where((entry) => entry.id == id).firstOrNull;
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => ChatScreen(
+        conversationId: id,
+        title: item?.title ?? 'گفت‌وگوی خصوصی',
+      ),
+    ));
+  }
+
+  @override
+  void dispose() {
+    final channel = _channel;
+    if (channel != null) MessagingService.removeChannel(channel);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: const Text('پیام‌ها', style: TextStyle(fontWeight: FontWeight.w900)),
+        actions: [
+          IconButton(
+            tooltip: 'گفت‌وگوی جدید',
+            onPressed: _newChat,
+            icon: const Icon(Icons.edit_square),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: _load,
+        child: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+                ? ListView(children: [
+                    const SizedBox(height: 150),
+                    Center(child: Text(_error!)),
+                    Center(child: TextButton(onPressed: _load, child: const Text('تلاش دوباره'))),
+                  ])
+                : _items.isEmpty
+                    ? ListView(
+                        children: [
+                          const SizedBox(height: 105),
+                          Icon(Icons.forum_outlined, size: 58, color: colors.primary),
+                          const SizedBox(height: 16),
+                          const Center(child: Text('هنوز گفتگویی ندارید', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800))),
+                          const SizedBox(height: 8),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 42),
+                            child: Text('با شروع یک گفت‌وگوی خصوصی، ارتباط در HomaGram را آغاز کنید.', textAlign: TextAlign.center),
+                          ),
+                          const SizedBox(height: 18),
+                          Center(
+                            child: FilledButton.icon(
+                              onPressed: _newChat,
+                              icon: const Icon(Icons.add_comment_outlined),
+                              label: const Text('شروع گفت‌وگوی جدید'),
+                            ),
+                          ),
+                        ],
+                      )
+                    : ListView.separated(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: _items.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1, indent: 76),
+                        itemBuilder: (context, index) {
+                          final item = _items[index];
+                          return ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                            leading: CircleAvatar(
+                              radius: 25,
+                              backgroundColor: colors.primaryContainer,
+                              child: Icon(
+                                item.kind == 'group' ? Icons.groups_rounded : Icons.person_rounded,
+                                color: colors.onPrimaryContainer,
+                              ),
+                            ),
+                            title: Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontWeight: FontWeight.w800)),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 5),
+                              child: Text(item.subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+                            ),
+                            trailing: Text(_date(item.updatedAt), style: Theme.of(context).textTheme.labelSmall),
+                            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                              builder: (_) => ChatScreen(conversationId: item.id, title: item.title),
+                            )),
+                          );
+                        },
+                      ),
+      ),
+    );
+  }
+
+  String _date(DateTime date) {
+    final local = date.toLocal();
+    final now = DateTime.now();
+    if (local.year == now.year && local.month == now.month && local.day == now.day) {
+      return '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+    }
+    return '${local.month}/${local.day}';
+  }
+}
+
+class _NewChatSheet extends StatefulWidget {
+  const _NewChatSheet();
+
+  @override
+  State<_NewChatSheet> createState() => _NewChatSheetState();
+}
+
+class _NewChatSheetState extends State<_NewChatSheet> {
+  final _search = TextEditingController();
+  List<Map<String, dynamic>> _users = [];
+  bool _searching = false;
+  bool _opening = false;
+  String? _error;
+
+  Future<void> _find(String value) async {
+    if (value.trim().length < 2) {
+      setState(() {
+        _users = [];
+        _error = null;
+      });
+      return;
+    }
+    setState(() => _searching = true);
+    try {
+      final users = await MessagingService.searchUsers(value);
+      if (!mounted) return;
+      setState(() {
+        _users = users;
+        _error = null;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _error = 'جست‌وجو انجام نشد.');
+    } finally {
+      if (mounted) setState(() => _searching = false);
+    }
+  }
+
+  Future<void> _open(Map<String, dynamic> user) async {
+    if (_opening) return;
+    setState(() => _opening = true);
+    try {
+      final id = await MessagingService.createDirectConversation(user['id'] as String);
+      if (mounted) Navigator.pop(context, id);
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _opening = false;
+          _error = 'شروع گفتگو ممکن نشد. ممکن است این کاربر دسترسی پیام را محدود کرده باشد.';
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(18, 8, 18, 20 + MediaQuery.viewInsetsOf(context).bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('گفت‌وگوی جدید', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _search,
+            autofocus: true,
+            onChanged: _find,
+            decoration: InputDecoration(
+              hintText: 'جست‌وجو با نام کاربری',
+              prefixIcon: const Icon(Icons.search_rounded),
+              filled: true,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide.none),
+            ),
+          ),
+          if (_searching) const LinearProgressIndicator(minHeight: 2),
+          if (_error != null) Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          ),
+          const SizedBox(height: 8),
+          if (_users.isEmpty && _search.text.trim().length >= 2 && !_searching)
+            const Padding(
+              padding: EdgeInsets.all(18),
+              child: Center(child: Text('کاربری با این نام پیدا نشد.')),
+            ),
+          if (_users.isNotEmpty)
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 330),
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: _users.length,
+                itemBuilder: (context, index) {
+                  final user = _users[index];
+                  return ListTile(
+                    leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
+                    title: Text(user['display_name'] as String? ?? user['username'] as String),
+                    subtitle: Text('@${user['username']}'),
+                    onTap: _opening ? null : () => _open(user),
+                  );
+                },
+              ),
+            ),
+          if (_opening) const Center(child: Padding(
+            padding: EdgeInsets.all(12),
+            child: CircularProgressIndicator(),
+          )),
+        ],
+      ),
+    );
+  }
+}
