@@ -110,14 +110,14 @@ language sql
 stable
 security definer
 set search_path = ''
-as $
+as $func$
   select exists (
     select 1 from public.conversation_members cm
     where cm.conversation_id = target_conversation_id
       and cm.user_id = (select auth.uid())
       and cm.left_at is null
   );
-$;
+$func$;
 revoke all on function private.is_active_conversation_member(uuid) from public, anon;
 grant usage on schema private to authenticated;
 grant execute on function private.is_active_conversation_member(uuid) to authenticated;
