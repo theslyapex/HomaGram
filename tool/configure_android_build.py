@@ -21,8 +21,8 @@ def main() -> int:
         dependency = '    implementation("com.squareup.okhttp3:okhttp:4.12.0")'
         if "com.squareup.okhttp3:okhttp" not in text:
             text, dependency_n = re.subn(
-                r"(?m)^dependencies\\s*\\{",
-                lambda match: match.group(0) + "\\n" + dependency,
+                r"(?m)^dependencies\s*\{",
+                lambda match: match.group(0) + "\n" + dependency,
                 text, count=1)
         else:
             dependency_n = 1
@@ -30,8 +30,8 @@ def main() -> int:
         dependency = "    implementation 'com.squareup.okhttp3:okhttp:4.12.0'"
         if "com.squareup.okhttp3:okhttp" not in text:
             text, dependency_n = re.subn(
-                r"(?m)^dependencies\\s*\\{",
-                lambda match: match.group(0) + "\\n" + dependency,
+                r"(?m)^dependencies\s*\{",
+                lambda match: match.group(0) + "\n" + dependency,
                 text, count=1)
         else:
             dependency_n = 1
