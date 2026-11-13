@@ -208,9 +208,21 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                   _stat('دنبال‌کننده', _followers, onTap: () => _showConnections(true)),
                   _stat('دنبال‌شونده', _followingCount, onTap: () => _showConnections(false)),
                   _stat('بازنشر', _reposts),
-                  if (_isMe) _stat('بازدیدکننده', _visitorsEnabled ? _visitorCount : 0,
-                      onTap: _visitorsEnabled ? _showVisitors : null),
                 ]),
+                if (_isMe) ...[
+                  const SizedBox(height: 12),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.visibility_outlined),
+                      title: const Text('بازدیدکنندگان پروفایل'),
+                      subtitle: Text(_visitorsEnabled
+                          ? '$_visitorCount بازدیدکننده ثبت‌شده'
+                          : 'نمایش بازدیدکنندگان در تنظیمات حریم خصوصی غیرفعال است.'),
+                      trailing: const Icon(Icons.chevron_left_rounded),
+                      onTap: _visitorsEnabled ? _showVisitors : null,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 20),
                 Row(children: [
                   Expanded(child: _sectionButton(0, Icons.grid_on_rounded, 'پست‌ها')),
