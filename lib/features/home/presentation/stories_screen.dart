@@ -331,10 +331,13 @@ class StoryViewerScreen extends StatefulWidget {
   State<StoryViewerScreen> createState() => _StoryViewerScreenState();
 }
 
-class _StoryViewerScreenState extends State<StoryViewerScreen> {
+class _StoryViewerScreenState extends State<StoryViewerScreen>
+    with SingleTickerProviderStateMixin {
   late final PageController _pageController;
+  late final AnimationController _progress;
   int _index = 0;
   bool _busy = false;
+  bool _paused = false;
 
   Map<String, dynamic> get _story => widget.stories[_index];
   bool get _isMine => _story['author_id'] == AuthService.client.auth.currentUser?.id;
@@ -343,13 +346,81 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
   void initState() {
     super.initState();
     _pageController = PageController();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _markViewed());
+    _progress = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 5),
+    )..addStatusListener(_onProgressStatus);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _markViewed();
+      _startProgress();
+    });
   }
 
   @override
   void dispose() {
+    _progress.dispose();
     _pageController.dispose();
     super.dispose();
+  }
+
+  void _onProgressStatus(AnimationStatus status) {
+    if (status == AnimationStatus.completed) _nextStory();
+  }
+
+  void _startProgress({Duration? duration}) {
+    if (!mounted) return;
+    _progress.stop();
+    _progress.duration = duration ?? const Duration(seconds: 5);
+    _progress.value = 0;
+    if (!_paused) _progress.forward();
+  }
+
+  void _onVideoReady(Duration duration) {
+    if (!mounted || _story['media_type'] != 'video') return;
+    _startProgress(duration: duration > Duration.zero ? duration : const Duration(seconds: 5));
+  }
+
+  void _onVideoCompleted() {
+    if (!mounted) return;
+    _nextStory();
+  }
+
+  void _nextStory() {
+    if (!mounted) return;
+    if (_index < widget.stories.length - 1) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+      );
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
+  void _previousStory() {
+    if (!mounted) return;
+    if (_progress.value > .12) {
+      _startProgress();
+      return;
+    }
+    if (_index > 0) {
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+      );
+    } else {
+      _startProgress();
+    }
+  }
+
+  void _togglePause(bool pause) {
+    if (!mounted || _paused == pause) return;
+    setState(() => _paused = pause);
+    if (pause) {
+      _progress.stop();
+    } else {
+      _progress.forward();
+    }
   }
 
   Future<void> _markViewed() async {
@@ -451,22 +522,56 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
       child: Stack(children: [
         PageView.builder(
           controller: _pageController,
+          physics: const NeverScrollableScrollPhysics(),
           itemCount: widget.stories.length,
           onPageChanged: (value) {
-            setState(() => _index = value);
+            setState(() { _index = value; _paused = false; });
             _markViewed();
+            _startProgress();
           },
-          itemBuilder: (_, i) => _StoryMedia(story: widget.stories[i]),
+          itemBuilder: (_, i) => _StoryMedia(
+            key: ValueKey(widget.stories[i]['id']),
+            story: widget.stories[i],
+            paused: _paused,
+            onVideoReady: _onVideoReady,
+            onVideoCompleted: _onVideoCompleted,
+          ),
+        ),
+        Positioned.fill(
+          child: Row(children: [
+            Expanded(child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: _previousStory,
+              onLongPressStart: (_) => _togglePause(true),
+              onLongPressEnd: (_) => _togglePause(false),
+            )),
+            Expanded(child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: _nextStory,
+              onLongPressStart: (_) => _togglePause(true),
+              onLongPressEnd: (_) => _togglePause(false),
+            )),
+          ]),
         ),
         Positioned(
           top: 10, left: 12, right: 12,
           child: Column(children: [
             Row(children: List.generate(widget.stories.length, (i) => Expanded(
-              child: Container(
-                height: 3, margin: const EdgeInsets.symmetric(horizontal: 2),
-                decoration: BoxDecoration(
-                  color: i <= _index ? Colors.white : Colors.white38,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: ClipRRect(
                   borderRadius: BorderRadius.circular(5),
+                  child: SizedBox(
+                    height: 3,
+                    child: AnimatedBuilder(
+                      animation: _progress,
+                      builder: (_, __) => LinearProgressIndicator(
+                        value: i < _index ? 1 : i > _index ? 0 : _progress.value,
+                        backgroundColor: Colors.white38,
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ))),
@@ -491,9 +596,9 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
         ),
         if ((_story['caption'] as String).isNotEmpty)
           Positioned(left: 22, right: 22, bottom: 94,
-            child: Text(_story['caption'] as String,
+            child: IgnorePointer(child: Text(_story['caption'] as String,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white, fontSize: 15, shadows: [Shadow(blurRadius: 8, color: Colors.black)]))),
+              style: const TextStyle(color: Colors.white, fontSize: 15, shadows: [Shadow(blurRadius: 8, color: Colors.black)])))),
         Positioned(
           left: 12, right: 12, bottom: 12,
           child: _isMine
@@ -516,8 +621,17 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
 }
 
 class _StoryMedia extends StatefulWidget {
-  const _StoryMedia({required this.story});
+  const _StoryMedia({
+    required this.story,
+    required this.paused,
+    required this.onVideoReady,
+    required this.onVideoCompleted,
+    super.key,
+  });
   final Map<String, dynamic> story;
+  final bool paused;
+  final ValueChanged<Duration> onVideoReady;
+  final VoidCallback onVideoCompleted;
 
   @override
   State<_StoryMedia> createState() => _StoryMediaState();
@@ -526,6 +640,7 @@ class _StoryMedia extends StatefulWidget {
 class _StoryMediaState extends State<_StoryMedia> {
   VideoPlayerController? _video;
   Future<void>? _initializing;
+  bool _completionSent = false;
 
   @override
   void initState() {
@@ -533,14 +648,41 @@ class _StoryMediaState extends State<_StoryMedia> {
     if (widget.story['media_type'] == 'video' && widget.story['media_url'] != null) {
       _video = VideoPlayerController.networkUrl(Uri.parse(widget.story['media_url'] as String));
       _initializing = _video!.initialize().then((_) {
-        _video!.setLooping(true);
-        _video!.play();
+        if (!mounted) return;
+        _video!.setLooping(false);
+        widget.onVideoReady(_video!.value.duration);
+        _video!.addListener(_videoListener);
+        if (!widget.paused) _video!.play();
       });
+    }
+  }
+
+  void _videoListener() {
+    final controller = _video;
+    if (!mounted || controller == null || !controller.value.isInitialized) return;
+    if (controller.value.hasError) return;
+    if (!_completionSent && controller.value.duration > Duration.zero &&
+        controller.value.position >= controller.value.duration) {
+      _completionSent = true;
+      widget.onVideoCompleted();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _StoryMedia oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.paused != widget.paused) {
+      if (widget.paused) {
+        _video?.pause();
+      } else if (_video?.value.isInitialized == true) {
+        _video?.play();
+      }
     }
   }
 
   @override
   void dispose() {
+    _video?.removeListener(_videoListener);
     _video?.dispose();
     super.dispose();
   }
