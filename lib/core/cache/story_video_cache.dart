@@ -107,6 +107,12 @@ class StoryVideoCache {
     }
   }
 
+  static Future<void> evict({required String userId, required String storagePath}) async {
+    final extension = storagePath.toLowerCase().endsWith('.mov') ? 'mov' : 'mp4';
+    final file = File('${Directory.systemTemp.path}/homagram_story_video_cache/${_encode(userId)}/${_encode(storagePath)}.$extension');
+    if (await file.exists()) await file.delete();
+  }
+
   static Future<void> clearAccount(String userId) async {
     final directory = Directory('${Directory.systemTemp.path}/homagram_story_video_cache/${_encode(userId)}');
     if (await directory.exists()) await directory.delete(recursive: true);
