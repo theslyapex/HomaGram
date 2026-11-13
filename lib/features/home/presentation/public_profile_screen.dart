@@ -76,6 +76,37 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           .inFilter('id', repostIds).order('created_at', ascending: false);
       final myFollow = await client.from('user_follows').select('following_id')
           .eq('follower_id', _myId).eq('following_id', widget.userId).maybeSingle();
+
+      var visitorsEnabled = true;
+      var visitorProfiles = <Map<String, dynamic>>[];
+      if (_isMe) {
+        final settings = await client.from('account_settings')
+            .select('show_profile_visitors')
+            .eq('user_id', _myId).maybeSingle();
+        visitorsEnabled = settings?['show_profile_visitors'] as bool? ?? true;
+        if (visitorsEnabled) {
+          final visitRows = await client.from('profile_views')
+              .select('viewer_id,viewed_at')
+              .eq('profile_id', _myId)
+              .order('viewed_at', ascending: false)
+              .limit(100);
+          final visitorIds = visitRows.map<String>((r) => r['viewer_id'] as String).toList();
+          final visitorRows = visitorIds.isEmpty
+              ? <dynamic>[]
+              : await client.from('profiles')
+                  .select('id,username,display_name')
+                  .inFilter('id', visitorIds);
+          final byId = {for (final p in visitorRows) p['id'] as String: p};
+          visitorProfiles = visitRows.map((r) {
+            final p = byId[r['viewer_id'] as String];
+            if (p == null) return null;
+            return <String, dynamic>{
+              ...Map<String, dynamic>.from(p),
+              'viewed_at': r['viewed_at'],
+            };
+          }).whereType<Map<String, dynamic>>().toList();
+        }
+      }
       String? avatar;
       final avatarPath = profile['avatar_path'] as String?;
       if (avatarPath != null) {
@@ -108,6 +139,9 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         _followers = followers.length;
         _followingCount = following.length;
         _reposts = reposts.length;
+        _visitorsEnabled = visitorsEnabled;
+        _visitors = visitorProfiles;
+        _visitorCount = visitorProfiles.length;
         _posts = posts;
         _repostPosts = repostPostList;
         _following = myFollow != null;
