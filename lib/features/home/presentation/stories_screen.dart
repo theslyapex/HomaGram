@@ -51,11 +51,39 @@ class _StoriesStripState extends State<StoriesStrip> {
       for (final story in stories) {
         (groups[story['author_id'] as String] ??= []).add(story);
       }
+      // Keep each user's stories in chronological order (oldest first),
+      // so the viewer advances through that user's story sequence naturally.
+      for (final items in groups.values) {
+        items.sort((a, b) {
+          final aTime = DateTime.tryParse(a['created_at']?.toString() ?? '') ??
+              DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+          final bTime = DateTime.tryParse(b['created_at']?.toString() ?? '') ??
+              DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+          return aTime.compareTo(bTime);
+        });
+      }
+
       final uid = AuthService.client.auth.currentUser?.id;
       final own = uid == null ? null : groups.remove(uid);
+
+      // Unseen story groups appear first; within each group, the newest
+      // activity determines its position. Viewed groups follow afterward.
       final ordered = groups.entries.toList()
-        ..sort((a, b) => (b.value.last['created_at'] as String)
-            .compareTo(a.value.last['created_at'] as String));
+        ..sort((a, b) {
+          final aViewed = a.value.every((story) => story['is_viewed'] == true);
+          final bViewed = b.value.every((story) => story['is_viewed'] == true);
+          if (aViewed != bViewed) return aViewed ? 1 : -1;
+
+          final aLatest = DateTime.tryParse(
+                a.value.last['created_at']?.toString() ?? '',
+              ) ??
+              DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+          final bLatest = DateTime.tryParse(
+                b.value.last['created_at']?.toString() ?? '',
+              ) ??
+              DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+          return bLatest.compareTo(aLatest);
+        });
       return Container(
         height: 132,
         padding: const EdgeInsets.only(top: 10, bottom: 8),
