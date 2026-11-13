@@ -361,7 +361,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                           onChanged: _setPrivacy,
                           title: const Text('حساب خصوصی'),
                           subtitle: const Text(
-                            'درخواست‌های دنبال‌کردن برای مشاهده محتوای خصوصی لازم خواهند بود.',
+                            'حالت خصوصی ذخیره می‌شود؛ محدودیت نمایش محتوا و فید خصوصی در مرحله بعد تکمیل می‌شود.',
                           ),
                           secondary: const Icon(Icons.lock_outline),
                         ),
