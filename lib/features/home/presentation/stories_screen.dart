@@ -5,6 +5,7 @@ import 'package:video_player/video_player.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
 import '../data/story_service.dart';
+import 'story_image.dart';
 
 class StoriesStrip extends StatefulWidget {
   const StoriesStrip({super.key});
@@ -120,6 +121,7 @@ class _StoriesStripState extends State<StoriesStrip> {
                   _StoryAvatar(
                     title: own == null ? 'استوری شما' : 'استوری من',
                     imageUrl: own?.last['avatar_url'] as String?,
+                    imageCacheKey: own?.last['avatar_path'] as String?,
                     hasStory: own != null,
                     viewed: own != null && own.every((s) => s['is_viewed'] == true),
                     add: own == null,
@@ -128,6 +130,7 @@ class _StoriesStripState extends State<StoriesStrip> {
                   ...ordered.map((entry) => _StoryAvatar(
                     title: entry.value.first['display_name'] as String,
                     imageUrl: entry.value.first['avatar_url'] as String?,
+                    imageCacheKey: entry.value.first['avatar_path'] as String?,
                     hasStory: true,
                     viewed: entry.value.every((s) => s['is_viewed'] == true),
                     onTap: () => _open(entry.value),
@@ -152,6 +155,7 @@ class _StoryAvatar extends StatelessWidget {
   const _StoryAvatar({
     required this.title,
     required this.imageUrl,
+    this.imageCacheKey,
     required this.hasStory,
     required this.viewed,
     required this.onTap,
@@ -160,6 +164,7 @@ class _StoryAvatar extends StatelessWidget {
 
   final String title;
   final String? imageUrl;
+  final String? imageCacheKey;
   final bool hasStory;
   final bool viewed;
   final bool add;
@@ -185,7 +190,7 @@ class _StoryAvatar extends StatelessWidget {
             child: CircleAvatar(
               radius: 25,
               backgroundColor: HomaGramTheme.turquoise.withValues(alpha: .14),
-              backgroundImage: imageUrl == null ? null : NetworkImage(imageUrl!),
+              backgroundImage: imageUrl == null ? null : StoryImageProvider(imageUrl!, cacheKey: imageCacheKey ?? imageUrl!),
               child: imageUrl == null
                   ? const Icon(Icons.person_outline_rounded, color: HomaGramTheme.turquoise)
                   : null,
@@ -581,6 +586,11 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     ));
     if (yes != true) return;
     try {
+      final mediaPath = _story['media_path'] as String;
+      final mediaUrl = _story['media_url'] as String?;
+      if (mediaUrl != null) {
+        await imageCache.evict(StoryImageProvider(mediaUrl, cacheKey: 'story-media:$mediaPath'));
+      }
       await StoryService.deleteStory(_story);
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
@@ -655,7 +665,10 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
             Row(children: [
               CircleAvatar(
                 radius: 18,
-                backgroundImage: _story['avatar_url'] == null ? null : NetworkImage(_story['avatar_url'] as String),
+                backgroundImage: _story['avatar_url'] == null ? null : StoryImageProvider(
+                  _story['avatar_url'] as String,
+                  cacheKey: (_story['avatar_path'] as String?) ?? (_story['avatar_url'] as String),
+                ),
                 child: _story['avatar_url'] == null ? const Icon(Icons.person_outline) : null,
               ),
               const SizedBox(width: 9),
@@ -884,8 +897,11 @@ class _StoryMediaState extends State<_StoryMedia> {
     }
 
     return Center(
-      child: Image.network(
-        url,
+      child: Image(
+        image: StoryImageProvider(
+          url,
+          cacheKey: 'story-media:${widget.story['media_path']}',
+        ),
         fit: BoxFit.contain,
         errorBuilder: (_, __, ___) => const Icon(
           Icons.broken_image_outlined,
@@ -937,7 +953,13 @@ class _StoryArchiveScreenState extends State<StoryArchiveScreen> {
               borderRadius: BorderRadius.circular(12),
               child: Stack(fit: StackFit.expand, children: [
                 items[i]['media_type'] == 'image' && items[i]['media_url'] != null
-                    ? Image.network(items[i]['media_url'] as String, fit: BoxFit.cover)
+                    ? Image(
+                        image: StoryImageProvider(
+                          items[i]['media_url'] as String,
+                          cacheKey: 'story-media:${items[i]['media_path']}',
+                        ),
+                        fit: BoxFit.cover,
+                      )
                     : Container(color: Colors.black87, child: const Icon(Icons.play_circle_outline, color: Colors.white)),
                 Positioned(bottom: 5, left: 5, right: 5,
                   child: Text(items[i]['created_at'].toString().substring(0, 10),
