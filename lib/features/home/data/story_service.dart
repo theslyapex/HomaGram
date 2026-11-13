@@ -97,6 +97,7 @@ class StoryService {
       final profile = byId[story['author_id']] ?? <String, dynamic>{};
       story['display_name'] = profile['display_name'] ?? 'کاربر HomaGram';
       story['username'] = profile['username'] ?? 'user';
+      story['avatar_path'] = profile['avatar_path'];
       story['avatar_url'] = avatarUrls[profile['avatar_path']];
       story['media_url'] = mediaUrls[story['media_path']];
       story['is_viewed'] = seen.contains(story['id']);
