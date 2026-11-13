@@ -688,13 +688,87 @@ class _StoryMedia extends StatefulWidget {
 
 class _StoryMediaState extends State<_StoryMedia> {
   VideoPlayerController? _video;
-  Future<void>? _initializing;
+  bool _loading = true;
+  bool _hasError = false;
   bool _completionReported = false;
+  bool _playbackErrorReported = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.story['media_type'] == 'video' && widget.story['media_url'] != null) {
+      _loadVideo();
+    } else {
+      _loading = false;
+    }
+  }
+
+  Future<void> _loadVideo() async {
+    final url = widget.story['media_url'] as String?;
+    if (url == null || url.trim().isEmpty) {
+      if (mounted) setState(() { _loading = false; _hasError = true; });
+      return;
+    }
+
+    final previous = _video;
+    if (previous != null) {
+      previous.removeListener(_handleVideoUpdate);
+      _video = null;
+      await previous.dispose();
+    }
+    if (!mounted) return;
+
+    setState(() {
+      _loading = true;
+      _hasError = false;
+      _completionReported = false;
+      _playbackErrorReported = false;
+    });
+
+    VideoPlayerController? controller;
+    try {
+      controller = VideoPlayerController.networkUrl(Uri.parse(url));
+      _video = controller;
+      await controller.initialize().timeout(const Duration(seconds: 30));
+
+      if (!mounted || !identical(_video, controller)) {
+        await controller.dispose();
+        return;
+      }
+
+      await controller.setLooping(false);
+      controller.addListener(_handleVideoUpdate);
+      setState(() => _loading = false);
+      widget.onVideoReady(widget.story['id'] as String, controller.value.duration);
+      if (!widget.paused) await controller.play();
+    } catch (_) {
+      if (controller != null) {
+        controller.removeListener(_handleVideoUpdate);
+        if (identical(_video, controller)) _video = null;
+        await controller.dispose();
+      }
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _hasError = true;
+        });
+      }
+    }
+  }
 
   void _handleVideoUpdate() {
     final video = _video;
     if (!mounted || video == null || !video.value.isInitialized) return;
     final value = video.value;
+
+    if (value.hasError) {
+      if (!_playbackErrorReported) {
+        _playbackErrorReported = true;
+        setState(() => _hasError = true);
+      }
+      return;
+    }
+
     final duration = value.duration;
     final completed = duration > Duration.zero && value.position >= duration;
     widget.onVideoProgress(
@@ -707,27 +781,12 @@ class _StoryMediaState extends State<_StoryMedia> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    if (widget.story['media_type'] == 'video' && widget.story['media_url'] != null) {
-      _video = VideoPlayerController.networkUrl(Uri.parse(widget.story['media_url'] as String));
-      _initializing = _video!.initialize().then((_) {
-        if (!mounted) return;
-        _video!.setLooping(false);
-        _video!.addListener(_handleVideoUpdate);
-        widget.onVideoReady(widget.story['id'] as String, _video!.value.duration);
-        if (!widget.paused) _video!.play();
-      });
-    }
-  }
-
-  @override
   void didUpdateWidget(covariant _StoryMedia oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.paused != widget.paused) {
       if (widget.paused) {
         _video?.pause();
-      } else if (_video?.value.isInitialized == true) {
+      } else if (_video?.value.isInitialized == true && !_hasError) {
         _video?.play();
       }
     }
@@ -740,22 +799,73 @@ class _StoryMediaState extends State<_StoryMedia> {
     super.dispose();
   }
 
+  Widget _errorView() => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.cloud_off_rounded, color: Colors.white70, size: 42),
+          const SizedBox(height: 12),
+          const Text(
+            'پخش ویدئو انجام نشد. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white, height: 1.7),
+          ),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: _loading ? null : _loadVideo,
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('تلاش دوباره'),
+          ),
+        ],
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final url = widget.story['media_url'] as String?;
-    if (url == null) return const Center(child: Icon(Icons.broken_image_outlined, color: Colors.white, size: 48));
-    if (widget.story['media_type'] == 'video') {
-      return FutureBuilder<void>(
-        future: _initializing,
-        builder: (_, snapshot) {
-          if (snapshot.hasError) return const Center(child: Icon(Icons.error_outline, color: Colors.white));
-          if (snapshot.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
-          return Center(child: AspectRatio(aspectRatio: _video!.value.aspectRatio, child: VideoPlayer(_video!)));
-        },
+    if (url == null || url.isEmpty) {
+      return const Center(
+        child: Icon(Icons.broken_image_outlined, color: Colors.white, size: 48),
       );
     }
-    return Center(child: Image.network(url, fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined, color: Colors.white, size: 48)));
+
+    if (widget.story['media_type'] == 'video') {
+      if (_hasError) return _errorView();
+      if (_loading || _video?.value.isInitialized != true) {
+        return const Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: Colors.white),
+              SizedBox(height: 12),
+              Text('در حال بارگذاری ویدئو…', style: TextStyle(color: Colors.white70)),
+            ],
+          ),
+        );
+      }
+      final video = _video!;
+      return Center(
+        child: AspectRatio(
+          aspectRatio: video.value.aspectRatio > 0 ? video.value.aspectRatio : 9 / 16,
+          child: VideoPlayer(video),
+        ),
+      );
+    }
+
+    return Center(
+      child: Image.network(
+        url,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => const Icon(
+          Icons.broken_image_outlined,
+          color: Colors.white,
+          size: 48,
+        ),
+      ),
+    );
   }
 }
 
