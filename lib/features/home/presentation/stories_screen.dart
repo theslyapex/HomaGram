@@ -335,6 +335,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _progress;
   int _index = 0;
+  int _replayNonce = 0;
   bool _busy = false;
   bool _paused = false;
 
@@ -391,7 +392,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   void _previousStory() {
     if (!mounted) return;
     if (_progress.value > .12) {
-      _startProgress();
+      setState(() => _replayNonce++);
+      if (_story['media_type'] == 'image') _startProgress();
       return;
     }
     if (_index > 0) {
@@ -511,7 +513,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     body: SafeArea(
       child: Stack(children: [
         _StoryMedia(
-          key: ValueKey(_story['id']),
+          key: ValueKey('${_story['id']}-$_replayNonce'),
           story: _story,
           paused: _paused,
           onVideoReady: _onVideoReady,
