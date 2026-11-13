@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../domain/auth_constants.dart';
+import '../../../core/cache/story_video_cache.dart';
 
 class AuthService {
   AuthService._();
@@ -37,6 +38,10 @@ class AuthService {
   }
 
   static Future<void> signOutThisDevice() async {
+    final userId = client.auth.currentUser?.id;
+    if (userId != null) {
+      try { await StoryVideoCache.clearAccount(userId); } catch (_) {}
+    }
     await client.auth.signOut(scope: SignOutScope.local);
   }
 
