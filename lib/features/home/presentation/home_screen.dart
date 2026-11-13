@@ -5,6 +5,7 @@ import '../../auth/data/auth_service.dart';
 import 'feed_screen.dart';
 import 'public_profile_screen.dart';
 import '../../messaging/presentation/messaging_screen.dart';
+import '../../notifications/presentation/notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,11 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
         description: 'جست‌وجوی افراد، موضوعات و محتوای موردعلاقه در مرحله بعد فعال می‌شود.',
       ),
       const MessagingScreen(),
-      const _ComingSoonPage(
-        icon: Icons.notifications_none_rounded,
-        title: 'اعلان‌ها',
-        description: 'اعلان‌های دنبال‌کردن، پسندیدن و پیام‌ها اینجا نمایش داده می‌شوند.',
-      ),
+      const NotificationsScreen(),
       PublicProfileScreen(userId: AuthService.client.auth.currentUser!.id),
     ];
 
