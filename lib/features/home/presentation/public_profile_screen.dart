@@ -208,6 +208,8 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                   _stat('دنبال‌کننده', _followers, onTap: () => _showConnections(true)),
                   _stat('دنبال‌شونده', _followingCount, onTap: () => _showConnections(false)),
                   _stat('بازنشر', _reposts),
+                  if (_isMe) _stat('بازدیدکننده', _visitorsEnabled ? _visitorCount : 0,
+                      onTap: _visitorsEnabled ? _showVisitors : null),
                 ]),
                 const SizedBox(height: 20),
                 Row(children: [
@@ -410,6 +412,37 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('دریافت فهرست کاربران انجام نشد.')));
     }
+  }
+
+  Future<void> _showVisitors() async {
+    if (!_visitorsEnabled) return;
+    await showModalBottomSheet<void>(
+      context: context, showDragHandle: true, isScrollControlled: true,
+      builder: (sheetContext) => SafeArea(child: SizedBox(
+        height: MediaQuery.of(sheetContext).size.height * .72,
+        child: Column(children: [
+          const Padding(padding: EdgeInsets.all(16), child: Text('بازدیدکنندگان پروفایل',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+          Expanded(child: _visitors.isEmpty
+            ? const Center(child: Text('هنوز بازدیدکننده‌ای ثبت نشده است.'))
+            : ListView.builder(itemCount: _visitors.length, itemBuilder: (context, index) {
+                final visitor = _visitors[index];
+                final date = DateTime.tryParse(visitor['viewed_at'] as String? ?? '')?.toLocal();
+                return ListTile(
+                  leading: const CircleAvatar(child: Icon(Icons.person_outline)),
+                  title: Text(visitor['display_name'] as String? ?? 'کاربر HomaGram'),
+                  subtitle: Text('@' + (visitor['username'] as String? ?? 'user') +
+                    (date == null ? '' : ' · ' + persianDate(date))),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.of(this.context).push(MaterialPageRoute<void>(
+                      builder: (_) => PublicProfileScreen(userId: visitor['id'] as String)));
+                  },
+                );
+              })),
+        ]),
+      )),
+    );
   }
 
   void _showPost(Map<String, dynamic> post) {
