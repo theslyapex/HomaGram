@@ -342,6 +342,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   bool _lifecyclePaused = false;
   bool _advancing = false;
   bool _routeVisible = true;
+  double _horizontalDragDistance = 0;
 
   Map<String, dynamic> get _story => widget.stories[_index];
   bool get _isMine => _story['author_id'] == AuthService.client.auth.currentUser?.id;
@@ -432,6 +433,28 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
       if (_story['media_type'] == 'image') _startProgress();
     } else {
       _startProgress();
+    }
+  }
+
+  void _onHorizontalDragStart(DragStartDetails details) {
+    _horizontalDragDistance = 0;
+  }
+
+  void _onHorizontalDragUpdate(DragUpdateDetails details) {
+    _horizontalDragDistance += details.delta.dx;
+  }
+
+  void _onHorizontalDragEnd(DragEndDetails details) {
+    final distance = _horizontalDragDistance;
+    final velocity = details.primaryVelocity ?? 0;
+    _horizontalDragDistance = 0;
+
+    // A deliberate swipe needs either a clear horizontal travel distance
+    // or a sufficiently strong horizontal fling.
+    if (distance <= -70 || velocity <= -500) {
+      _nextStory();
+    } else if (distance >= 70 || velocity >= 500) {
+      _previousStory();
     }
   }
 
@@ -548,7 +571,13 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: Colors.black,
     body: SafeArea(
-      child: Stack(children: [
+      child: GestureDetector(
+        behavior: HitTestBehavior.deferToChild,
+        onHorizontalDragStart: _onHorizontalDragStart,
+        onHorizontalDragUpdate: _onHorizontalDragUpdate,
+        onHorizontalDragEnd: _onHorizontalDragEnd,
+        onHorizontalDragCancel: () => _horizontalDragDistance = 0,
+        child: Stack(children: [
         _StoryMedia(
           key: ValueKey('${_story['id']}-$_replayNonce'),
           story: _story,
@@ -567,8 +596,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
             Expanded(child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: _nextStory,
-              onLongPressStart: (_) => _togglePause(true),
-              onLongPressEnd: (_) => _togglePause(false),
+              onLongPressStart: (_) => _setUserPaused(true),
+              onLongPressEnd: (_) => _setUserPaused(false),
             )),
           ]),
         ),
@@ -634,7 +663,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                   IconButton(onPressed: _reply, icon: const Icon(Icons.send_rounded, color: Colors.white)),
                 ]),
         ),
-      ]),
+        ]),
+      ),
     ),
   );
 }
