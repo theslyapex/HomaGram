@@ -1,6 +1,16 @@
+import 'dart:io';
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app/homagram_app.dart';
+import 'features/notifications/data/push_notification_service.dart';
+
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,5 +24,16 @@ Future<void> main() async {
       authOptions: const FlutterAuthClientOptions(authFlowType: AuthFlowType.pkce),
     );
   }
+
+  if (Platform.isAndroid) {
+    try {
+      await Firebase.initializeApp();
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      await PushNotificationService.initialize();
+    } catch (error) {
+      debugPrint('Firebase Messaging initialization skipped: $error');
+    }
+  }
+
   runApp(HomaGramApp(supabaseConfigured: configured));
 }
