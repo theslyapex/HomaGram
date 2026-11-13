@@ -27,6 +27,9 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   int _followingCount = 0;
   int _reposts = 0;
   int _section = 0;
+  int _visitorCount = 0;
+  bool _visitorsEnabled = true;
+  List<Map<String, dynamic>> _visitors = [];
 
   String get _myId => AuthService.client.auth.currentUser!.id;
   bool get _isMe => _myId == widget.userId;
@@ -44,6 +47,13 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       final profile = await client.from('profiles')
           .select('id,username,display_name,bio,avatar_path,created_at')
           .eq('id', widget.userId).single();
+      if (!_isMe) {
+        await client.from('profile_views').upsert({
+          'profile_id': widget.userId,
+          'viewer_id': _myId,
+          'viewed_at': DateTime.now().toUtc().toIso8601String(),
+        }, onConflict: 'profile_id,viewer_id');
+      }
       final results = await Future.wait([
         client.from('user_follows').select('follower_id')
             .eq('following_id', widget.userId),
