@@ -398,9 +398,9 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   void _onVideoProgress(String storyId, Duration position, Duration duration, bool completed) {
     if (!mounted || _story['id'] != storyId || _story['media_type'] != 'video') return;
     if (duration > Duration.zero) {
-      final value = (position.inMicroseconds / duration.inMicroseconds).clamp(0.0, 1.0);
+      final value = (position.inMicroseconds / duration.inMicroseconds).clamp(0.0, 1.0).toDouble();
       // Keep the animation controller as a display value only for video.
-      _progress.value = completed ? .999 : value.clamp(0.0, .999);
+      _progress.value = completed ? .999 : value.clamp(0.0, .999).toDouble();
     }
     if (completed && !_advancing) _nextStory();
   }
