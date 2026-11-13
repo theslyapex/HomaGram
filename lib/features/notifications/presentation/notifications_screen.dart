@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../auth/data/auth_service.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../home/presentation/public_profile_screen.dart';
@@ -13,11 +16,30 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   late Future<List<Map<String, dynamic>>> _future;
+  RealtimeChannel? _channel;
 
   @override
   void initState() {
     super.initState();
     _future = NotificationService.load();
+    final userId = AuthService.client.auth.currentUser?.id;
+    if (userId != null) {
+      _channel = AuthService.client.channel('notifications-$userId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'notifications',
+          filter: PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'recipient_id', value: userId),
+          callback: (_) { if (mounted) _refresh(); },
+        ).subscribe();
+    }
+  }
+
+  @override
+  void dispose() {
+    final channel = _channel;
+    if (channel != null) AuthService.client.removeChannel(channel);
+    super.dispose();
   }
 
   Future<void> _refresh() async {
@@ -36,6 +58,56 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           const SnackBar(content: Text('علامت‌گذاری اعلان‌ها انجام نشد.')),
         );
       }
+    }
+  }
+
+  Future<void> _openPreferences() async {
+    try {
+      final preferences = await NotificationService.loadPreferences();
+      if (!mounted) return;
+      var social = preferences['social'] ?? true;
+      var messages = preferences['messages'] ?? true;
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: const Text('تنظیمات اعلان‌ها'),
+            content: Column(mainAxisSize: MainAxisSize.min, children: [
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('تعاملات اجتماعی'),
+                subtitle: const Text('دنبال‌کردن، پسندیدن، دیدگاه و استوری'),
+                value: social,
+                onChanged: (value) => setDialogState(() => social = value),
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('پیام‌ها'),
+                subtitle: const Text('اعلان پیام‌های خصوصی و گروهی'),
+                value: messages,
+                onChanged: (value) => setDialogState(() => messages = value),
+              ),
+            ]),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+              FilledButton(onPressed: () async {
+                try {
+                  await NotificationService.updatePreferences(socialEnabled: social, messagesEnabled: messages);
+                  if (dialogContext.mounted) Navigator.pop(dialogContext);
+                } catch (_) {
+                  if (dialogContext.mounted) ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    const SnackBar(content: Text('ذخیره تنظیمات انجام نشد.')),
+                  );
+                }
+              }, child: const Text('ذخیره')),
+            ],
+          ),
+        ),
+      );
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('دریافت تنظیمات اعلان‌ها ناموفق بود.')),
+      );
     }
   }
 
@@ -119,6 +191,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             child: Row(children: [
               const Expanded(child: Text('اعلان‌های شما',
                   style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800))),
+              IconButton(tooltip: 'تنظیمات اعلان‌ها', onPressed: _openPreferences, icon: const Icon(Icons.tune_rounded)),
               if (unread > 0)
                 TextButton(onPressed: _markAllRead, child: const Text('خواندن همه')),
             ]),
