@@ -7,6 +7,7 @@ import '../features/bootstrap/presentation/bootstrap_screen.dart';
 import '../features/home/presentation/shared_post_screen.dart';
 import '../features/auth/data/auth_service.dart';
 import '../features/messaging/data/messaging_service.dart';
+import '../features/notifications/data/push_notification_service.dart';
 import 'theme/app_theme.dart';
 
 final GlobalKey<NavigatorState> homagramNavigatorKey = GlobalKey<NavigatorState>();
@@ -31,13 +32,23 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     if (widget.supabaseConfigured) {
-      _authSubscription = AuthService.client.auth.onAuthStateChange.listen((_) => _syncPresence());
+      _authSubscription = AuthService.client.auth.onAuthStateChange.listen((_) {
+        _syncPresence();
+        _syncPushRegistration();
+      });
       _syncPresence();
+      _syncPushRegistration();
       _linkSubscription = _appLinks.uriLinkStream.listen(_handleUri);
       _appLinks.getInitialLink().then(_handleUri).catchError((_) {});
     }
   }
 
+  void _syncPushRegistration() {
+    if (!widget.supabaseConfigured || AuthService.client.auth.currentUser == null) return;
+    PushNotificationService.registerCurrentDevice(AuthService.client).catchError((error) {
+      debugPrint('Push token registration failed: $error');
+    });
+  }
 
   void _syncPresence() {
     final user = AuthService.client.auth.currentUser;
