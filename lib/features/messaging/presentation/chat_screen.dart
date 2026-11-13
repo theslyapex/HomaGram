@@ -145,7 +145,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!mounted || choice == null || _sending) return;
     if (choice == 'file') {
       try {
-        final result = await FilePicker.platform.pickFiles(
+        final result = await FilePicker.pickFiles(
           type: FileType.custom,
           allowedExtensions: ['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','csv','zip'],
           allowMultiple: false,
