@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
@@ -6,6 +7,7 @@ import 'feed_screen.dart';
 import 'public_profile_screen.dart';
 import '../../messaging/presentation/messaging_screen.dart';
 import '../../notifications/presentation/notifications_screen.dart';
+import '../../notifications/data/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,7 +18,41 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _tab = 0;
+  int _unreadNotifications = 0;
+  RealtimeChannel? _notificationChannel;
 
+  @override
+  void initState() {
+    super.initState();
+    _refreshUnread();
+    final userId = AuthService.client.auth.currentUser?.id;
+    if (userId != null) {
+      _notificationChannel = AuthService.client.channel('home-notification-count-$userId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'notifications',
+          filter: PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'recipient_id', value: userId),
+          callback: (_) => _refreshUnread(),
+        ).subscribe();
+    }
+  }
+
+  Future<void> _refreshUnread() async {
+    try {
+      final count = await NotificationService.unreadCount();
+      if (mounted && count != _unreadNotifications) {
+        setState(() => _unreadNotifications = count);
+      }
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    final channel = _notificationChannel;
+    if (channel != null) AuthService.client.removeChannel(channel);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +89,19 @@ class _HomeScreenState extends State<HomeScreen> {
           NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded), label: 'خانه'),
           NavigationDestination(icon: Icon(Icons.search_rounded), label: 'جست‌وجو'),
           NavigationDestination(icon: Icon(Icons.chat_bubble_outline_rounded), selectedIcon: Icon(Icons.chat_rounded), label: 'پیام‌ها'),
-          NavigationDestination(icon: Icon(Icons.notifications_none_rounded), selectedIcon: Icon(Icons.notifications_rounded), label: 'اعلان‌ها'),
+          NavigationDestination(
+            icon: Badge(
+              isLabelVisible: _unreadNotifications > 0,
+              label: Text(_unreadNotifications > 99 ? '99+' : '$_unreadNotifications'),
+              child: const Icon(Icons.notifications_none_rounded),
+            ),
+            selectedIcon: Badge(
+              isLabelVisible: _unreadNotifications > 0,
+              label: Text(_unreadNotifications > 99 ? '99+' : '$_unreadNotifications'),
+              child: const Icon(Icons.notifications_rounded),
+            ),
+            label: 'اعلان‌ها',
+          ),
         NavigationDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded), label: 'پروفایل'),
         ],
       ),
