@@ -338,6 +338,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   int _replayNonce = 0;
   bool _busy = false;
   bool _paused = false;
+  bool _userPaused = false;
+  bool _lifecyclePaused = false;
   bool _advancing = false;
   bool _routeVisible = true;
 
@@ -361,13 +363,9 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     final active = state == AppLifecycleState.resumed;
-    if (!active) {
-      _routeVisible = false;
-      _togglePause(true);
-    } else {
-      _routeVisible = true;
-      _togglePause(false);
-    }
+    _routeVisible = active;
+    _lifecyclePaused = !active;
+    _syncPauseState();
   }
 
   @override
@@ -437,12 +435,19 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     }
   }
 
-  void _togglePause(bool pause) {
-    if (!mounted || _paused == pause) return;
-    setState(() => _paused = pause);
-    if (pause) {
+  void _setUserPaused(bool pause) {
+    _userPaused = pause;
+    _syncPauseState();
+  }
+
+  void _syncPauseState() {
+    if (!mounted) return;
+    final shouldPause = _userPaused || _lifecyclePaused || !_routeVisible;
+    if (_paused == shouldPause) return;
+    setState(() => _paused = shouldPause);
+    if (shouldPause) {
       _progress.stop();
-    } else {
+    } else if (_story['media_type'] == 'image') {
       _progress.forward();
     }
   }
@@ -556,8 +561,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
             Expanded(child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: _previousStory,
-              onLongPressStart: (_) => _togglePause(true),
-              onLongPressEnd: (_) => _togglePause(false),
+              onLongPressStart: (_) => _setUserPaused(true),
+              onLongPressEnd: (_) => _setUserPaused(false),
             )),
             Expanded(child: GestureDetector(
               behavior: HitTestBehavior.translucent,
