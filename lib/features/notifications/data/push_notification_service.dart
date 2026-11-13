@@ -101,7 +101,7 @@ class PushNotificationService {
           .eq('fid', fid);
     }
     try {
-      await FirebaseMessaging.instance.unregister();
+      if (fid != null) await FirebaseMessaging.instance.unregister();
     } finally {
       if (_registeredUserId == userId) {
         _registeredFid = null;
