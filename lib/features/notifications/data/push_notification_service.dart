@@ -6,19 +6,30 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class PushNotificationService {
   PushNotificationService._();
 
-  static StreamSubscription<String>? _tokenSubscription;
+  static StreamSubscription<String>? _registeredSubscription;
+  static StreamSubscription<String>? _unregisteredSubscription;
   static SupabaseClient? _client;
   static String? _registeredUserId;
+  static String? _registeredFid;
+  static Completer<String>? _registrationCompleter;
   static bool _initialized = false;
-  static bool _permissionRequested = false;
 
   static Future<void> initialize() async {
     if (_initialized) return;
-    await FirebaseMessaging.instance.setAutoInitEnabled(true);
-    _tokenSubscription = FirebaseMessaging.instance.onTokenRefresh.listen(
-      (token) => _saveToken(token),
-      onError: (_) {},
-    );
+    final messaging = FirebaseMessaging.instance;
+    await messaging.setAutoInitEnabled(true);
+    _registeredSubscription = messaging.onRegistered.listen((fid) {
+      _registeredFid = fid;
+      final completer = _registrationCompleter;
+      if (completer != null && !completer.isCompleted) {
+        completer.complete(fid);
+      }
+      _saveFid(fid).catchError((_) {});
+    });
+    _unregisteredSubscription = messaging.onUnregistered.listen((fid) {
+      if (_registeredFid == fid) _registeredFid = null;
+      _removeFid(fid).catchError((_) {});
+    });
     _initialized = true;
   }
 
@@ -26,7 +37,7 @@ class PushNotificationService {
     final user = client.auth.currentUser;
     if (user == null) return;
     if (!_initialized) await initialize();
-    if (_registeredUserId == user.id) return;
+    if (_registeredUserId == user.id && _registeredFid != null) return;
 
     _client = client;
     _registeredUserId = user.id;
@@ -39,37 +50,61 @@ class PushNotificationService {
     );
     if (settings.authorizationStatus == AuthorizationStatus.denied) return;
 
-    final token = await FirebaseMessaging.instance.getToken();
-    if (token != null && token.isNotEmpty) {
-      await _saveToken(token);
+    if (_registeredFid != null) {
+      await _saveFid(_registeredFid!);
+      return;
+    }
+
+    final completer = Completer<String>();
+    _registrationCompleter = completer;
+    try {
+      await FirebaseMessaging.instance.register();
+      final fid = await completer.future.timeout(const Duration(seconds: 30));
+      await _saveFid(fid);
+    } finally {
+      if (identical(_registrationCompleter, completer)) {
+        _registrationCompleter = null;
+      }
     }
   }
 
-  static Future<void> _saveToken(String token) async {
+  static Future<void> _saveFid(String fid) async {
     final client = _client;
     final userId = _registeredUserId;
-    if (client == null || userId == null || token.isEmpty) return;
+    if (client == null || userId == null || fid.isEmpty) return;
     await client.from('user_push_tokens').upsert({
-      'token': token,
+      'fid': fid,
       'user_id': userId,
       'platform': 'android',
       'updated_at': DateTime.now().toUtc().toIso8601String(),
-    }, onConflict: 'token');
+    }, onConflict: 'fid');
+  }
+
+  static Future<void> _removeFid(String fid) async {
+    final client = _client;
+    final userId = _registeredUserId;
+    if (client == null || userId == null || fid.isEmpty) return;
+    await client.from('user_push_tokens')
+        .delete()
+        .eq('user_id', userId)
+        .eq('fid', fid);
   }
 
   static Future<void> unregisterCurrentDevice(SupabaseClient client) async {
     final userId = client.auth.currentUser?.id;
     if (userId == null) return;
+    final fid = _registeredFid;
+    if (fid != null) {
+      await client.from('user_push_tokens')
+          .delete()
+          .eq('user_id', userId)
+          .eq('fid', fid);
+    }
     try {
-      final token = await FirebaseMessaging.instance.getToken();
-      if (token != null && token.isNotEmpty) {
-        await client.from('user_push_tokens')
-            .delete()
-            .eq('user_id', userId)
-            .eq('token', token);
-      }
+      await FirebaseMessaging.instance.unregister();
     } finally {
       if (_registeredUserId == userId) {
+        _registeredFid = null;
         _registeredUserId = null;
         _client = null;
       }
@@ -77,11 +112,14 @@ class PushNotificationService {
   }
 
   static Future<void> dispose() async {
-    await _tokenSubscription?.cancel();
-    _tokenSubscription = null;
-    _initialized = false;
-    _client = null;
+    await _registeredSubscription?.cancel();
+    await _unregisteredSubscription?.cancel();
+    _registeredSubscription = null;
+    _unregisteredSubscription = null;
+    _registrationCompleter = null;
+    _registeredFid = null;
     _registeredUserId = null;
-    _permissionRequested = false;
+    _client = null;
+    _initialized = false;
   }
 }
