@@ -294,11 +294,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     ]);
   }
 
-  Widget _stat(String label, int value) => Expanded(child: Column(children: [
-    Text('$value', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-    const SizedBox(height: 4),
-    Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF8490A4))),
-  ]));
+
 
   Widget _sectionButton(int index, IconData icon, String label) {
     final selected = _section == index;
