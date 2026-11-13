@@ -35,50 +35,93 @@ class MessagingService {
 
     final ids = memberships
         .map((row) => row['conversation_id'] as String)
+        .toSet()
         .toList(growable: false);
 
-    final conversations = await _client
-        .from('conversations')
-        .select('id,kind,title,updated_at')
-        .inFilter('id', ids)
-        .order('updated_at', ascending: false);
+    // Fetch inbox data in batches rather than issuing two or three requests
+    // for every conversation. This keeps inbox latency predictable as it grows.
+    final results = await Future.wait([
+      _client
+          .from('conversations')
+          .select('id,kind,title,updated_at')
+          .inFilter('id', ids)
+          .order('updated_at', ascending: false),
+      _client
+          .from('conversation_members')
+          .select('conversation_id,user_id')
+          .inFilter('conversation_id', ids)
+          .isFilter('left_at', null),
+      _client
+          .from('messages')
+          .select('conversation_id,body,message_type,deleted_at,created_at')
+          .inFilter('conversation_id', ids)
+          .order('created_at', ascending: false)
+          .limit(1000),
+    ]);
 
-    final previews = await Future.wait(conversations.map((conversation) async {
+    final conversations = results[0] as List;
+    final allMembers = results[1] as List;
+    final recentMessages = results[2] as List;
+
+    final otherUserIds = allMembers
+        .where((row) => row['user_id'] != _userId)
+        .map((row) => row['user_id'] as String)
+        .toSet()
+        .toList(growable: false);
+
+    final profiles = otherUserIds.isEmpty
+        ? <dynamic>[]
+        : await _client
+            .from('profiles')
+            .select('id,display_name,username')
+            .inFilter('id', otherUserIds);
+
+    final profileById = {
+      for (final profile in profiles)
+        profile['id'] as String: Map<String, dynamic>.from(profile),
+    };
+
+    final otherMemberByConversation = <String, String>{};
+    for (final member in allMembers) {
+      final userId = member['user_id'] as String;
+      if (userId != _userId) {
+        otherMemberByConversation.putIfAbsent(
+          member['conversation_id'] as String,
+          () => userId,
+        );
+      }
+    }
+
+    final latestByConversation = <String, Map<String, dynamic>>{};
+    for (final row in recentMessages) {
+      latestByConversation.putIfAbsent(
+        row['conversation_id'] as String,
+        () => Map<String, dynamic>.from(row),
+      );
+    }
+
+    final previews = <ConversationPreview>[];
+    for (final conversation in conversations) {
       final id = conversation['id'] as String;
       final kind = conversation['kind'] as String;
-      var title = (conversation['title'] as String?) ?? 'گفت‌وگوی خصوصی';
+      var title = (conversation['title'] as String?)?.trim();
+      if (title == null || title.isEmpty) title = 'گفت‌وگوی خصوصی';
 
       if (kind == 'direct') {
-        final otherMembers = await _client
-            .from('conversation_members')
-            .select('user_id')
-            .eq('conversation_id', id)
-            .isFilter('left_at', null)
-            .neq('user_id', _userId)
-            .limit(1);
-
-        if (otherMembers.isNotEmpty) {
-          final profile = await _client
-              .from('profiles')
-              .select('display_name,username')
-              .eq('id', otherMembers.first['user_id'] as String)
-              .maybeSingle();
-          if (profile != null) {
-            title = (profile['display_name'] as String?)?.trim().isNotEmpty == true
-                ? profile['display_name'] as String
-                : '@${profile['username']}';
-          }
+        final otherUserId = otherMemberByConversation[id];
+        final profile = otherUserId == null ? null : profileById[otherUserId];
+        if (profile != null) {
+          final displayName = (profile['display_name'] as String?)?.trim();
+          final username = (profile['username'] as String?)?.trim();
+          title = displayName != null && displayName.isNotEmpty
+              ? displayName
+              : username != null && username.isNotEmpty
+                  ? '@$username'
+                  : title;
         }
       }
 
-      final latest = await _client
-          .from('messages')
-          .select('body,message_type,deleted_at')
-          .eq('conversation_id', id)
-          .order('created_at', ascending: false)
-          .limit(1)
-          .maybeSingle();
-
+      final latest = latestByConversation[id];
       var subtitle = 'هنوز پیامی ارسال نشده';
       if (latest != null) {
         if (latest['deleted_at'] != null) {
@@ -87,19 +130,26 @@ class MessagingService {
           subtitle = 'تصویر';
         } else if (latest['message_type'] == 'video') {
           subtitle = 'ویدئو';
+        } else if (latest['message_type'] == 'audio') {
+          subtitle = 'فایل صوتی';
+        } else if (latest['message_type'] == 'file') {
+          subtitle = 'فایل';
         } else {
           subtitle = (latest['body'] as String?) ?? '';
         }
       }
 
-      return ConversationPreview(
+      previews.add(ConversationPreview(
         id: id,
         kind: kind,
         title: title,
         subtitle: subtitle,
-        updatedAt: DateTime.parse(conversation['updated_at'] as String),
-      );
-    }));
+        updatedAt: DateTime.tryParse(
+              conversation['updated_at'] as String? ?? '',
+            ) ??
+            DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      ));
+    }
 
     previews.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     return previews;
