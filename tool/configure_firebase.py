@@ -3,7 +3,6 @@
 from pathlib import Path
 import json
 import os
-import re
 import sys
 
 EXPECTED_PACKAGE = "com.homagram.homagram"
@@ -43,24 +42,30 @@ def main() -> int:
 
     settings_text = settings.read_text(encoding="utf-8")
     if "com.google.gms.google-services" not in settings_text:
-        match = re.search(r"(?m)^plugins\\s*\\{", settings_text)
-        if not match:
+        marker = "plugins {"
+        if marker not in settings_text:
             return fail("Could not find plugins block in android/settings.gradle.kts.")
-        insertion = f'\\n    id("com.google.gms.google-services") version "{PLUGIN_VERSION}" apply false'
-        settings_text = settings_text[:match.end()] + insertion + settings_text[match.end():]
+        settings_text = settings_text.replace(
+            marker,
+            marker + f'\n    id("com.google.gms.google-services") version "{PLUGIN_VERSION}" apply false',
+            1,
+        )
         settings.write_text(settings_text, encoding="utf-8")
 
     app_text = app_gradle.read_text(encoding="utf-8")
     if "com.google.gms.google-services" not in app_text:
-        match = re.search(r"(?m)^plugins\\s*\\{", app_text)
-        if not match:
+        marker = "plugins {"
+        if marker not in app_text:
             return fail("Could not find plugins block in android/app/build.gradle.kts.")
-        insertion = '\\n    id("com.google.gms.google-services")'
-        app_text = app_text[:match.end()] + insertion + app_text[match.end():]
+        app_text = app_text.replace(
+            marker,
+            marker + '\n    id("com.google.gms.google-services")',
+            1,
+        )
         app_gradle.write_text(app_text, encoding="utf-8")
 
     destination = Path("android/app/google-services.json")
-    destination.write_text(json.dumps(config, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+    destination.write_text(json.dumps(config, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Configured Firebase for {EXPECTED_PACKAGE}; JSON remains ignored and is not committed.")
     return 0
 
