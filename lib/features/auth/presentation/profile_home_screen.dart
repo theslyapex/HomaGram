@@ -24,6 +24,9 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
   bool _saving = false;
   bool _uploadingAvatar = false;
   bool _private = false;
+  bool _showFollowers = true;
+  bool _showFollowing = true;
+  bool _showProfileVisitors = true;
   bool _onboarding = false;
   String? _avatarPath;
   String? _avatarUrl;
@@ -58,7 +61,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
             .single(),
         AuthService.client
             .from('account_settings')
-            .select('is_private')
+            .select('is_private,show_followers,show_following,show_profile_visitors')
             .eq('user_id', id)
             .single(),
       ]);
@@ -69,6 +72,9 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
       _avatarPath = profile['avatar_path'] as String?;
       _onboarding = profile['profile_completed_at'] == null;
       _private = rows[1]['is_private'] as bool? ?? false;
+      _showFollowers = rows[1]['show_followers'] as bool? ?? true;
+      _showFollowing = rows[1]['show_following'] as bool? ?? true;
+      _showProfileVisitors = rows[1]['show_profile_visitors'] as bool? ?? true;
       // Avatar delivery is optional: a temporary Storage signing failure
       // must not prevent the user's account details from loading.
       _avatarUrl = null;
@@ -226,6 +232,34 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
     }
   }
 
+  Future<void> _setVisibility(String column, bool value) async {
+    final previous = switch (column) {
+      'show_followers' => _showFollowers,
+      'show_following' => _showFollowing,
+      'show_profile_visitors' => _showProfileVisitors,
+      _ => false,
+    };
+    setState(() {
+      if (column == 'show_followers') _showFollowers = value;
+      if (column == 'show_following') _showFollowing = value;
+      if (column == 'show_profile_visitors') _showProfileVisitors = value;
+    });
+    try {
+      final id = AuthService.client.auth.currentUser!.id;
+      await AuthService.client.from('account_settings')
+          .update({column: value}).eq('user_id', id);
+      _message('تنظیم حریم خصوصی ذخیره شد.');
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        if (column == 'show_followers') _showFollowers = previous;
+        if (column == 'show_following') _showFollowing = previous;
+        if (column == 'show_profile_visitors') _showProfileVisitors = previous;
+      });
+      _message('ذخیره تنظیم حریم خصوصی انجام نشد.', error: true);
+    }
+  }
+
   Future<void> _signOut({bool otherDevices = false}) async {
     try {
       if (otherDevices) {
@@ -327,9 +361,44 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                           onChanged: _setPrivacy,
                           title: const Text('حساب خصوصی'),
                           subtitle: const Text(
-                            'تنظیم ذخیره می‌شود؛ اعمال کامل آن بر نمایش محتوا در مرحله شبکه اجتماعی تکمیل خواهد شد.',
+                            'درخواست‌های دنبال‌کردن برای مشاهده محتوای خصوصی لازم خواهند بود.',
                           ),
                           secondary: const Icon(Icons.lock_outline),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Column(
+                            children: [
+                              const ListTile(
+                                leading: Icon(Icons.visibility_off_outlined),
+                                title: Text('حریم خصوصی فهرست‌ها',
+                                    style: TextStyle(fontWeight: FontWeight.w800)),
+                                subtitle: Text('کنترل کن دیگران کدام فهرست‌های ارتباطی را ببینند.'),
+                              ),
+                              SwitchListTile(
+                                value: _showFollowers,
+                                onChanged: (value) => _setVisibility('show_followers', value),
+                                title: const Text('نمایش دنبال‌کنندگان'),
+                                subtitle: const Text('با خاموش‌کردن، فهرست دنبال‌کنندگان برای دیگران پنهان می‌شود.'),
+                              ),
+                              SwitchListTile(
+                                value: _showFollowing,
+                                onChanged: (value) => _setVisibility('show_following', value),
+                                title: const Text('نمایش دنبال‌شوندگان'),
+                                subtitle: const Text('با خاموش‌کردن، فهرست دنبال‌شوندگان برای دیگران پنهان می‌شود.'),
+                              ),
+                              const Divider(height: 1),
+                              SwitchListTile(
+                                value: _showProfileVisitors,
+                                onChanged: (value) => _setVisibility('show_profile_visitors', value),
+                                title: const Text('اجازه نمایش بازدیدکنندگان پروفایل'),
+                                subtitle: const Text('تنظیم ذخیره می‌شود؛ فهرست بازدیدکنندگان هنوز در حال توسعه است.'),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
