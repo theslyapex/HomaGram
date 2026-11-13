@@ -69,11 +69,18 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
       _avatarPath = profile['avatar_path'] as String?;
       _onboarding = profile['profile_completed_at'] == null;
       _private = rows[1]['is_private'] as bool? ?? false;
-      _avatarUrl = _avatarPath == null
-          ? null
-          : await AuthService.client.storage
+      // Avatar delivery is optional: a temporary Storage signing failure
+      // must not prevent the user's account details from loading.
+      _avatarUrl = null;
+      if (_avatarPath != null) {
+        try {
+          _avatarUrl = await AuthService.client.storage
               .from('avatars')
               .createSignedUrl(_avatarPath!, 3600);
+        } catch (_) {
+          _avatarUrl = null;
+        }
+      }
     } catch (_) {
       _error = 'اطلاعات حساب دریافت نشد. اتصال و دسترسی دیتابیس را بررسی کنید.';
     } finally {
