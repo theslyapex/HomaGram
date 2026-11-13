@@ -26,6 +26,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   int _followers = 0;
   int _followingCount = 0;
   int _reposts = 0;
+  int _section = 0;
 
   String get _myId => AuthService.client.auth.currentUser!.id;
   bool get _isMe => _myId == widget.userId;
@@ -160,31 +161,23 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 const SizedBox(height: 18),
                 Row(children: [
                   _stat('پست‌ها', _posts.length),
-                  _stat('دنبال‌کننده', _followers),
-                  _stat('دنبال‌شونده', _followingCount),
+                  _stat('دنبال‌کننده', _followers, onTap: () => _showConnections(true)),
+                  _stat('دنبال‌شونده', _followingCount, onTap: () => _showConnections(false)),
                   _stat('بازنشر', _reposts),
                 ]),
                 const SizedBox(height: 20),
-                const Row(children: [
-                  Icon(Icons.grid_on_rounded, size: 19, color: HomaGramTheme.turquoise),
-                  SizedBox(width: 8),
-                  Text('پست‌ها', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+                Row(children: [
+                  Expanded(child: _sectionButton(0, Icons.grid_on_rounded, 'پست‌ها')),
+                  Expanded(child: _sectionButton(1, Icons.repeat_rounded, 'بازنشرها')),
                 ]),
-                const SizedBox(height: 12),
-                const SizedBox(height: 26),
-                const Row(children: [
-                  Icon(Icons.repeat_rounded, size: 19, color: HomaGramTheme.turquoise),
-                  SizedBox(width: 8),
-                  Text('بازنشرها', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
-                ]),
-                const SizedBox(height: 12),
-                if (_repostPosts.isEmpty)
+                const SizedBox(height: 14),
+                if (_section == 1 && _repostPosts.isEmpty)
                   const Padding(
                     padding: EdgeInsets.all(24),
                     child: Text('هنوز بازنشری ثبت نشده است.', textAlign: TextAlign.center,
                       style: TextStyle(color: Color(0xFF8490A4))),
                   )
-                else
+                else if (_section == 1)
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -219,13 +212,13 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                       );
                     },
                   ),
-                if (_posts.isEmpty)
+                if (_section == 0 && _posts.isEmpty)
                   const Padding(
                     padding: EdgeInsets.all(32),
                     child: Text('هنوز پستی منتشر نشده است.', textAlign: TextAlign.center,
                         style: TextStyle(color: Color(0xFF8490A4))),
                   )
-                else
+                else if (_section == 0)
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -306,6 +299,78 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     const SizedBox(height: 4),
     Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF8490A4))),
   ]));
+
+  Widget _sectionButton(int index, IconData icon, String label) {
+    final selected = _section == index;
+    return InkWell(
+      onTap: () => setState(() => _section = index),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(border: Border(bottom: BorderSide(
+          color: selected ? HomaGramTheme.turquoise : Colors.transparent, width: 2.5,
+        ))),
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Icon(icon, size: 19, color: selected ? HomaGramTheme.turquoise : const Color(0xFF8490A4)),
+          const SizedBox(width: 7),
+          Text(label, style: TextStyle(fontWeight: selected ? FontWeight.w800 : FontWeight.w600)),
+        ]),
+      ),
+    );
+  }
+
+  Widget _stat(String label, int value, {VoidCallback? onTap}) => Expanded(
+    child: InkWell(onTap: onTap, child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Column(children: [
+        Text('$value', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF8490A4))),
+      ]),
+    )),
+  );
+
+  Future<void> _showConnections(bool followers) async {
+    try {
+      final client = AuthService.client;
+      final rows = followers
+          ? await client.from('user_follows').select('follower_id').eq('following_id', widget.userId)
+          : await client.from('user_follows').select('following_id').eq('follower_id', widget.userId);
+      final ids = rows.map<String>((row) => (followers ? row['follower_id'] : row['following_id']) as String).toList();
+      final profiles = ids.isEmpty ? <dynamic>[] : await client.from('profiles')
+          .select('id,username,display_name').inFilter('id', ids);
+      final byId = {for (final p in profiles) p['id'] as String: p};
+      final ordered = ids.map((id) => byId[id]).whereType<Map<String, dynamic>>().toList();
+      if (!mounted) return;
+      await showModalBottomSheet<void>(context: context, showDragHandle: true, isScrollControlled: true,
+        builder: (sheetContext) => SafeArea(child: SizedBox(
+          height: MediaQuery.of(sheetContext).size.height * .72,
+          child: Column(children: [
+            Padding(padding: const EdgeInsets.all(16), child: Text(
+              followers ? 'دنبال‌کنندگان' : 'دنبال‌شوندگان',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+            Expanded(child: ordered.isEmpty
+              ? const Center(child: Text('هنوز کاربری در این فهرست نیست.'))
+              : ListView.builder(itemCount: ordered.length, itemBuilder: (context, index) {
+                  final p = ordered[index];
+                  return ListTile(
+                    leading: const CircleAvatar(child: Icon(Icons.person_outline)),
+                    title: Text(p['display_name'] as String? ?? 'کاربر HomaGram'),
+                    subtitle: Text('@${p['username'] ?? 'user'}'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.of(this.context).push(MaterialPageRoute<void>(
+                        builder: (_) => PublicProfileScreen(userId: p['id'] as String)));
+                    },
+                  );
+                })),
+          ]),
+        )),
+      );
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('دریافت فهرست کاربران انجام نشد.')));
+    }
+  }
 
   void _showPost(Map<String, dynamic> post) {
     final date = DateTime.tryParse(post['created_at'] as String? ?? '')?.toLocal();
