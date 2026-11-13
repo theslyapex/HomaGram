@@ -1,0 +1,1 @@
+alter table public.user_push_tokens rename column token to fid;
