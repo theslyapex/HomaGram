@@ -381,6 +381,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   void _nextStory() {
     if (!mounted) return;
     if (_index < widget.stories.length - 1) {
+      _progress.stop();
       setState(() { _index++; _paused = false; });
       _markViewed();
       if (_story['media_type'] == 'image') _startProgress();
@@ -392,11 +393,13 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   void _previousStory() {
     if (!mounted) return;
     if (_progress.value > .12) {
+      _progress.stop();
       setState(() => _replayNonce++);
       if (_story['media_type'] == 'image') _startProgress();
       return;
     }
     if (_index > 0) {
+      _progress.stop();
       setState(() { _index--; _paused = false; });
       _markViewed();
       if (_story['media_type'] == 'image') _startProgress();
