@@ -6,7 +6,7 @@ import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
 import '../data/story_service.dart';
 import 'story_image.dart';
-import 'story_video_cache.dart';
+import '../../../core/cache/story_video_cache.dart';
 
 class StoriesStrip extends StatefulWidget {
   const StoriesStrip({super.key});
