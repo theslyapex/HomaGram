@@ -391,7 +391,18 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
 
   void _onVideoReady(String storyId, Duration duration) {
     if (!mounted || _story['id'] != storyId || _story['media_type'] != 'video') return;
-    _startProgress(duration: duration > Duration.zero ? duration : const Duration(seconds: 5));
+    _progress.stop();
+    _progress.value = 0;
+  }
+
+  void _onVideoProgress(String storyId, Duration position, Duration duration, bool completed) {
+    if (!mounted || _story['id'] != storyId || _story['media_type'] != 'video') return;
+    if (duration > Duration.zero) {
+      final value = (position.inMicroseconds / duration.inMicroseconds).clamp(0.0, 1.0);
+      // Keep the animation controller as a display value only for video.
+      _progress.value = completed ? .999 : value.clamp(0.0, .999);
+    }
+    if (completed && !_advancing) _nextStory();
   }
 
   void _nextStory() {
@@ -538,6 +549,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
           story: _story,
           paused: _paused,
           onVideoReady: _onVideoReady,
+          onVideoProgress: _onVideoProgress,
         ),
         Positioned.fill(
           child: Row(children: [
@@ -627,11 +639,13 @@ class _StoryMedia extends StatefulWidget {
     required this.story,
     required this.paused,
     required this.onVideoReady,
+    required this.onVideoProgress,
     super.key,
   });
   final Map<String, dynamic> story;
   final bool paused;
   final void Function(String storyId, Duration duration) onVideoReady;
+  final void Function(String storyId, Duration position, Duration duration, bool completed) onVideoProgress;
 
   @override
   State<_StoryMedia> createState() => _StoryMediaState();
@@ -640,6 +654,22 @@ class _StoryMedia extends StatefulWidget {
 class _StoryMediaState extends State<_StoryMedia> {
   VideoPlayerController? _video;
   Future<void>? _initializing;
+  bool _completionReported = false;
+
+  void _handleVideoUpdate() {
+    final video = _video;
+    if (!mounted || video == null || !video.value.isInitialized) return;
+    final value = video.value;
+    final duration = value.duration;
+    final completed = duration > Duration.zero && value.position >= duration;
+    widget.onVideoProgress(
+      widget.story['id'] as String,
+      value.position,
+      duration,
+      completed && !_completionReported,
+    );
+    if (completed) _completionReported = true;
+  }
 
   @override
   void initState() {
@@ -649,6 +679,7 @@ class _StoryMediaState extends State<_StoryMedia> {
       _initializing = _video!.initialize().then((_) {
         if (!mounted) return;
         _video!.setLooping(false);
+        _video!.addListener(_handleVideoUpdate);
         widget.onVideoReady(widget.story['id'] as String, _video!.value.duration);
         if (!widget.paused) _video!.play();
       });
@@ -669,6 +700,7 @@ class _StoryMediaState extends State<_StoryMedia> {
 
   @override
   void dispose() {
+    _video?.removeListener(_handleVideoUpdate);
     _video?.dispose();
     super.dispose();
   }
