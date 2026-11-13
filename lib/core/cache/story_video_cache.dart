@@ -8,6 +8,7 @@ class StoryVideoCache {
 
   static const Duration _maxAge = Duration(minutes: 15);
   static const int _maxFileBytes = 50 * 1024 * 1024;
+  static const int _maxCacheableVideoBytes = 15 * 1024 * 1024;
   static const int _maxCacheBytes = 100 * 1024 * 1024;
   static final Map<String, Future<File>> _pending = {};
 
@@ -56,8 +57,10 @@ class StoryVideoCache {
       if (response.statusCode != HttpStatus.ok) {
         throw HttpException('Story video download failed: HTTP ${response.statusCode}');
       }
-      if (response.contentLength > _maxFileBytes) {
-        throw const HttpException('Story video exceeds the cache size limit');
+      // Avoid delaying first playback for large or unknown-length videos.
+      // Those continue through the native streaming fallback in the viewer.
+      if (response.contentLength <= 0 || response.contentLength > _maxCacheableVideoBytes) {
+        throw const HttpException('Story video is not suitable for local caching');
       }
 
       sink = partial.openWrite();
