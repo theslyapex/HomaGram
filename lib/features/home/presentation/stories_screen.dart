@@ -332,12 +332,14 @@ class StoryViewerScreen extends StatefulWidget {
 }
 
 class _StoryViewerScreenState extends State<StoryViewerScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _progress;
   int _index = 0;
   int _replayNonce = 0;
   bool _busy = false;
   bool _paused = false;
+  bool _advancing = false;
+  bool _routeVisible = true;
 
   Map<String, dynamic> get _story => widget.stories[_index];
   bool get _isMine => _story['author_id'] == AuthService.client.auth.currentUser?.id;
@@ -345,6 +347,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _progress = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 5),
@@ -356,7 +359,20 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final active = state == AppLifecycleState.resumed;
+    if (!active) {
+      _routeVisible = false;
+      _togglePause(true);
+    } else {
+      _routeVisible = true;
+      _togglePause(false);
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _progress.dispose();
     super.dispose();
   }
@@ -379,15 +395,17 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   }
 
   void _nextStory() {
-    if (!mounted) return;
+    if (!mounted || _advancing) return;
+    _advancing = true;
     if (_index < widget.stories.length - 1) {
       _progress.stop();
-      setState(() { _index++; _paused = false; });
+      setState(() { _index++; _paused = !_routeVisible; });
       _markViewed();
       if (_story['media_type'] == 'image') _startProgress();
     } else {
       Navigator.of(context).pop();
     }
+    _advancing = false;
   }
 
   void _previousStory() {
