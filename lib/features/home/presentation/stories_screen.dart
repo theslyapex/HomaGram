@@ -593,6 +593,10 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
         await imageCache.evict(StoryImageProvider(mediaUrl, cacheKey: 'story-media:$mediaPath'));
       }
       await StoryService.deleteStory(_story);
+      final userId = AuthService.client.auth.currentUser?.id;
+      if (userId != null) {
+        await StoryVideoCache.evict(userId: userId, storagePath: mediaPath);
+      }
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
       if (mounted) _notice('حذف استوری انجام نشد.', error: true);
@@ -779,7 +783,8 @@ class _StoryMediaState extends State<_StoryMedia> {
             url: url,
             storagePath: widget.story['media_path'] as String? ?? widget.story['id'].toString(),
             userId: userId,
-          ).timeout(const Duration(seconds: 45));
+          );
+          if (!mounted) return;
         } catch (_) {
           cachedFile = null;
         }
