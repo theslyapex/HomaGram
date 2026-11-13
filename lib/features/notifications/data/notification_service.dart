@@ -29,6 +29,40 @@ class NotificationService {
     return items;
   }
 
+  static Future<int> unreadCount() async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return 0;
+    final rows = await _client.from('notifications')
+        .select('id').eq('recipient_id', userId).eq('is_read', false);
+    return rows.length;
+  }
+
+  static Future<void> updatePreferences({
+    required bool socialEnabled,
+    required bool messagesEnabled,
+  }) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return;
+    await _client.from('user_notification_preferences').upsert({
+      'user_id': userId,
+      'social_enabled': socialEnabled,
+      'messages_enabled': messagesEnabled,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    });
+  }
+
+  static Future<Map<String, bool>> loadPreferences() async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return {'social': true, 'messages': true};
+    final row = await _client.from('user_notification_preferences')
+        .select('social_enabled,messages_enabled')
+        .eq('user_id', userId).maybeSingle();
+    return {
+      'social': row?['social_enabled'] as bool? ?? true,
+      'messages': row?['messages_enabled'] as bool? ?? true,
+    };
+  }
+
   static Future<void> markRead(String id) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) return;
