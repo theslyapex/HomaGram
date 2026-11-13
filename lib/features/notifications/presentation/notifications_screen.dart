@@ -5,6 +5,7 @@ import '../../auth/data/auth_service.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../home/presentation/public_profile_screen.dart';
+import '../../messaging/presentation/chat_screen.dart';
 import '../data/notification_service.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -127,6 +128,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       case 'comment_reply': return Icons.mode_comment_rounded;
       case 'post_repost': return Icons.repeat_rounded;
       case 'story_reaction': return Icons.auto_awesome_rounded;
+      case 'message_new': return Icons.mark_chat_unread_rounded;
       default: return Icons.notifications_rounded;
     }
   }
@@ -153,7 +155,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (!mounted) return;
     final actor = item['actor'] as Map<String, dynamic>?;
     final actorId = actor?['id'] as String?;
-    if (actorId != null) {
+    if (item['type'] == 'message_new' && item['entity_id'] is String) {
+      final displayName = (actor?['display_name'] as String?)?.trim();
+      final username = actor?['username'] as String?;
+      final title = displayName?.isNotEmpty == true
+          ? displayName!
+          : (username ?? 'گفت‌وگو');
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => ChatScreen(
+          conversationId: item['entity_id'] as String,
+          title: title,
+        ),
+      ));
+    } else if (actorId != null) {
       Navigator.of(context).push(MaterialPageRoute(
         builder: (_) => PublicProfileScreen(userId: actorId),
       ));
