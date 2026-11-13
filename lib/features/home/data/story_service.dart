@@ -3,6 +3,19 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../auth/data/auth_service.dart';
 import '../../messaging/data/messaging_service.dart';
 
+bool isSupportedStoryMedia({
+  required String mediaType,
+  required String mimeType,
+}) {
+  if (mediaType == 'image') {
+    return const {'image/jpeg', 'image/png', 'image/webp'}.contains(mimeType);
+  }
+  if (mediaType == 'video') {
+    return const {'video/mp4', 'video/quicktime'}.contains(mimeType);
+  }
+  return false;
+}
+
 class StoryService {
   StoryService._();
 
@@ -112,9 +125,16 @@ class StoryService {
     required String mimeType,
     required String caption,
   }) async {
+    if (!isSupportedStoryMedia(mediaType: mediaType, mimeType: mimeType)) {
+      throw ArgumentError('نوع رسانه یا فرمت فایل استوری پشتیبانی نمی‌شود.');
+    }
+    if (caption.trim().length > 500) {
+      throw ArgumentError('متن استوری حداکثر ۵۰۰ نویسه است.');
+    }
+
     final bytes = await file.readAsBytes();
     if (bytes.isEmpty || bytes.length > 52428800) {
-      throw ArgumentError('حجم رسانه باید حداکثر ۵۰ مگابایت باشد.');
+      throw ArgumentError('حجم رسانه باید بیشتر از صفر و حداکثر ۵۰ مگابایت باشد.');
     }
     final ext = fileName.contains('.') ? fileName.split('.').last.toLowerCase()
         : (mediaType == 'video' ? 'mp4' : 'jpg');
