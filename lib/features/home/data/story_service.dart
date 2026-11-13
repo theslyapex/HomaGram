@@ -29,36 +29,79 @@ class StoryService {
     return _hydrate(rows);
   }
 
+  // Sign storage paths in small concurrent batches. This avoids the old
+  // one-request-at-a-time loop while preventing a large burst of requests.
+  static Future<Map<String, String>> _signPaths(
+    String bucket,
+    Iterable<String> rawPaths,
+  ) async {
+    final paths = rawPaths.where((path) => path.isNotEmpty).toSet().toList();
+    final signed = <String, String>{};
+    const batchSize = 8;
+
+    for (var start = 0; start < paths.length; start += batchSize) {
+      final batch = paths.skip(start).take(batchSize);
+      final results = await Future.wait(batch.map((path) async {
+        try {
+          final url = await _client.storage.from(bucket).createSignedUrl(path, 3600);
+          return MapEntry(path, url);
+        } catch (_) {
+          return null;
+        }
+      }));
+      for (final entry in results) {
+        if (entry != null) signed[entry.key] = entry.value;
+      }
+    }
+    return signed;
+  }
+
   static Future<List<Map<String, dynamic>>> _hydrate(List<dynamic> rows) async {
     if (rows.isEmpty) return [];
+
     final ids = rows.map((r) => r['author_id'] as String).toSet().toList();
-    final profiles = await _client.from('profiles')
-        .select('id,username,display_name,avatar_path').inFilter('id', ids);
-    final byId = {for (final p in profiles) p['id'] as String: Map<String,dynamic>.from(p)};
     final storyIds = rows.map((r) => r['id'] as String).toList();
-    final seenRows = await _client.from('story_views')
-        .select('story_id').eq('viewer_id', _uid).inFilter('story_id', storyIds);
+
+    // Fetch profiles and viewed-state data together instead of serially.
+    final profileAndViews = await Future.wait([
+      _client.from('profiles')
+          .select('id,username,display_name,avatar_path').inFilter('id', ids),
+      _client.from('story_views')
+          .select('story_id').eq('viewer_id', _uid).inFilter('story_id', storyIds),
+    ]);
+    final profiles = profileAndViews[0] as List;
+    final seenRows = profileAndViews[1] as List;
+    final byId = {
+      for (final p in profiles)
+        p['id'] as String: Map<String, dynamic>.from(p)
+    };
     final seen = seenRows.map((r) => r['story_id'] as String).toSet();
-    final result = <Map<String,dynamic>>[];
-    for (final row in rows) {
-      final story = Map<String,dynamic>.from(row);
-      final profile = byId[story['author_id']] ?? <String,dynamic>{};
+
+    final avatarPaths = byId.values
+        .map((profile) => profile['avatar_path'] as String?)
+        .whereType<String>();
+    final mediaPaths = rows
+        .map((row) => row['media_path'] as String?)
+        .whereType<String>();
+
+    // Sign each unique path once, with bounded concurrency.
+    final signedResults = await Future.wait([
+      _signPaths('avatars', avatarPaths),
+      _signPaths('story-media', mediaPaths),
+    ]);
+    final avatarUrls = signedResults[0];
+    final mediaUrls = signedResults[1];
+
+    return rows.map((row) {
+      final story = Map<String, dynamic>.from(row);
+      final profile = byId[story['author_id']] ?? <String, dynamic>{};
       story['display_name'] = profile['display_name'] ?? 'کاربر HomaGram';
       story['username'] = profile['username'] ?? 'user';
-      story['avatar_url'] = null;
-      story['media_url'] = null;
+      story['avatar_url'] = avatarUrls[profile['avatar_path']];
+      story['media_url'] = mediaUrls[story['media_path']];
       story['is_viewed'] = seen.contains(story['id']);
-      final avatarPath = profile['avatar_path'] as String?;
-      if (avatarPath != null) {
-        try { story['avatar_url'] = await _client.storage.from('avatars').createSignedUrl(avatarPath, 3600); } catch (_) {}
-      }
-      try {
-        story['media_url'] = await _client.storage.from('story-media')
-            .createSignedUrl(story['media_path'] as String, 3600);
-      } catch (_) {}
-      result.add(story);
-    }
-    return result;
+      return story;
+    }).toList();
   }
 
   static Future<void> publish({
