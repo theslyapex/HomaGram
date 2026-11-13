@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
+import '../../auth/presentation/profile_home_screen.dart';
 import '../../../core/utils/persian_date.dart';
 
 class PublicProfileScreen extends StatefulWidget {
@@ -105,6 +107,13 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     }
   }
 
+  Future<void> _editProfile() async {
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => const ProfileHomeScreen(),
+    ));
+    if (mounted) await _load();
+  }
+
   Future<void> _toggleFollow() async {
     if (_busy || _isMe) return;
     setState(() => _busy = true);
@@ -132,7 +141,16 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('پروفایل کاربر')),
+      appBar: AppBar(
+        title: Text(_isMe ? 'پروفایل من' : 'پروفایل کاربر'),
+        actions: [
+          if (_isMe) IconButton(
+            tooltip: 'ویرایش پروفایل و تنظیمات حساب',
+            onPressed: _editProfile,
+            icon: const Icon(Icons.edit_outlined),
+          ),
+        ],
+      ),
       body: _loading ? const Center(child: CircularProgressIndicator())
           : _error != null ? Center(child: Text(_error!, textAlign: TextAlign.center))
           : RefreshIndicator(onRefresh: _load, child: ListView(
@@ -187,8 +205,12 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                                   maxLines: 5, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center,
                                   style: const TextStyle(fontSize: 11))))
                             : Stack(fit: StackFit.expand, children: [
-                                Image.network(url, fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined)),
+                                (post['media_type'] == 'video'
+                                      ? Container(color: const Color(0xFF171C2B),
+                                          child: const Center(child: Icon(Icons.play_circle_fill_rounded,
+                                            size: 38, color: Colors.white)))
+                                      : Image.network(url, fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined))),
                                 if (post['media_type'] == 'video')
                                   const Positioned(right: 6, top: 6,
                                     child: Icon(Icons.play_arrow_rounded, color: Colors.white)),
@@ -226,8 +248,12 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                                       style: const TextStyle(fontSize: 11)),
                                 ))
                               : Stack(fit: StackFit.expand, children: [
-                                  Image.network(url, fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined)),
+                                  (post['media_type'] == 'video'
+                                      ? Container(color: const Color(0xFF171C2B),
+                                          child: const Center(child: Icon(Icons.play_circle_fill_rounded,
+                                            size: 38, color: Colors.white)))
+                                      : Image.network(url, fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined))),
                                   if (post['media_type'] == 'video')
                                     const Positioned(right: 6, top: 6,
                                       child: Icon(Icons.play_arrow_rounded, color: Colors.white)),
@@ -297,11 +323,69 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             if (post['media_url'] != null) ...[
               const SizedBox(height: 12),
               ClipRRect(borderRadius: BorderRadius.circular(14),
-                child: Image.network(post['media_url'] as String, fit: BoxFit.contain)),
+                child: post['media_type'] == 'video'
+                    ? _ProfileVideo(url: post['media_url'] as String)
+                    : Image.network(post['media_url'] as String, fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined, size: 40))),
             ],
           ],
         ),
       ),
     );
   }
+}
+
+
+class _ProfileVideo extends StatefulWidget {
+  const _ProfileVideo({required this.url});
+  final String url;
+
+  @override
+  State<_ProfileVideo> createState() => _ProfileVideoState();
+}
+
+class _ProfileVideoState extends State<_ProfileVideo> {
+  late final VideoPlayerController _controller;
+  late final Future<void> _initialized;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
+    _initialized = _controller.initialize();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<void>(
+    future: _initialized,
+    builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return const SizedBox(height: 220,
+          child: Center(child: Icon(Icons.broken_image_outlined, size: 40)));
+      }
+      if (snapshot.connectionState != ConnectionState.done) {
+        return const SizedBox(height: 220,
+          child: Center(child: CircularProgressIndicator()));
+      }
+      return GestureDetector(
+        onTap: () => setState(() {
+          _controller.value.isPlaying ? _controller.pause() : _controller.play();
+        }),
+        child: AspectRatio(
+          aspectRatio: _controller.value.aspectRatio,
+          child: Stack(alignment: Alignment.center, children: [
+            VideoPlayer(_controller),
+            if (!_controller.value.isPlaying)
+              const Icon(Icons.play_circle_fill_rounded, size: 58, color: Colors.white),
+          ]),
+        ),
+      );
+    },
+  );
 }
