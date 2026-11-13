@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_theme.dart';
-import '../../auth/presentation/profile_home_screen.dart';
+import '../../auth/data/auth_service.dart';
 import 'feed_screen.dart';
+import 'public_profile_screen.dart';
 import '../../messaging/presentation/messaging_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,11 +16,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _tab = 0;
 
-  void _openProfile() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const ProfileHomeScreen()),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: 'اعلان‌ها',
         description: 'اعلان‌های دنبال‌کردن، پسندیدن و پیام‌ها اینجا نمایش داده می‌شوند.',
       ),
+      PublicProfileScreen(userId: AuthService.client.auth.currentUser!.id),
     ];
 
     return Scaffold(
@@ -49,14 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text('HomaGram', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -.4)),
           ],
         ),
-        actions: [
-          IconButton(
-            tooltip: 'پروفایل من',
-            onPressed: _openProfile,
-            icon: const Icon(Icons.account_circle_outlined),
-          ),
-          const SizedBox(width: 6),
-        ],
+
       ),
       body: IndexedStack(index: _tab, children: pages),
       bottomNavigationBar: NavigationBar(
@@ -67,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
           NavigationDestination(icon: Icon(Icons.search_rounded), label: 'جست‌وجو'),
           NavigationDestination(icon: Icon(Icons.chat_bubble_outline_rounded), selectedIcon: Icon(Icons.chat_rounded), label: 'پیام‌ها'),
           NavigationDestination(icon: Icon(Icons.notifications_none_rounded), selectedIcon: Icon(Icons.notifications_rounded), label: 'اعلان‌ها'),
+        NavigationDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded), label: 'پروفایل'),
         ],
       ),
     );
