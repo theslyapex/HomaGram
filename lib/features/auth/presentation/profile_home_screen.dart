@@ -395,7 +395,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                 value: _showProfileVisitors,
                                 onChanged: (value) => _setVisibility('show_profile_visitors', value),
                                 title: const Text('اجازه نمایش بازدیدکنندگان پروفایل'),
-                                subtitle: const Text('تنظیم ذخیره می‌شود؛ فهرست بازدیدکنندگان هنوز در حال توسعه است.'),
+                                subtitle: const Text('با روشن‌بودن این گزینه، فهرست بازدیدکنندگان در پروفایل خودت قابل مشاهده است.'),
                               ),
                             ],
                           ),
