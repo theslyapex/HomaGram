@@ -190,7 +190,7 @@ class _StoryAvatar extends StatelessWidget {
             child: CircleAvatar(
               radius: 25,
               backgroundColor: HomaGramTheme.turquoise.withValues(alpha: .14),
-              backgroundImage: imageUrl == null ? null : StoryImageProvider(imageUrl!, cacheKey: imageCacheKey ?? imageUrl!),
+              backgroundImage: imageUrl == null ? null : StoryImageProvider(imageUrl!, cacheKey: 'avatar:${imageCacheKey ?? imageUrl!}'),
               child: imageUrl == null
                   ? const Icon(Icons.person_outline_rounded, color: HomaGramTheme.turquoise)
                   : null,
@@ -667,7 +667,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                 radius: 18,
                 backgroundImage: _story['avatar_url'] == null ? null : StoryImageProvider(
                   _story['avatar_url'] as String,
-                  cacheKey: (_story['avatar_path'] as String?) ?? (_story['avatar_url'] as String),
+                  cacheKey: 'avatar:${(_story['avatar_path'] as String?) ?? (_story['avatar_url'] as String)}',
                 ),
                 child: _story['avatar_url'] == null ? const Icon(Icons.person_outline) : null,
               ),
