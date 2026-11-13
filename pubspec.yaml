@@ -12,6 +12,8 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   supabase_flutter: 2.18.3
+  firebase_core: ^5.1.0
+  firebase_messaging: ^17.0.1
   image_picker: 1.2.2
   file_picker: ^11.0.3
   image_cropper: ^11.0.0
