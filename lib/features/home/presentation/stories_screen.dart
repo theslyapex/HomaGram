@@ -6,6 +6,7 @@ import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
 import '../data/story_service.dart';
 import 'story_image.dart';
+import 'story_video_cache.dart';
 
 class StoriesStrip extends StatefulWidget {
   const StoriesStrip({super.key});
@@ -768,7 +769,25 @@ class _StoryMediaState extends State<_StoryMedia> {
 
     VideoPlayerController? controller;
     try {
-      controller = VideoPlayerController.networkUrl(Uri.parse(url));
+      // Cache private media briefly in this account's app-private temp area.
+      // Keep network playback as a fallback if the download/cache is unavailable.
+      final userId = AuthService.client.auth.currentUser?.id;
+      File? cachedFile;
+      if (userId != null) {
+        try {
+          cachedFile = await StoryVideoCache.getOrDownload(
+            url: url,
+            storagePath: widget.story['media_path'] as String? ?? widget.story['id'].toString(),
+            userId: userId,
+          ).timeout(const Duration(seconds: 45));
+        } catch (_) {
+          cachedFile = null;
+        }
+      }
+
+      controller = cachedFile != null
+          ? VideoPlayerController.file(cachedFile)
+          : VideoPlayerController.networkUrl(Uri.parse(url));
       _video = controller;
       await controller.initialize().timeout(const Duration(seconds: 30));
 
