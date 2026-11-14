@@ -1,3 +1,4 @@
+import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -199,11 +200,11 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       appBar: AppBar(
         title: Text(_isMe ? 'پروفایل من' : 'پروفایل کاربر'),
         actions: [
-          if (_isMe) IconButton(
+          if (_isMe) HomaGramSpringPress(child: IconButton(
             tooltip: 'ویرایش پروفایل و تنظیمات حساب',
             onPressed: _editProfile,
             icon: const Icon(Icons.edit_outlined),
-          ),
+          )),
         ],
       ),
       body: _loading ? const Center(child: CircularProgressIndicator())
@@ -360,12 +361,12 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       ],
       if (!_isMe) ...[
         const SizedBox(height: 16),
-        SizedBox(width: double.infinity, child: FilledButton(
+        SizedBox(width: double.infinity, child: HomaGramSpringPress(child: FilledButton(
           onPressed: _busy ? null : _toggleFollow,
           child: _busy ? const SizedBox(width: 18, height: 18,
               child: CircularProgressIndicator(strokeWidth: 2))
               : Text(_following ? 'دنبال می‌کنید' : 'دنبال کردن'),
-        )),
+        ))),
       ],
     ]);
   }
