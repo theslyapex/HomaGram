@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../app/theme/app_theme.dart';
@@ -609,7 +608,6 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
       if (picked == null) return;
       final extension = picked.name.split('.').last.toLowerCase();
       final ext = ['jpg', 'jpeg', 'png', 'webp'].contains(extension) ? extension : 'jpg';
-      final mime = ext == 'png' ? 'image/png' : (ext == 'webp' ? 'image/webp' : 'image/jpeg');
       final bytes = await picked.readAsBytes();
       if (bytes.isEmpty || bytes.length > 5 * 1024 * 1024) {
         _message('تصویر کاور باید کمتر از ۵ مگابایت باشد.');
@@ -617,9 +615,7 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
       }
       final ownerId = AuthService.client.auth.currentUser!.id;
       final path = '$ownerId/highlights/${DateTime.now().microsecondsSinceEpoch}.$ext';
-      await AuthService.client.storage.from('avatars').uploadBinary(
-        path, bytes, fileOptions: FileOptions(contentType: mime, upsert: false),
-      );
+      await AuthService.client.storage.from('avatars').uploadBinary(path, bytes);
       final url = await AuthService.client.storage.from('avatars').createSignedUrl(path, 3600);
       if (!mounted) return;
       setState(() { _coverImagePath = path; _coverImageUrl = url; });
