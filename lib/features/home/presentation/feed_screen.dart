@@ -21,11 +21,25 @@ class FeedScreen extends StatefulWidget {
 
 class _FeedScreenState extends State<FeedScreen> {
   late Future<List<Map<String, dynamic>>> _posts;
+  String? _myAvatarUrl;
 
   @override
   void initState() {
     super.initState();
     _posts = _loadPosts();
+    _loadMyAvatar();
+  }
+
+  Future<void> _loadMyAvatar() async {
+    try {
+      final client = AuthService.client;
+      final uid = client.auth.currentUser!.id;
+      final profile = await client.from('profiles').select('avatar_path').eq('id', uid).maybeSingle();
+      final path = profile?['avatar_path'] as String?;
+      if (path == null || path.isEmpty) return;
+      final url = await client.storage.from('avatars').createSignedUrl(path, 3600);
+      if (mounted) setState(() => _myAvatarUrl = url);
+    } catch (_) {}
   }
 
   Future<List<Map<String, dynamic>>> _loadPosts() async {
@@ -101,10 +115,13 @@ class _FeedScreenState extends State<FeedScreen> {
             ),
             child: Row(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 20,
-                  backgroundColor: Color(0x223FD6D0),
-                  child: Icon(Icons.person_outline, color: HomaGramTheme.turquoise),
+                  backgroundColor: const Color(0x223FD6D0),
+                  backgroundImage: _myAvatarUrl == null ? null : NetworkImage(_myAvatarUrl!),
+                  child: _myAvatarUrl == null
+                      ? const Icon(Icons.person_outline, color: HomaGramTheme.turquoise)
+                      : null,
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
