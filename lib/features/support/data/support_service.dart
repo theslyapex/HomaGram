@@ -112,12 +112,33 @@ class SupportService {
   static Future<List<Map<String, dynamic>>> loadMessages(String conversationId) async {
     final rows = await _client
         .from('support_messages')
-        .select('id,conversation_id,sender_id,message_type,body,storage_path,file_name,mime_type,size_bytes,created_at')
+        .select('id,conversation_id,sender_id,message_type,body,reply_to_id,storage_path,file_name,mime_type,size_bytes,created_at')
         .eq('conversation_id', conversationId)
         .order('created_at', ascending: true)
         .limit(300);
 
     final messages = rows.map((row) => Map<String, dynamic>.from(row)).toList();
+    final replyIds = messages
+        .map((message) => message['reply_to_id'] as String?)
+        .whereType<String>()
+        .toSet()
+        .toList();
+    if (replyIds.isNotEmpty) {
+      final replies = await _client.from('support_messages')
+          .select('id,body,message_type')
+          .eq('conversation_id', conversationId)
+          .inFilter('id', replyIds);
+      final byId = {for (final row in replies) row['id'] as String: row};
+      for (final message in messages) {
+        final replyId = message['reply_to_id'] as String?;
+        if (replyId != null) {
+          final parent = byId[replyId];
+          message['reply_to_body'] = parent == null
+              ? 'پیام'
+              : (parent['message_type'] == 'image' ? 'تصویر' : (parent['body'] as String? ?? 'پیام'));
+        }
+      }
+    }
     for (final message in messages) {
       final path = message['storage_path'] as String?;
       if (path != null && path.isNotEmpty) {
@@ -133,7 +154,7 @@ class SupportService {
     return messages;
   }
 
-  static Future<void> sendText(String conversationId, String body) async {
+  static Future<void> sendText(String conversationId, String body, {String? replyToId}) async {
     final text = body.trim();
     if (text.isEmpty) return;
     if (text.length > 10000) throw ArgumentError('Message is too long');
@@ -142,6 +163,7 @@ class SupportService {
       'sender_id': _userId,
       'message_type': 'text',
       'body': text,
+      if (replyToId != null) 'reply_to_id': replyToId,
     });
   }
 
