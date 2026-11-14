@@ -226,7 +226,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               const Icon(Icons.favorite_rounded, size: 11, color: Colors.white),
               const SizedBox(width: 3),
-              Text('\${post['like_count'] ?? 0}', style: const TextStyle(color: Colors.white, fontSize: 10)),
+              Text("${post['like_count'] ?? 0}", style: const TextStyle(color: Colors.white, fontSize: 10)),
             ]),
           ),
         )),
