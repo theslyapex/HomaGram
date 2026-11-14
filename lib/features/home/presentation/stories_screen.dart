@@ -1574,7 +1574,16 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('ساخت استوری')),
+    appBar: AppBar(
+      title: const Text('استودیو استوری', style: TextStyle(fontWeight: FontWeight.w900)),
+      actions: [
+        IconButton(tooltip: 'پیش‌نویس‌ها', onPressed: _busy ? null : _openDrafts,
+          icon: const Icon(Icons.drafts_outlined)),
+        IconButton(tooltip: 'ذخیره پیش‌نویس', onPressed: _busy ? null : _saveDraft,
+          icon: const Icon(Icons.save_outlined)),
+        const SizedBox(width: 4),
+      ],
+    ),
     body: ListView(
       padding: const EdgeInsets.all(18),
       children: [
@@ -1582,7 +1591,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(22),
             child: SizedBox(
-              height: 330,
+              height: 380,
               child: StoryTextStoryView(
                 text: _caption.text.isEmpty ? 'متن استوری شما اینجا نمایش داده می‌شود' : _caption.text,
                 backgroundKey: _backgroundKey,
@@ -1591,7 +1600,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           )
         else if (_file == null)
           Container(
-            height: 260,
+            height: 340,
             decoration: BoxDecoration(
               color: Theme.of(context).cardTheme.color,
               borderRadius: BorderRadius.circular(22),
@@ -1603,7 +1612,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(22),
             child: SizedBox(
-              height: 300,
+              height: 380,
               child: LayoutBuilder(
                 builder: (context, constraints) => Stack(
                   fit: StackFit.expand,
@@ -1806,14 +1815,14 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4))),
           const SizedBox(height: 12),
           const SizedBox(height: 12),
-          SwitchListTile.adaptive(
+          Card(margin: const EdgeInsets.symmetric(vertical: 4), child: SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             value: _pollEnabled,
             onChanged: _busy ? null : (value) => setState(() => _pollEnabled = value),
             title: const Text('افزودن نظرسنجی'),
             subtitle: const Text('مخاطبان استوری می‌توانند رأی بدهند.'),
             secondary: const Icon(Icons.poll_outlined),
-          ),
+          )),
           if (_pollEnabled) ...[
             TextField(
               controller: _pollQuestion,
@@ -1872,14 +1881,14 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4)),
             ),
           ],
-          SwitchListTile.adaptive(
+          Card(margin: const EdgeInsets.symmetric(vertical: 4), child: SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             value: _questionBoxEnabled,
             onChanged: _busy ? null : (value) => setState(() => _questionBoxEnabled = value),
             title: const Text('افزودن باکس پرسش و پاسخ'),
             subtitle: const Text('مخاطبان می‌توانند پاسخ متنی خصوصی برای شما بفرستند.'),
             secondary: const Icon(Icons.question_answer_outlined),
-          ),
+          )),
           if (_questionBoxEnabled)
             TextField(
               controller: _questionBoxPrompt,
@@ -1892,14 +1901,14 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
-          SwitchListTile.adaptive(
+          Card(margin: const EdgeInsets.symmetric(vertical: 4), child: SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             value: _countdownEnabled,
             onChanged: _busy ? null : (value) => setState(() => _countdownEnabled = value),
             title: const Text('افزودن شمارش معکوس'),
             subtitle: const Text('برای یک رویداد یا زمان مهم، شمارش معکوس نمایش دهید.'),
             secondary: const Icon(Icons.timer_outlined),
-          ),
+          )),
           if (_countdownEnabled) ...[
             TextField(
               controller: _countdownTitle,
@@ -1919,14 +1928,14 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               ),
             ),
           ],
-          SwitchListTile.adaptive(
+          Card(margin: const EdgeInsets.symmetric(vertical: 4), child: SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             value: _drawingMode,
             onChanged: _busy ? null : (value) => setState(() => _drawingMode = value),
             title: const Text('ابزار نقاشی آزاد'),
             subtitle: Text(_drawingMode ? 'روی رسانه بکشید' : 'برای طراحی فعال کنید'),
             secondary: const Icon(Icons.draw_rounded),
-          ),
+          )),
           if (_drawingMode) ...[
             Wrap(spacing: 8, runSpacing: 8, children: [
               for (final color in ['#FFFFFF', '#111827', '#FFE082', '#FF6B6B', '#45D6C5', '#A78BFA', '#F9A8D4'])
