@@ -98,7 +98,7 @@ abstract final class HomaGramTheme {
           minimumSize: const Size(48, 48),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+          textStyle: const TextStyle(fontFamily: 'Estedad', fontWeight: FontWeight.w800, fontSize: 13),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -106,7 +106,31 @@ abstract final class HomaGramTheme {
           minimumSize: const Size(44, 44),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           side: const BorderSide(color: Color(0xFFDDE4EF)),
-          textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+          textStyle: const TextStyle(fontFamily: 'Estedad', fontWeight: FontWeight.w700, fontSize: 12),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          textStyle: const TextStyle(fontFamily: 'Estedad', fontWeight: FontWeight.w700, fontSize: 13),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          textStyle: const TextStyle(fontFamily: 'Estedad', fontWeight: FontWeight.w800, fontSize: 13),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          textStyle: const TextStyle(fontFamily: 'Estedad', fontWeight: FontWeight.w700, fontSize: 13),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          textStyle: const TextStyle(fontFamily: 'Estedad', fontWeight: FontWeight.w800, fontSize: 13),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
@@ -180,7 +204,7 @@ abstract final class HomaGramTheme {
           minimumSize: const Size(48, 48),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+          textStyle: const TextStyle(fontFamily: 'Estedad', fontWeight: FontWeight.w800, fontSize: 13),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -188,7 +212,19 @@ abstract final class HomaGramTheme {
           minimumSize: const Size(44, 44),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           side: const BorderSide(color: Color(0xFF33415C)),
-          textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+          textStyle: const TextStyle(fontFamily: 'Estedad', fontWeight: FontWeight.w700, fontSize: 12),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          textStyle: const TextStyle(fontFamily: 'Estedad', fontWeight: FontWeight.w700, fontSize: 13),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          textStyle: const TextStyle(fontFamily: 'Estedad', fontWeight: FontWeight.w800, fontSize: 13),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
