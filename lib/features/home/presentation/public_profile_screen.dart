@@ -5,6 +5,7 @@ import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/presentation/profile_home_screen.dart';
 import 'story_highlights.dart';
+import 'reels_screen.dart';
 import '../../../core/utils/persian_date.dart';
 
 class PublicProfileScreen extends StatefulWidget {
