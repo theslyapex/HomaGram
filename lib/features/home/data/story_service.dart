@@ -192,18 +192,6 @@ class StoryService {
     if (drawingData.length > 100) throw ArgumentError('تعداد خطوط نقاشی بیش از حد مجاز است.');
     const allowedStickers = {'❤️','😍','😂','🔥','✨','⭐','🌈','🌸','🦋','🎉','☀️','🌙','💯','👏','🎈','🍀','☕','🎧'};
     if (stickerData.length > 20) throw ArgumentError('تعداد استیکرها بیش از حد مجاز است.');
-    for (final sticker in stickerData) {
-      final x = (sticker['x'] as num?)?.toDouble();
-      final y = (sticker['y'] as num?)?.toDouble();
-      final scale = (sticker['scale'] as num?)?.toDouble();
-      final rotation = (sticker['rotation'] as num?)?.toDouble();
-      if (!allowedStickers.contains(sticker['emoji']) ||
-          x == null || y == null || x < .05 || x > .95 || y < .05 || y > .95 ||
-          scale == null || scale < .5 || scale > 3 ||
-          rotation == null || rotation < -3.14 || rotation > 3.14) {
-        throw ArgumentError('اطلاعات استیکر معتبر نیست.');
-      }
-    }
     if (!isSupportedStoryMedia(mediaType: mediaType, mimeType: mimeType)) {
       throw ArgumentError('نوع رسانه یا فرمت فایل استوری پشتیبانی نمی‌شود.');
     }
@@ -242,7 +230,8 @@ class StoryService {
             ..remove('mime_type')
             ..remove('file_name')
             ..['path'] = stickerPath;
-        } else if (sticker['type'] == 'emoji') {
+        } else if (sticker['type'] == 'emoji' || (sticker['type'] == null && allowedStickers.contains(sticker['emoji']))) {
+          sticker['type'] = 'emoji';
           if (!allowedStickers.contains(sticker['emoji'])) {
             throw ArgumentError('ایموجی استیکر معتبر نیست.');
           }
@@ -362,12 +351,22 @@ class StoryService {
   }
 
   static Future<void> deleteStory(Map<String, dynamic> story) async {
+    final stickerPaths = <String>[];
+    final rawStickers = story['sticker_data'];
+    if (rawStickers is List) {
+      for (final item in rawStickers) {
+        if (item is Map && item['type'] == 'image' && item['path'] is String) {
+          stickerPaths.add(item['path'] as String);
+        }
+      }
+    }
     await _client.from('stories').delete().eq('id', story['id'] as String);
     final mediaPath = story['media_path'] as String?;
     if (mediaPath != null && mediaPath.isNotEmpty) {
-      try {
-        await _client.storage.from('story-media').remove([mediaPath]);
-      } catch (_) {}
+      try { await _client.storage.from('story-media').remove([mediaPath]); } catch (_) {}
+    }
+    if (stickerPaths.isNotEmpty) {
+      try { await _client.storage.from('story-stickers').remove(stickerPaths); } catch (_) {}
     }
   }
 
