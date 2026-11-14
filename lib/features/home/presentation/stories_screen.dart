@@ -399,6 +399,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   double _overlayStartScale = 1.0;
   String _overlayColor = '#FFFFFF';
   String _overlayFont = 'estedad';
+  final List<Map<String, dynamic>> _drawingStrokes = [];
+  bool _drawingMode = false;
+  bool _eraserMode = false;
+  String _drawingColor = '#FFFFFF';
+  double _drawingWidth = 5;
   bool _busy = false;
 
   @override
@@ -433,6 +438,33 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     } catch (_) {
       _notice('انتخاب رسانه انجام نشد.', true);
     }
+  }
+
+
+  void _startDrawing(Offset point, Size size) {
+    setState(() {
+      _drawingStrokes.add({
+        'color': _drawingColor,
+        'width': _drawingWidth,
+        'erase': _eraserMode,
+        'points': [[
+          (point.dx / size.width).clamp(0.0, 1.0),
+          (point.dy / size.height).clamp(0.0, 1.0),
+        ]],
+      });
+    });
+  }
+
+  void _continueDrawing(Offset point, Size size) {
+    if (_drawingStrokes.isEmpty) return;
+    setState(() {
+      final points = _drawingStrokes.last['points'] as List;
+      if (points.length >= 300) return;
+      points.add([
+        (point.dx / size.width).clamp(0.0, 1.0),
+        (point.dy / size.height).clamp(0.0, 1.0),
+      ]);
+    });
   }
 
   void _notice(String message, [bool error = false]) {
@@ -485,6 +517,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           overlayScale: _overlayScale,
           overlayColor: _overlayColor,
           overlayFont: _overlayFont,
+          drawingData: _drawingStrokes,
         );
       }
       if (!mounted) return;
@@ -545,6 +578,17 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                             color: Colors.black87,
                             child: const Center(child: Icon(Icons.play_circle_outline, size: 70, color: Colors.white)),
                           ),
+                    if (_drawingStrokes.isNotEmpty)
+                      Positioned.fill(child: IgnorePointer(
+                        child: CustomPaint(painter: _StoryDrawingPainter(_drawingStrokes)),
+                      )),
+                    if (_drawingMode)
+                      Positioned.fill(child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onPanStart: (details) => _startDrawing(details.localPosition, constraints.biggest),
+                        onPanUpdate: (details) => _continueDrawing(details.localPosition, constraints.biggest),
+                        child: const SizedBox.expand(),
+                      )),
                     if (_overlayText.text.trim().isNotEmpty)
                       Align(
                         alignment: Alignment(_overlayX * 2 - 1, _overlayY * 2 - 1),
@@ -648,6 +692,50 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           ),
         ],
         if (!_textMode && _file != null) ...[
+
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            value: _drawingMode,
+            onChanged: _busy ? null : (value) => setState(() => _drawingMode = value),
+            title: const Text('ابزار نقاشی آزاد'),
+            subtitle: Text(_drawingMode ? 'روی رسانه بکشید' : 'برای طراحی فعال کنید'),
+            secondary: const Icon(Icons.draw_rounded),
+          ),
+          if (_drawingMode) ...[
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final color in ['#FFFFFF', '#111827', '#FFE082', '#FF6B6B', '#45D6C5', '#A78BFA', '#F9A8D4'])
+                InkWell(
+                  onTap: () => setState(() { _drawingColor = color; _eraserMode = false; }),
+                  child: Container(
+                    width: 30, height: 30,
+                    decoration: BoxDecoration(
+                      color: storyOverlayColor(color), shape: BoxShape.circle,
+                      border: Border.all(color: _drawingColor == color && !_eraserMode ? HomaGramTheme.turquoise : Colors.grey, width: 3),
+                    ),
+                  ),
+                ),
+              OutlinedButton.icon(
+                onPressed: () => setState(() => _eraserMode = !_eraserMode),
+                icon: Icon(_eraserMode ? Icons.brush_rounded : Icons.auto_fix_high_outlined),
+                label: Text(_eraserMode ? 'قلم' : 'پاک‌کن'),
+              ),
+              IconButton(
+                tooltip: 'بازگشت',
+                onPressed: _drawingStrokes.isEmpty ? null : () => setState(() => _drawingStrokes.removeLast()),
+                icon: const Icon(Icons.undo_rounded),
+              ),
+              IconButton(
+                tooltip: 'پاک‌کردن همه',
+                onPressed: _drawingStrokes.isEmpty ? null : () => setState(() => _drawingStrokes.clear()),
+                icon: const Icon(Icons.delete_sweep_outlined),
+              ),
+            ]),
+            Row(children: [
+              const Text('ضخامت'),
+              Expanded(child: Slider(value: _drawingWidth, min: 1, max: 24, onChanged: (v) => setState(() => _drawingWidth = v))),
+            ]),
+          ],
+
           const SizedBox(height: 14),
           TextField(
             controller: _overlayText,
