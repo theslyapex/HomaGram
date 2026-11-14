@@ -301,6 +301,30 @@ class MessagingService {
     });
   }
 
+  static Future<void> manageChannelMember(
+    String conversationId, String targetUserId, String action,
+  ) async {
+    await _client.rpc('manage_channel_member', params: {
+      'p_conversation_id': conversationId,
+      'p_target_user': targetUserId,
+      'p_action': action,
+    });
+  }
+
+  static Future<void> updateChannelDetails({
+    required String conversationId,
+    required String title,
+    required String slug,
+    required String description,
+  }) async {
+    await _client.rpc('update_channel_details', params: {
+      'p_conversation_id': conversationId,
+      'p_title': title.trim(),
+      'p_slug': slug.trim().toLowerCase(),
+      'p_description': description.trim(),
+    });
+  }
+
   static Future<void> updateGroupTitle(String conversationId, String title) async {
     await _client.rpc('update_group_title', params: {
       'p_conversation_id': conversationId, 'p_title': title.trim(),
