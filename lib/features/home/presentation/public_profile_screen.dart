@@ -512,7 +512,12 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                   final p = ordered[index];
                   return ListTile(
                     leading: const CircleAvatar(child: Icon(Icons.person_outline)),
-                    title: Text(p['display_name'] as String? ?? 'کاربر HomaGram'),
+                    title: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Flexible(child: Text(p['display_name'] as String? ?? 'کاربر HomaGram',
+                        maxLines: 1, overflow: TextOverflow.ellipsis)),
+                      const SizedBox(width: 4),
+                      HomaGramVerifiedBadge(userId: p['id'] as String?),
+                    ]),
                     subtitle: Text('@${p['username'] ?? 'user'}'),
                     onTap: () {
                       Navigator.pop(context);
