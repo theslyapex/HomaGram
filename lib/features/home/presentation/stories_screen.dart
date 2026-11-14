@@ -506,6 +506,13 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   String _overlayFont = 'estedad';
   final List<Map<String, dynamic>> _drawingStrokes = [];
   final List<Map<String, dynamic>> _stickers = [];
+  File? _musicFile;
+  String? _musicFileName;
+  String? _musicMimeType;
+  VideoPlayerController? _musicPreview;
+  Duration _musicDuration = Duration.zero;
+  int _musicStartMs = 0;
+  double _musicVolume = 0.75;
   bool _drawingMode = false;
   bool _eraserMode = false;
   String _drawingColor = '#FFFFFF';
@@ -516,6 +523,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   void dispose() {
     _caption.dispose();
     _overlayText.dispose();
+    _musicPreview?.dispose();
     super.dispose();
   }
 
@@ -592,6 +600,45 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     } catch (_) {
       _notice('انتخاب استیکر انجام نشد.', true);
     }
+  }
+
+  Future<void> _pickMusic() async {
+    try {
+      final result = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: ['mp3', 'm4a', 'aac', 'wav'], allowMultiple: false, withData: false);
+      if (result == null || result.files.isEmpty || !mounted) return;
+      final picked = result.files.single;
+      final path = picked.path;
+      if (path == null || path.isEmpty) { _notice('دسترسی به فایل موسیقی ممکن نشد.', true); return; }
+      if (picked.size <= 0 || picked.size > 15 * 1024 * 1024) { _notice('حجم موسیقی باید حداکثر ۱۵ مگابایت باشد.', true); return; }
+      final ext = picked.extension?.toLowerCase() ?? '';
+      const mimeByExt = {'mp3':'audio/mpeg','m4a':'audio/mp4','aac':'audio/aac','wav':'audio/wav'};
+      final mime = mimeByExt[ext];
+      if (mime == null) { _notice('فقط فایل‌های MP3، M4A، AAC و WAV پشتیبانی می‌شوند.', true); return; }
+      final preview = VideoPlayerController.file(File(path));
+      await preview.initialize().timeout(const Duration(seconds: 20));
+      if (!mounted) { await preview.dispose(); return; }
+      await preview.setLooping(false);
+      await preview.setVolume(_musicVolume);
+      await _musicPreview?.dispose();
+      setState(() { _musicFile = File(path); _musicFileName = picked.name; _musicMimeType = mime; _musicPreview = preview; _musicDuration = preview.value.duration; _musicStartMs = 0; });
+    } catch (_) { _notice('بارگذاری یا پیش‌نمایش موسیقی انجام نشد. فایل دیگری انتخاب کنید.', true); }
+  }
+
+  Future<void> _toggleMusicPreview() async {
+    final preview = _musicPreview;
+    if (preview == null || !preview.value.isInitialized) return;
+    try {
+      if (preview.value.isPlaying) { await preview.pause(); }
+      else { await preview.seekTo(Duration(milliseconds: _musicStartMs)); await preview.setVolume(_musicVolume); await preview.play(); }
+      if (mounted) setState(() {});
+    } catch (_) { _notice('پخش پیش‌نمایش موسیقی انجام نشد.', true); }
+  }
+
+  Future<void> _removeMusic() async {
+    final preview = _musicPreview; _musicPreview = null;
+    await preview?.pause(); await preview?.dispose();
+    if (!mounted) return;
+    setState(() { _musicFile = null; _musicFileName = null; _musicMimeType = null; _musicDuration = Duration.zero; _musicStartMs = 0; });
   }
 
   void _startDrawing(Offset point, Size size) {
@@ -672,6 +719,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           overlayFont: _overlayFont,
           drawingData: _drawingStrokes,
           stickerData: _stickers,
+          musicFile: _musicFile,
+          musicFileName: _musicFileName,
+          musicMimeType: _musicMimeType,
+          musicStartMs: _musicStartMs,
+          musicVolume: _musicVolume,
         );
       }
       if (!mounted) return;
@@ -854,6 +906,27 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         if (!_textMode && _file != null) ...[
 
           const SizedBox(height: 10),
+          Align(alignment: Alignment.centerRight, child: Text('موسیقی استوری', style: Theme.of(context).textTheme.labelLarge)),
+          const SizedBox(height: 7),
+          if (_musicFile == null)
+            OutlinedButton.icon(onPressed: _busy ? null : _pickMusic, icon: const Icon(Icons.music_note_rounded), label: const Text('افزودن موسیقی از دستگاه'))
+          else ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: Theme.of(context).cardTheme.color, borderRadius: BorderRadius.circular(14), border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: .2))),
+              child: Row(children: [
+                const Icon(Icons.audio_file_rounded, color: HomaGramTheme.turquoise), const SizedBox(width: 9),
+                Expanded(child: Text(_musicFileName ?? 'موسیقی انتخاب‌شده', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                ValueListenableBuilder<VideoPlayerValue>(valueListenable: _musicPreview!, builder: (context, value, _) => IconButton(tooltip: value.isPlaying ? 'توقف پیش‌نمایش' : 'پخش پیش‌نمایش', onPressed: _busy ? null : _toggleMusicPreview, icon: Icon(value.isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill))),
+                IconButton(tooltip: 'حذف موسیقی', onPressed: _busy ? null : _removeMusic, icon: const Icon(Icons.close_rounded)),
+              ]),
+            ),
+            if (_musicDuration.inMilliseconds > 5000)
+              Row(children: [const Text('شروع از'), Expanded(child: Slider(min: 0, max: (_musicDuration.inMilliseconds - 5000).toDouble(), value: _musicStartMs.clamp(0, _musicDuration.inMilliseconds - 5000).toDouble(), onChanged: _busy ? null : (value) async { setState(() => _musicStartMs = value.round()); await _musicPreview?.pause(); await _musicPreview?.seekTo(Duration(milliseconds: _musicStartMs)); })), Text('${(_musicStartMs / 1000).toStringAsFixed(0)}ث')]),
+            Row(children: [const Icon(Icons.volume_down_rounded, size: 19), Expanded(child: Slider(min: 0, max: 1, value: _musicVolume, onChanged: _busy ? null : (value) async { setState(() => _musicVolume = value); await _musicPreview?.setVolume(value); })), const Icon(Icons.volume_up_rounded, size: 19)]),
+            const Text('موسیقی همراه استوری پخش می‌شود؛ هنگام پخش موسیقی روی ویدئو، صدای اصلی ویدئو قطع می‌شود.', style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4))),
+          ],
+          const SizedBox(height: 12),
           Align(
             alignment: Alignment.centerRight,
             child: Text('استیکرها', style: Theme.of(context).textTheme.labelLarge),
@@ -1419,6 +1492,7 @@ class _StoryMedia extends StatefulWidget {
 
 class _StoryMediaState extends State<_StoryMedia> {
   VideoPlayerController? _video;
+  VideoPlayerController? _music;
   bool _loading = true;
   bool _hasError = false;
   bool _completionReported = false;
@@ -1431,6 +1505,29 @@ class _StoryMediaState extends State<_StoryMedia> {
       _loadVideo();
     } else {
       _loading = false;
+    }
+    if (widget.story['music_url'] is String && (widget.story['music_url'] as String).isNotEmpty) _loadMusic();
+  }
+
+  Future<void> _loadMusic() async {
+    final url = widget.story['music_url'] as String?;
+    if (url == null || url.isEmpty) return;
+    VideoPlayerController? controller;
+    try {
+      controller = VideoPlayerController.networkUrl(Uri.parse(url));
+      _music = controller;
+      await controller.initialize().timeout(const Duration(seconds: 25));
+      if (!mounted || !identical(_music, controller)) { await controller.dispose(); return; }
+      await controller.setLooping(false);
+      final startMs = (widget.story['music_start_ms'] as num?)?.toInt() ?? 0;
+      await controller.seekTo(Duration(milliseconds: startMs.clamp(0, controller.value.duration.inMilliseconds)));
+      final volume = ((widget.story['music_volume'] as num?)?.toDouble() ?? .75).clamp(0.0, 1.0).toDouble();
+      await controller.setVolume(volume);
+      if (widget.story['media_type'] == 'video' && _video?.value.isInitialized == true) await _video?.setVolume(0);
+      if (!widget.paused) await controller.play();
+    } catch (_) {
+      if (controller != null) { if (identical(_music, controller)) _music = null; await controller.dispose(); }
+      if (mounted && widget.story['media_type'] == 'video') await _video?.setVolume(1);
     }
   }
 
@@ -1487,6 +1584,7 @@ class _StoryMediaState extends State<_StoryMedia> {
       }
 
       await controller.setLooping(false);
+      await controller.setVolume(_music?.value.isInitialized == true ? 0 : 1);
       controller.addListener(_handleVideoUpdate);
       setState(() => _loading = false);
       widget.onVideoReady(widget.story['id'] as String, controller.value.duration);
@@ -1536,8 +1634,10 @@ class _StoryMediaState extends State<_StoryMedia> {
     if (oldWidget.paused != widget.paused) {
       if (widget.paused) {
         _video?.pause();
-      } else if (_video?.value.isInitialized == true && !_hasError) {
-        _video?.play();
+        _music?.pause();
+      } else {
+        if (_video?.value.isInitialized == true && !_hasError) _video?.play();
+        if (_music?.value.isInitialized == true) _music?.play();
       }
     }
   }
@@ -1546,6 +1646,7 @@ class _StoryMediaState extends State<_StoryMedia> {
   void dispose() {
     _video?.removeListener(_handleVideoUpdate);
     _video?.dispose();
+    _music?.dispose();
     super.dispose();
   }
 
