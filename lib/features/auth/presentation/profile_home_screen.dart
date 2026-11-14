@@ -1,3 +1,4 @@
+import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -281,11 +282,11 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
       appBar: AppBar(
         title: Text(_onboarding ? 'راه‌اندازی حساب' : 'حساب HomaGram'),
         actions: [
-          IconButton(
+          HomaGramSpringPress(child: IconButton(
             tooltip: 'خروج از این دستگاه',
             onPressed: _signOut,
             icon: const Icon(Icons.logout_rounded),
-          ),
+          )),
         ],
       ),
       body: _loading
@@ -343,14 +344,14 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              FilledButton(
+                              HomaGramSpringPress(child: FilledButton(
                                 onPressed: _saving ? null : _saveProfile,
                                 child: Text(_saving
                                     ? 'در حال ذخیره...'
                                     : _onboarding
                                         ? 'تکمیل و ذخیره پروفایل'
                                         : 'ذخیره تغییرات'),
-                              ),
+                              )),
                             ],
                           ),
                         ),
@@ -433,11 +434,11 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                 style: TextStyle(height: 1.7, color: Color(0xFF64718A)),
                               ),
                               const SizedBox(height: 12),
-                              OutlinedButton.icon(
+                              HomaGramSpringPress(child: OutlinedButton.icon(
                                 onPressed: () => _signOut(otherDevices: true),
                                 icon: const Icon(Icons.devices_rounded),
                                 label: const Text('خروج از سایر دستگاه‌ها'),
-                              ),
+                              )),
                             ],
                           ),
                         ),
@@ -496,7 +497,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                     color: HomaGramTheme.royalPurple,
                     shape: BoxShape.circle,
                   ),
-                  child: IconButton(
+                  child: HomaGramSpringPress(child: IconButton(
                     onPressed: _uploadingAvatar ? null : _pickAvatar,
                     icon: _uploadingAvatar
                         ? const SizedBox(
@@ -505,17 +506,17 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
                         : const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 19),
-                  ),
+                  )),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          TextButton.icon(
+          HomaGramSpringPress(child: TextButton.icon(
             onPressed: _uploadingAvatar ? null : _pickAvatar,
             icon: const Icon(Icons.add_a_photo_outlined, size: 18),
             label: Text(_uploadingAvatar ? 'در حال بارگذاری تصویر...' : 'انتخاب تصویر پروفایل'),
-          ),
+          )),
           const Text('JPG، PNG یا WEBP • حداکثر ۵ مگابایت',
               style: TextStyle(fontSize: 11, color: Color(0xFF7A879B))),
         ],
@@ -562,8 +563,8 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
               const SizedBox(height: 12),
               Text(_error!, textAlign: TextAlign.center),
               const SizedBox(height: 16),
-              FilledButton(onPressed: _load, child: const Text('تلاش دوباره')),
-              TextButton(onPressed: _signOut, child: const Text('خروج از حساب')),
+              HomaGramSpringPress(child: FilledButton(onPressed: _load, child: const Text('تلاش دوباره'))),
+              HomaGramSpringPress(child: TextButton(onPressed: _signOut, child: const Text('خروج از حساب'))),
             ],
           ),
         ),
