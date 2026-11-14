@@ -216,7 +216,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Map<String, dynamic>>>(
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: SafeArea(child: FutureBuilder<List<Map<String, dynamic>>>(
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -311,6 +313,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           )),
         ]);
       },
+    )),
     );
   }
 }
