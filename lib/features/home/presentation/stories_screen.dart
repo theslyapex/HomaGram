@@ -245,6 +245,36 @@ class _StoryStickerView extends StatelessWidget {
   }
 }
 
+class _StoryQuestionBoxCard extends StatelessWidget {
+  const _StoryQuestionBoxCard({required this.question, required this.isOwner, this.onRespond, this.onViewResponses, this.busy = false});
+  final Map<String, dynamic> question;
+  final bool isOwner;
+  final VoidCallback? onRespond;
+  final VoidCallback? onViewResponses;
+  final bool busy;
+  @override
+  Widget build(BuildContext context) {
+    final count = (question['response_count'] as num?)?.toInt() ?? 0;
+    return Material(
+      color: const Color(0xE9161D2B), borderRadius: BorderRadius.circular(18),
+      child: Padding(
+        padding: const EdgeInsets.all(13),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Icon(Icons.question_answer_rounded, color: Color(0xFF62E5D0), size: 22),
+          const SizedBox(height: 5),
+          Text(question['prompt'] as String? ?? 'باکس پرسش', textAlign: TextAlign.center, maxLines: 3,
+            overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 8),
+          SizedBox(width: double.infinity, child: OutlinedButton(
+            onPressed: busy ? null : (isOwner ? onViewResponses : onRespond),
+            child: Text(isOwner ? 'مشاهده پاسخ‌ها • $count' : 'نوشتن پاسخ'),
+          )),
+        ]),
+      ),
+    );
+  }
+}
+
 class _StoryPollCard extends StatelessWidget {
   const _StoryPollCard({
     required this.poll,
@@ -741,6 +771,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     TextEditingController(), TextEditingController(),
   ];
   bool _pollEnabled = false;
+  final _questionBoxPrompt = TextEditingController();
+  bool _questionBoxEnabled = false;
   XFile? _file;
   String? _type;
   bool _textMode = false;
@@ -777,6 +809,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     _caption.dispose();
     _overlayText.dispose();
     _pollQuestion.dispose();
+    _questionBoxPrompt.dispose();
     for (final option in _pollOptions) { option.dispose(); }
     _musicPreview?.dispose();
     super.dispose();
@@ -1018,6 +1051,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         _notice('متن استوری حداکثر ۵۰۰ نویسه است.', true);
         return;
       }
+      if (_questionBoxEnabled && (_questionBoxPrompt.text.trim().isEmpty || _questionBoxPrompt.text.trim().length > 180)) {
+        _notice('متن باکس پرسش را بین ۱ تا ۱۸۰ نویسه وارد کنید.', true);
+        return;
+      }
       if (_pollEnabled) {
         final question = _pollQuestion.text.trim();
         final options = _pollOptions.map((item) => item.text.trim()).toList();
@@ -1060,6 +1097,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           musicVolume: _musicVolume,
           pollQuestion: _pollEnabled ? _pollQuestion.text : null,
           pollOptions: _pollEnabled ? _pollOptions.map((item) => item.text).toList() : null,
+          questionBoxPrompt: _questionBoxEnabled ? _questionBoxPrompt.text : null,
         );
       }
       if (!mounted) return;
@@ -1129,6 +1167,12 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                             'counts': List<int>.filled(_pollOptions.length, 0),
                             'total_votes': 0,
                           },
+                          isOwner: true,
+                        ))),
+                    if (_questionBoxEnabled)
+                      Positioned(left: 12, right: 12, bottom: _pollEnabled ? 154 : 10,
+                        child: IgnorePointer(child: _StoryQuestionBoxCard(
+                          question: {'prompt': _questionBoxPrompt.text.trim().isEmpty ? 'باکس پرسش' : _questionBoxPrompt.text.trim(), 'response_count': 0},
                           isOwner: true,
                         ))),
                     if (_stickers.isNotEmpty)
@@ -1368,6 +1412,26 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4)),
             ),
           ],
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            value: _questionBoxEnabled,
+            onChanged: _busy ? null : (value) => setState(() => _questionBoxEnabled = value),
+            title: const Text('افزودن باکس پرسش و پاسخ'),
+            subtitle: const Text('مخاطبان می‌توانند پاسخ متنی خصوصی برای شما بفرستند.'),
+            secondary: const Icon(Icons.question_answer_outlined),
+          ),
+          if (_questionBoxEnabled)
+            TextField(
+              controller: _questionBoxPrompt,
+              maxLength: 180,
+              maxLines: 2,
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(
+                labelText: 'متن باکس پرسش',
+                hintText: 'مثلاً دوست دارید درباره چه چیزی بدانید؟',
+                border: OutlineInputBorder(),
+              ),
+            ),
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             value: _drawingMode,
@@ -1684,6 +1748,71 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     }
   }
 
+  Future<void> _respondToStoryQuestion() async {
+    final question = _story['question_box_data'];
+    if (question is! Map || _busy || _isMine) return;
+    final controller = TextEditingController(text: question['my_response'] as String? ?? '');
+    final response = await showDialog<String>(context: context, builder: (ctx) => AlertDialog(
+      title: const Text('پاسخ به پرسش'),
+      content: TextField(controller: controller, autofocus: true, maxLength: 1000, minLines: 2, maxLines: 5,
+        decoration: const InputDecoration(hintText: 'پاسخ شما', border: OutlineInputBorder())),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
+        FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('ارسال')),
+      ],
+    ));
+    controller.dispose();
+    if (response == null || response.trim().isEmpty) return;
+    setState(() => _busy = true);
+    try {
+      final updated = await StoryService.submitStoryQuestionResponse(question['id'] as String, response);
+      if (mounted && updated['story_id'] == _story['id']) {
+        setState(() => _story['question_box_data'] = updated);
+        _notice('پاسخ شما ثبت شد.');
+      }
+    } catch (_) {
+      if (mounted) _notice('ثبت پاسخ انجام نشد؛ ممکن است مهلت استوری تمام شده باشد.', error: true);
+    } finally { if (mounted) setState(() => _busy = false); }
+  }
+
+  void _showStoryQuestionResponses() {
+    final question = _story['question_box_data'];
+    if (question is! Map || !_isMine) return;
+    final responses = (question['responses'] as List? ?? const [])
+        .whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
+    showModalBottomSheet<void>(context: context, showDragHandle: true, isScrollControlled: true,
+      builder: (ctx) => SafeArea(child: SizedBox(
+        height: MediaQuery.of(ctx).size.height * .65,
+        child: Column(children: [
+          Padding(padding: const EdgeInsets.all(16),
+            child: Text('پاسخ‌های مخاطبان • ${responses.length}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16))),
+          Expanded(child: responses.isEmpty
+            ? const Center(child: Text('هنوز پاسخی دریافت نشده است.'))
+            : ListView.separated(
+                itemCount: responses.length, separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (_, i) {
+                  final item = responses[i];
+                  return ListTile(
+                    leading: const CircleAvatar(child: Icon(Icons.person_outline)),
+                    title: Text(item['display_name'] as String? ?? 'کاربر'),
+                    subtitle: Text(item['response'] as String? ?? ''),
+                    trailing: IconButton(
+                      tooltip: 'پاسخ خصوصی', icon: const Icon(Icons.reply_rounded),
+                      onPressed: () async {
+                        Navigator.pop(ctx);
+                        try {
+                          await StoryService.replyToStory(item['user_id'] as String, 'پاسخ به باکس پرسش استوری: ${item['response']}');
+                          if (mounted) _notice('پاسخ خصوصی ارسال شد.');
+                        } catch (_) { if (mounted) _notice('ارسال پیام انجام نشد.', error: true); }
+                      },
+                    ),
+                  );
+                },
+              )),
+        ]),
+      )));
+  }
+
   Future<void> _react(String emoji) async {
     if (_busy || _isMine) return;
     setState(() => _busy = true);
@@ -1835,14 +1964,21 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
             )),
           ]),
         ),
-        if (_story['poll_data'] is Map)
+        if (_story['poll_data'] is Map || _story['question_box_data'] is Map)
           Positioned(left: 22, right: 22, bottom: 142,
-            child: _StoryPollCard(
-              poll: Map<String, dynamic>.from(_story['poll_data'] as Map),
-              isOwner: _isMine,
-              onVote: _isMine ? null : _votePoll,
-              busy: _busy,
-            )),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              if (_story['question_box_data'] is Map)
+                Padding(padding: const EdgeInsets.only(bottom: 8), child: _StoryQuestionBoxCard(
+                  question: Map<String, dynamic>.from(_story['question_box_data'] as Map),
+                  isOwner: _isMine, onRespond: _respondToStoryQuestion,
+                  onViewResponses: _showStoryQuestionResponses, busy: _busy,
+                )),
+              if (_story['poll_data'] is Map)
+                _StoryPollCard(
+                  poll: Map<String, dynamic>.from(_story['poll_data'] as Map),
+                  isOwner: _isMine, onVote: _isMine ? null : _votePoll, busy: _busy,
+                ),
+            ])),
         Positioned(
           top: 10, left: 12, right: 12,
           child: Column(children: [
