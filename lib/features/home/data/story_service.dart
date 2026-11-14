@@ -31,16 +31,28 @@ class StoryService {
     return _hydrate(rows);
   }
 
-  static Future<List<Map<String, dynamic>>> loadArchive() async {
+  static const int archivePageSize = 30;
+
+  static Future<List<Map<String, dynamic>>> loadArchivePage({
+    required int offset,
+    int limit = archivePageSize,
+  }) async {
+    if (offset < 0 || limit < 1 || limit > 100) {
+      throw ArgumentError('بازه صفحه‌بندی آرشیو معتبر نیست.');
+    }
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _client.from('stories')
         .select('id,author_id,media_path,media_type,caption,created_at,expires_at')
         .eq('author_id', _uid)
         .lte('expires_at', now)
         .order('created_at', ascending: false)
-        .limit(100);
+        .order('id', ascending: false)
+        .range(offset, offset + limit - 1);
     return _hydrate(rows);
   }
+
+  static Future<List<Map<String, dynamic>>> loadArchive() =>
+      loadArchivePage(offset: 0, limit: archivePageSize);
 
   // Sign storage paths in small concurrent batches. This avoids the old
   // one-request-at-a-time loop while preventing a large burst of requests.
