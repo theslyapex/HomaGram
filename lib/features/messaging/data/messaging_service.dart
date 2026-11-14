@@ -9,6 +9,7 @@ class ConversationPreview {
     required this.title,
     required this.subtitle,
     required this.updatedAt,
+    this.peerUserId,
   });
 
   final String id;
@@ -16,6 +17,7 @@ class ConversationPreview {
   final String title;
   final String subtitle;
   final DateTime updatedAt;
+  final String? peerUserId;
 }
 
 class MessagingService {
@@ -154,6 +156,7 @@ class MessagingService {
               conversation['updated_at'] as String? ?? '',
             ) ??
             DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+        peerUserId: kind == 'direct' ? otherMemberByConversation[id] : null,
       ));
     }
 
