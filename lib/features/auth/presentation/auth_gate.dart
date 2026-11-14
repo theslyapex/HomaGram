@@ -8,6 +8,7 @@ import '../../home/presentation/home_screen.dart';
 import 'auth_screen.dart';
 import 'password_recovery_screen.dart';
 import 'profile_home_screen.dart';
+import '../../settings/presentation/two_step_verification_screen.dart';
 
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
@@ -44,6 +45,13 @@ class _AuthGateState extends State<AuthGate> {
     super.dispose();
   }
 
+  Future<bool> _needsSecondFactor(String userId) async {
+    final levels = await AuthService.client.auth.mfa.getAuthenticatorAssuranceLevel();
+    final current = levels.currentLevel.toString().toLowerCase();
+    final next = levels.nextLevel.toString().toLowerCase();
+    return current.contains('aal1') && next.contains('aal2');
+  }
+
   Future<bool> _isProfileComplete(String userId) async {
     final row = await AuthService.client
         .from('profiles')
@@ -63,22 +71,43 @@ class _AuthGateState extends State<AuthGate> {
       page = const AuthScreen();
     } else {
       page = FutureBuilder<bool>(
-        key: ValueKey('${user.id}-$_profileRefresh'),
-        future: _isProfileComplete(user.id),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
+        key: ValueKey('mfa-${user.id}-$_profileRefresh'),
+        future: _needsSecondFactor(user.id),
+        builder: (context, mfaSnapshot) {
+          if (mfaSnapshot.connectionState != ConnectionState.done) {
+            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          }
+          if (mfaSnapshot.hasError) {
+            return Scaffold(
+              body: Center(child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  const Icon(Icons.shield_outlined, size: 42),
+                  const SizedBox(height: 12),
+                  const Text('وضعیت امنیت دومرحله‌ای دریافت نشد. برای حفظ امنیت، ورود تا برقراری ارتباط متوقف شده است.',
+                    textAlign: TextAlign.center),
+                  const SizedBox(height: 14),
+                  FilledButton(onPressed: () => setState(() => _profileRefresh++),
+                    child: const Text('تلاش دوباره')),
+                ]),
+              )),
             );
           }
-          if (snapshot.hasError) {
-            return Scaffold(
-              body: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
+          if (mfaSnapshot.data == true) {
+            return MfaChallengeScreen(onVerified: () => setState(() => _profileRefresh++));
+          }
+          return FutureBuilder<bool>(
+            key: ValueKey('${user.id}-profile-$_profileRefresh'),
+            future: _isProfileComplete(user.id),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const Scaffold(body: Center(child: CircularProgressIndicator()));
+              }
+              if (snapshot.hasError) {
+                return Scaffold(
+                  body: Center(child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
                       const Icon(Icons.cloud_off_outlined, size: 42),
                       const SizedBox(height: 12),
                       const Text(
@@ -90,15 +119,15 @@ class _AuthGateState extends State<AuthGate> {
                         onPressed: () => setState(() => _profileRefresh++),
                         child: const Text('تلاش دوباره'),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }
-          if (snapshot.data == true) return const HomeScreen();
-          return ProfileHomeScreen(
-            onCompleted: () => setState(() => _profileRefresh++),
+                    ]),
+                  )),
+                );
+              }
+              if (snapshot.data == true) return const HomeScreen();
+              return ProfileHomeScreen(
+                onCompleted: () => setState(() => _profileRefresh++),
+              );
+            },
           );
         },
       );
