@@ -1,10 +1,13 @@
 import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/presentation/profile_home_screen.dart';
+import '../../messaging/data/messaging_service.dart';
+import '../../messaging/presentation/chat_screen.dart';
 import 'story_highlights.dart';
 import 'reels_screen.dart';
 import '../../../core/utils/persian_date.dart';
@@ -65,7 +68,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         client.from('post_reposts').select('post_id')
             .eq('user_id', widget.userId),
         client.from('posts')
-            .select('id,author_id,author_username,author_display_name,caption,media_path,media_type,cover_path,created_at')
+            .select('id,author_id,author_username,author_display_name,caption,media_path,media_type,cover_path,created_at,is_reel')
             .eq('author_id', widget.userId)
             .order('created_at', ascending: false).limit(60),
       ]);
@@ -215,10 +218,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 _header(),
                 const SizedBox(height: 18),
                 Row(children: [
-                  _stat('پست‌ها', _posts.length),
+                  _stat('پست‌ها', _posts.where((p) => p['is_reel'] != true).length),
+                  _stat('ریلز', _posts.where((p) => p['is_reel'] == true).length),
                   _stat('دنبال‌کننده', _followers, onTap: () => _showConnections(true)),
                   _stat('دنبال‌شونده', _followingCount, onTap: () => _showConnections(false)),
-                  _stat('بازنشر', _reposts),
                 ]),
                 const SizedBox(height: 14),
                 StoryHighlightsStrip(ownerId: widget.userId, isOwner: _isMe),
@@ -339,39 +342,121 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 
   Widget _header() {
     final p = _profile!;
-    return Column(children: [
-      CircleAvatar(
-        radius: 48,
-        backgroundColor: HomaGramTheme.turquoise.withValues(alpha: .14),
-        backgroundImage: _avatarUrl == null ? null : NetworkImage(_avatarUrl!),
-        child: _avatarUrl == null
-            ? const Icon(Icons.person_outline_rounded, size: 48, color: HomaGramTheme.turquoise)
-            : null,
+    final displayName = (p['display_name'] as String?)?.trim();
+    final username = p['username'] as String? ?? 'user';
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 22, 18, 18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(26),
+        gradient: const LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [Color(0xFF273B70), Color(0xFF174D60), Color(0xFF101B35)],
+        ),
+        border: Border.all(color: HomaGramTheme.turquoise.withValues(alpha: .24)),
+        boxShadow: [BoxShadow(color: HomaGramTheme.turquoise.withValues(alpha: .08),
+          blurRadius: 24, offset: const Offset(0, 9))],
       ),
-      const SizedBox(height: 12),
-      Text(p['display_name'] as String? ?? 'کاربر HomaGram',
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-      const SizedBox(height: 4),
-      Text('@${p['username'] ?? 'user'}', textDirection: TextDirection.ltr,
-          style: const TextStyle(color: Color(0xFF8490A4))),
-      if ((p['bio'] as String? ?? '').trim().isNotEmpty) ...[
-        const SizedBox(height: 12),
-        Text(p['bio'] as String, textAlign: TextAlign.center,
-            style: const TextStyle(height: 1.8)),
-      ],
-      if (!_isMe) ...[
-        const SizedBox(height: 16),
-        SizedBox(width: double.infinity, child: HomaGramSpringPress(child: FilledButton(
-          onPressed: _busy ? null : _toggleFollow,
-          child: _busy ? const SizedBox(width: 18, height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2))
-              : Text(_following ? 'دنبال می‌کنید' : 'دنبال کردن'),
-        ))),
-      ],
-    ]);
+      child: Column(children: [
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: const Color(0xFF63D8E7), width: 2),
+            boxShadow: [BoxShadow(color: const Color(0xFF63D8E7).withValues(alpha: .22), blurRadius: 18)],
+          ),
+          child: CircleAvatar(
+            radius: 48,
+            backgroundColor: const Color(0x223FD6D0),
+            backgroundImage: _avatarUrl == null ? null : NetworkImage(_avatarUrl!),
+            child: _avatarUrl == null
+                ? const Icon(Icons.person_outline_rounded, size: 48, color: Colors.white70)
+                : null,
+          ),
+        ),
+        const SizedBox(height: 13),
+        Row(mainAxisSize: MainAxisSize.min, children: [
+          Flexible(child: Text(
+            displayName?.isNotEmpty == true ? displayName! : 'کاربر HomaGram',
+            maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900),
+          )),
+          const SizedBox(width: 5),
+          HomaGramVerifiedBadge(userId: widget.userId, size: 19),
+        ]),
+        const SizedBox(height: 5),
+        Text('@$username', textDirection: TextDirection.ltr,
+          style: const TextStyle(color: Color(0xFFD6E8F0), fontSize: 12)),
+        if ((p['bio'] as String? ?? '').trim().isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(p['bio'] as String, textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white, height: 1.8, fontSize: 12)),
+        ],
+        const SizedBox(height: 17),
+        if (_isMe)
+          SizedBox(width: double.infinity, child: HomaGramSpringPress(child: FilledButton.icon(
+            onPressed: _editProfile,
+            icon: const Icon(Icons.edit_outlined),
+            label: const Text('ویرایش پروفایل'),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF35BDB6),
+              foregroundColor: const Color(0xFF081A2A),
+            ),
+          )))
+        else
+          Row(children: [
+            Expanded(child: HomaGramSpringPress(child: FilledButton(
+              onPressed: _busy ? null : _toggleFollow,
+              child: _busy ? const SizedBox(width: 18, height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2))
+                : Text(_following ? 'دنبال می‌کنید' : 'دنبال کردن'),
+            ))),
+            const SizedBox(width: 9),
+            Expanded(child: HomaGramSpringPress(child: OutlinedButton.icon(
+              onPressed: _openMessage,
+              icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+              label: const Text('پیام'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                side: const BorderSide(color: Colors.white54),
+              ),
+            ))),
+          ]),
+        Align(
+          alignment: Alignment.center,
+          child: TextButton.icon(
+            onPressed: _shareProfile,
+            icon: const Icon(Icons.ios_share_rounded, color: Colors.white70, size: 16),
+            label: const Text('اشتراک‌گذاری پروفایل', style: TextStyle(color: Colors.white70, fontSize: 11)),
+          ),
+        ),
+      ]),
+    );
   }
 
+  Future<void> _openMessage() async {
+    try {
+      final id = await MessagingService.createDirectConversation(widget.userId);
+      if (!mounted) return;
+      final name = (_profile?['display_name'] as String?)?.trim();
+      Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => ChatScreen(
+          conversationId: id,
+          title: name?.isNotEmpty == true ? name! : 'گفت‌وگوی خصوصی',
+        ),
+      ));
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('شروع گفت‌وگو ممکن نشد. ممکن است این کاربر دریافت پیام را محدود کرده باشد.')),
+      );
+    }
+  }
 
+  Future<void> _shareProfile() async {
+    final username = _profile?['username'] as String? ?? 'user';
+    final name = _profile?['display_name'] as String? ?? 'کاربر هماگرام';
+    await SharePlus.instance.share(ShareParams(text: '$name در هماگرام\n@$username'));
+  }
 
   Widget _sectionButton(int index, IconData icon, String label) {
     final selected = _section == index;
