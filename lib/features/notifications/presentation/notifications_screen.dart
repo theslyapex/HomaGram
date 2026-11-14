@@ -1,3 +1,4 @@
+import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -94,8 +95,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ),
             ]),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
-              FilledButton(onPressed: () async {
+              HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف'))),
+              HomaGramSpringPress(child: FilledButton(onPressed: () async {
                 try {
                   await NotificationService.updatePreferences(socialEnabled: social, messagesEnabled: messages);
                   if (dialogContext.mounted) Navigator.pop(dialogContext);
@@ -104,7 +105,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     const SnackBar(content: Text('ذخیره تنظیمات انجام نشد.')),
                   );
                 }
-              }, child: const Text('ذخیره')),
+              }, child: const Text('ذخیره'))),
             ],
           ),
         ),
@@ -233,7 +234,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               const SizedBox(height: 12),
               const Text('بارگذاری اعلان‌ها با مشکل مواجه شد.'),
               const SizedBox(height: 12),
-              FilledButton.tonal(onPressed: _refresh, child: const Text('تلاش دوباره')),
+              HomaGramSpringPress(child: FilledButton.tonal(onPressed: _refresh, child: const Text('تلاش دوباره'))),
             ],
           ));
         }
@@ -246,9 +247,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             child: Row(children: [
               const Expanded(child: Text('اعلان‌های شما',
                   style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800))),
-              IconButton(tooltip: 'تنظیمات اعلان‌ها', onPressed: _openPreferences, icon: const Icon(Icons.tune_rounded)),
+              HomaGramSpringPress(child: IconButton(tooltip: 'تنظیمات اعلان‌ها', onPressed: _openPreferences, icon: const Icon(Icons.tune_rounded))),
               if (unread > 0)
-                TextButton(onPressed: _markAllRead, child: const Text('خواندن همه')),
+                HomaGramSpringPress(child: TextButton(onPressed: _markAllRead, child: const Text('خواندن همه'))),
             ]),
           ),
           Expanded(child: RefreshIndicator(
