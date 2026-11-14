@@ -34,16 +34,12 @@ class _AccountPreferencesScreenState extends State<AccountPreferencesScreen> {
   Future<void> _load() async {
     setState(() { _loading = true; _error = null; });
     try {
-      final results = await Future.wait([
-        _client.from('account_settings')
+      final settings = await _client.from('account_settings')
           .select('theme,is_private,show_followers,show_following,show_profile_visitors')
-          .eq('user_id', _userId).maybeSingle(),
-        _client.from('user_blocks')
+          .eq('user_id', _userId).maybeSingle();
+      final blockRows = await _client.from('user_blocks')
           .select('blocked_id')
-          .eq('blocker_id', _userId),
-      ]);
-      final settings = results[0] as Map<String, dynamic>?;
-      final blockRows = results[1] as List;
+          .eq('blocker_id', _userId);
       final blockedIds = blockRows.map((row) => row['blocked_id'] as String).toList();
       final profiles = blockedIds.isEmpty
           ? <dynamic>[]
