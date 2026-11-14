@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../app/presentation/homagram_branding.dart';
 import '../../../core/utils/persian_date.dart';
 import '../data/admin_service.dart';
 
@@ -152,8 +153,13 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
                     child: Icon(Icons.person_rounded, color: Colors.white, size: 29)),
                   const SizedBox(width: 12),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(name?.isNotEmpty == true ? name! : 'کاربر هماگرام',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 17)),
+                    Row(mainAxisSize: MainAxisSize.min, children: [
+                      Flexible(child: Text(name?.isNotEmpty == true ? name! : 'کاربر هماگرام',
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 17))),
+                      const SizedBox(width: 4),
+                      HomaGramVerifiedBadge(userId: widget.userId, size: 16),
+                    ]),
                     Text('@${username ?? 'بدون نام کاربری'}',
                       style: const TextStyle(color: Colors.white70, fontSize: 12)),
                   ])),
