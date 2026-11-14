@@ -597,7 +597,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
       if (userId != null) {
         await StoryVideoCache.evict(userId: userId, storagePath: mediaPath);
       }
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) Navigator.of(context).pop(true);
     } catch (_) {
       if (mounted) _notice('حذف استوری انجام نشد.', error: true);
     }
@@ -945,55 +945,206 @@ class StoryArchiveScreen extends StatefulWidget {
 }
 
 class _StoryArchiveScreenState extends State<StoryArchiveScreen> {
-  late Future<List<Map<String, dynamic>>> _future;
+  final ScrollController _scrollController = ScrollController();
+  final List<Map<String, dynamic>> _items = [];
+  bool _loading = true;
+  bool _loadingMore = false;
+  bool _hasMore = true;
+  bool _failed = false;
+  int _offset = 0;
 
   @override
   void initState() {
     super.initState();
-    _future = StoryService.loadArchive();
+    _scrollController.addListener(_onScroll);
+    _loadFirstPage();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients || _loading || _loadingMore || !_hasMore) return;
+    if (_scrollController.position.extentAfter < 500) {
+      _loadNextPage();
+    }
+  }
+
+  Future<void> _loadFirstPage() async {
+    setState(() {
+      _loading = true;
+      _failed = false;
+      _loadingMore = false;
+      _hasMore = true;
+      _offset = 0;
+      _items.clear();
+    });
+    try {
+      final page = await StoryService.loadArchivePage(offset: 0);
+      if (!mounted) return;
+      setState(() {
+        _items.addAll(page);
+        _offset = page.length;
+        _hasMore = page.length == StoryService.archivePageSize;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _failed = true;
+      });
+    }
+  }
+
+  Future<void> _loadNextPage() async {
+    if (_loading || _loadingMore || !_hasMore) return;
+    setState(() {
+      _loadingMore = true;
+      _failed = false;
+    });
+    try {
+      final page = await StoryService.loadArchivePage(offset: _offset);
+      if (!mounted) return;
+      setState(() {
+        _items.addAll(page);
+        _offset += page.length;
+        _hasMore = page.length == StoryService.archivePageSize;
+        _loadingMore = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loadingMore = false;
+        _failed = true;
+      });
+    }
+  }
+
+  Future<void> _openStory(Map<String, dynamic> story) async {
+    final deleted = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => StoryViewerScreen(stories: [story]),
+      ),
+    );
+    if (deleted == true && mounted) await _loadFirstPage();
+  }
+
+  Widget _storyTile(Map<String, dynamic> story) {
+    final createdAt = DateTime.tryParse(story['created_at'].toString())?.toLocal();
+    return InkWell(
+      onTap: () => _openStory(story),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Stack(fit: StackFit.expand, children: [
+          story['media_type'] == 'image' && story['media_url'] != null
+              ? Image(
+                  image: StoryImageProvider(
+                    story['media_url'] as String,
+                    cacheKey: 'story-media:${story['media_path']}',
+                  ),
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    color: Colors.black87,
+                    child: const Icon(Icons.broken_image_outlined, color: Colors.white70),
+                  ),
+                )
+              : Container(
+                  color: Colors.black87,
+                  child: const Icon(Icons.play_circle_outline, color: Colors.white, size: 34),
+                ),
+          Positioned(
+            bottom: 5, left: 5, right: 5,
+            child: Text(
+              createdAt == null
+                  ? 'تاریخ نامشخص'
+                  : '${createdAt.year}/${createdAt.month.toString().padLeft(2, '0')}/${createdAt.day.toString().padLeft(2, '0')}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white, fontSize: 9,
+                shadows: [Shadow(blurRadius: 5, color: Colors.black)],
+              ),
+            ),
+          ),
+          if (story['media_type'] == 'video')
+            const Positioned(
+              top: 6, right: 6,
+              child: Icon(Icons.play_circle_fill, color: Colors.white, size: 20),
+            ),
+        ]),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('آرشیو استوری‌ها')),
-    body: FutureBuilder<List<Map<String, dynamic>>>(
-      future: _future,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError) return const Center(child: Text('آرشیو بارگذاری نشد.'));
-        final items = snapshot.data ?? [];
-        if (items.isEmpty) return const Center(child: Text('هنوز استوری منقضی‌شده‌ای ندارید.'));
-        return GridView.builder(
-          padding: const EdgeInsets.all(12),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3, crossAxisSpacing: 8, mainAxisSpacing: 8, childAspectRatio: .68,
-          ),
-          itemCount: items.length,
-          itemBuilder: (_, i) => InkWell(
-            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-              builder: (_) => StoryViewerScreen(stories: [items[i]]),
-            )),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Stack(fit: StackFit.expand, children: [
-                items[i]['media_type'] == 'image' && items[i]['media_url'] != null
-                    ? Image(
-                        image: StoryImageProvider(
-                          items[i]['media_url'] as String,
-                          cacheKey: 'story-media:${items[i]['media_path']}',
-                        ),
-                        fit: BoxFit.cover,
-                      )
-                    : Container(color: Colors.black87, child: const Icon(Icons.play_circle_outline, color: Colors.white)),
-                Positioned(bottom: 5, left: 5, right: 5,
-                  child: Text(items[i]['created_at'].toString().substring(0, 10),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white, fontSize: 9, shadows: [Shadow(blurRadius: 5, color: Colors.black)]))),
-              ]),
-            ),
-          ),
-        );
-      },
+    appBar: AppBar(
+      title: const Text('آرشیو استوری‌ها'),
+      actions: [
+        IconButton(
+          tooltip: 'بارگذاری دوباره',
+          onPressed: _loading ? null : _loadFirstPage,
+          icon: const Icon(Icons.refresh_rounded),
+        ),
+      ],
     ),
+    body: _loading
+        ? const Center(child: CircularProgressIndicator())
+        : _failed && _items.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('آرشیو بارگذاری نشد.'),
+                    const SizedBox(height: 10),
+                    FilledButton.icon(
+                      onPressed: _loadFirstPage,
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('تلاش دوباره'),
+                    ),
+                  ],
+                ),
+              )
+            : _items.isEmpty
+                ? const Center(child: Text('هنوز استوری منقضی‌شده‌ای ندارید.'))
+                : RefreshIndicator(
+                    onRefresh: _loadFirstPage,
+                    child: GridView.builder(
+                      controller: _scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(12),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        crossAxisSpacing: 8,
+                        mainAxisSpacing: 8,
+                        childAspectRatio: .68,
+                      ),
+                      itemCount: _items.length + (_loadingMore || _failed ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index >= _items.length) {
+                          if (_failed) {
+                            return Center(
+                              child: IconButton(
+                                tooltip: 'تلاش دوباره',
+                                onPressed: _loadNextPage,
+                                icon: const Icon(Icons.refresh_rounded),
+                              ),
+                            );
+                          }
+                          return const Center(
+                            child: SizedBox(
+                              width: 22, height: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          );
+                        }
+                        return _storyTile(_items[index]);
+                      },
+                    ),
+                  ),
   );
 }
