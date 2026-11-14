@@ -371,6 +371,9 @@ class _ReportsTabState extends State<_ReportsTab> {
                     Text(
                       'شناسه پست: ${report.postId.substring(0, 8)}…  •  ${_adminDate(report.createdAt)}',
                       style: Theme.of(context).textTheme.labelSmall),
+                    const SizedBox(height: 5),
+                    Text('شناسه گزارش‌دهنده: ${report.reporterId}',
+                      style: Theme.of(context).textTheme.labelSmall),
                     if (report.reviewNote?.isNotEmpty == true) ...[
                       const SizedBox(height: 8),
                       Text('یادداشت مدیر: ${report.reviewNote}',
