@@ -171,12 +171,10 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
                 const SizedBox(height: 7),
                 Text(report['details'] as String, style: const TextStyle(fontSize: 11, height: 1.6)),
               ],
-              final content = (report['post_caption'] as String?)?.isNotEmpty == true
-                  ? report['post_caption'] as String?
-                  : report['message_body'] as String?;
-              if (content?.isNotEmpty == true) ...[
+              if (((report['post_caption'] as String?)?.isNotEmpty ?? false) ||
+                  ((report['message_body'] as String?)?.isNotEmpty ?? false)) ...[
                 const SizedBox(height: 5),
-                Text('محتوای گزارش‌شده: $content',
+                Text('محتوای گزارش‌شده: ${report['post_caption'] ?? report['message_body']}',
                   maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, color: Color(0xFF8490A4))),
               ],
               const SizedBox(height: 5),
