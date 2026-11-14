@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Set HomaGram Android API level and stable release signing."""
+"""Set HomaGram Android SDK levels and stable release signing."""
 from pathlib import Path
 import re
 import sys
@@ -15,8 +15,6 @@ def main() -> int:
     text = gradle.read_text(encoding="utf-8")
     kotlin = gradle.suffix == ".kts"
 
-    # uCrop 2.2.11 references OkHttp directly for URI downloads; R8
-    # requires these classes to be present in the release runtime.
     if kotlin:
         dependency = '    implementation("com.squareup.okhttp3:okhttp:4.12.0")'
     else:
@@ -25,8 +23,6 @@ def main() -> int:
     if "com.squareup.okhttp3:okhttp" in text:
         dependency_n = 1
     else:
-        # Flutter's generated Gradle template can omit a dependencies block.
-        # Insert into it when present; otherwise create the block at EOF.
         text, dependency_n = re.subn(
             r"(?m)^([ \t]*)dependencies\s*\{",
             lambda match: match.group(0) + "\n" + dependency,
@@ -35,12 +31,10 @@ def main() -> int:
             text = text.rstrip() + "\n\ndependencies {\n" + dependency + "\n}\n"
             dependency_n = 1
 
-    if dependency_n != 1:
-        print("Could not add the required OkHttp dependency.", file=sys.stderr)
-        return 1
     if kotlin:
         text, compile_n = re.subn(r"(?m)^([ \t]*)compileSdk\s*=\s*[^\n]+", r"\g<1>compileSdk = 36", text, count=1)
         text, target_n = re.subn(r"(?m)^([ \t]*)targetSdk\s*=\s*[^\n]+", r"\g<1>targetSdk = 36", text, count=1)
+        text, min_n = re.subn(r"(?m)^([ \t]*)minSdk\s*=\s*[^\n]+", r"\g<1>minSdk = 24", text, count=1)
         block = '''
     signingConfigs {
         create("release") {
@@ -65,6 +59,9 @@ def main() -> int:
         text, target_n = re.subn(r"(?m)^([ \t]*)targetSdkVersion\s+[^\n]+", r"\g<1>targetSdkVersion 36", text, count=1)
         if not target_n:
             text, target_n = re.subn(r"(?m)^([ \t]*)targetSdk\s+[^\n]+", r"\g<1>targetSdk 36", text, count=1)
+        text, min_n = re.subn(r"(?m)^([ \t]*)minSdkVersion\s+[^\n]+", r"\g<1>minSdkVersion 24", text, count=1)
+        if not min_n:
+            text, min_n = re.subn(r"(?m)^([ \t]*)minSdk\s+[^\n]+", r"\g<1>minSdk 24", text, count=1)
         block = '''
     signingConfigs {
         release {
@@ -83,11 +80,11 @@ def main() -> int:
             r"(?m)^([ \t]*)signingConfig\s+signingConfigs\.debug",
             r"\1signingConfig signingConfigs.release", text, count=1)
 
-    if (compile_n != 1 or target_n != 1 or inserted != 1 or signing_n != 1):
-        print(f"Unexpected Gradle layout: compile={compile_n}, target={target_n}, inserted={inserted}, signing={signing_n}.", file=sys.stderr)
+    if (compile_n != 1 or target_n != 1 or min_n != 1 or inserted != 1 or signing_n != 1):
+        print(f"Unexpected Gradle layout: compile={compile_n}, target={target_n}, min={min_n}, inserted={inserted}, signing={signing_n}.", file=sys.stderr)
         return 1
     gradle.write_text(text, encoding="utf-8")
-    print(f"Configured {gradle}: compileSdk=36, targetSdk=36, OkHttp dependency, release signing.")
+    print(f"Configured {gradle}: compileSdk=36, targetSdk=36, minSdk=24, OkHttp dependency, release signing.")
     return 0
 
 

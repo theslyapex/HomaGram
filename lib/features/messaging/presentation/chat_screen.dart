@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/messaging_service.dart';
+import '../../home/presentation/shared_post_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({
@@ -236,6 +238,45 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+
+  Widget _messageContent(String body, ColorScheme colors) {
+    const marker = 'HOMAGRAM_POST:';
+    if (body.startsWith(marker)) {
+      final postId = body.substring(marker.length, marker.length + 36).trim();
+      if (postId.length == 36 && RegExp(r'^[0-9a-fA-F-]{36}').hasMatch(postId)) {
+        return InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+            builder: (_) => SharedPostScreen(postId: postId),
+          )),
+          child: Container(
+            width: 245,
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              color: colors.surface.withValues(alpha: .7),
+              border: Border.all(color: colors.outlineVariant.withValues(alpha: .6)),
+            ),
+            child: Row(children: [
+              Container(width: 42, height: 42,
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(12),
+                  color: colors.primaryContainer),
+                child: Icon(Icons.article_rounded, color: colors.primary)),
+              const SizedBox(width: 10),
+              const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('پست HomaGram', style: TextStyle(fontWeight: FontWeight.w900)),
+                SizedBox(height: 3),
+                Text('برای مشاهده پست لمس کنید', style: TextStyle(fontSize: 11)),
+              ])),
+              Icon(Icons.open_in_new_rounded, size: 17, color: colors.primary),
+            ]),
+          ),
+        );
+      }
+    }
+    return Text(body, style: TextStyle(color: colors.onSurface, height: 1.6));
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -334,13 +375,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                     children: [
                                       if (!deleted && (message['attachments'] as List? ?? []).isNotEmpty)
                                         _attachmentPreview((message['attachments'] as List).first as Map<String, dynamic>),
-                                      Text(
-                                        deleted ? 'این پیام حذف شده است' : (message['body'] as String? ?? ''),
-                                        style: TextStyle(
-                                          color: deleted ? colors.onSurfaceVariant : colors.onSurface,
-                                          height: 1.6,
-                                        ),
-                                      ),
+                                      if (deleted)
+                                        Text('این پیام حذف شده است',
+                                          style: TextStyle(color: colors.onSurfaceVariant, height: 1.6))
+                                      else
+                                        _messageContent(message['body'] as String? ?? '', colors),
                                       if (!deleted && (message['reactions'] as List? ?? []).isNotEmpty)
                                         _reactionSummary(message),
                                       if (message['edited_at'] != null && !deleted)
@@ -463,10 +502,357 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (_) {}
   }
 
+
+  Future<void> _showChannelAuditLogs(String conversationId) async {
+    var loading = true;
+    String? error;
+    var logs = <Map<String, dynamic>>[];
+    try {
+      logs = await MessagingService.loadChannelAuditLogs(conversationId);
+      loading = false;
+    } catch (_) {
+      loading = false;
+      error = 'دریافت تاریخچه فعالیت‌ها ممکن نشد.';
+    }
+    if (!mounted) return;
+
+    String actionTitle(String action) {
+      switch (action) {
+        case 'channel_created': return 'ایجاد کانال';
+        case 'member_added': return 'افزودن عضو';
+        case 'member_removed': return 'حذف عضو';
+        case 'member_role_changed': return 'تغییر نقش عضو';
+        case 'channel_permissions_changed': return 'تغییر دسترسی اعضا';
+        case 'channel_details_changed': return 'ویرایش اطلاعات کانال';
+        case 'ownership_transferred': return 'انتقال مالکیت';
+        case 'invite_created': return 'ساخت کد دعوت';
+        case 'invite_revoked': return 'لغو کد دعوت';
+        default: return 'فعالیت مدیریتی';
+      }
+    }
+
+    String actionDetail(Map<String, dynamic> row) {
+      final metadata = row['metadata'] is Map
+          ? Map<String, dynamic>.from(row['metadata'] as Map)
+          : <String, dynamic>{};
+      final target = row['target_label'] as String?;
+      switch (row['action']) {
+        case 'member_added': return target == null ? 'عضو جدید به کانال اضافه شد.' : '$target به کانال اضافه شد.';
+        case 'member_removed': return target == null ? 'یک عضو از کانال حذف شد.' : '$target از کانال حذف شد.';
+        case 'member_role_changed':
+          return '${metadata['old_role'] ?? '—'} ← ${metadata['new_role'] ?? '—'}';
+        case 'ownership_transferred': return target == null ? 'مالکیت کانال منتقل شد.' : 'مالک جدید: $target';
+        case 'channel_permissions_changed':
+          return 'ارسال متن: ${metadata['members_can_post'] == true ? 'فعال' : 'غیرفعال'} • رسانه: ${metadata['members_can_send_media'] == true ? 'فعال' : 'غیرفعال'}';
+        case 'invite_created': return 'اعتبار: ${metadata['expires_at'] ?? '—'} • سقف استفاده: ${metadata['max_uses'] ?? '—'}';
+        case 'invite_revoked': return 'یک کد دعوت غیرفعال شد.';
+        case 'channel_details_changed':
+          return metadata['title'] is String ? 'نام کانال: ${metadata['title']}' : 'اطلاعات کانال به‌روزرسانی شد.';
+        case 'channel_created': return 'کانال ایجاد شد.';
+        default: return '';
+      }
+    }
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => SizedBox(
+          height: MediaQuery.sizeOf(sheetContext).height * .78,
+          child: Column(
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(18, 8, 18, 14),
+                child: Row(children: [
+                  Icon(Icons.history_rounded),
+                  SizedBox(width: 9),
+                  Text('تاریخچه فعالیت‌های کانال',
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+                ]),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : error != null
+                        ? Center(child: Text(error))
+                        : logs.isEmpty
+                            ? const Center(child: Text('هنوز فعالیت مدیریتی ثبت نشده است.'))
+                            : ListView.separated(
+                                padding: const EdgeInsets.all(12),
+                                itemCount: logs.length,
+                                separatorBuilder: (_, __) => const SizedBox(height: 7),
+                                itemBuilder: (ctx, index) {
+                                  final row = logs[index];
+                                  final date = DateTime.tryParse(row['created_at'] as String? ?? '')?.toLocal();
+                                  final dateLabel = date == null
+                                      ? ''
+                                      : '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}  ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+                                  return Card(
+                                    margin: EdgeInsets.zero,
+                                    child: ListTile(
+                                      leading: const CircleAvatar(
+                                        child: Icon(Icons.manage_history_rounded),
+                                      ),
+                                      title: Text(actionTitle(row['action'] as String? ?? ''),
+                                        style: const TextStyle(fontWeight: FontWeight.w800)),
+                                      subtitle: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(actionDetail(row)),
+                                          const SizedBox(height: 4),
+                                          Text('${row['actor_label'] ?? 'مدیر سیستم'} • $dateLabel',
+                                            style: Theme.of(ctx).textTheme.bodySmall),
+                                        ],
+                                      ),
+                                      isThreeLine: true,
+                                    ),
+                                  );
+                                },
+                              ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _manageChannelInvites(String conversationId) async {
+    var invites = <Map<String, dynamic>>[];
+    var loading = true;
+    String? loadError;
+
+    try {
+      invites = await MessagingService.loadChannelInvites(conversationId);
+      loading = false;
+    } catch (_) {
+      loading = false;
+      loadError = 'دریافت کدهای دعوت ممکن نشد.';
+    }
+    if (!mounted) return;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) {
+          Future<void> reload() async {
+            setSheetState(() { loading = true; loadError = null; });
+            try {
+              final rows = await MessagingService.loadChannelInvites(conversationId);
+              if (!sheetContext.mounted) return;
+              setSheetState(() { invites = rows; loading = false; });
+            } catch (_) {
+              if (!sheetContext.mounted) return;
+              setSheetState(() { loading = false; loadError = 'به‌روزرسانی فهرست ممکن نشد.'; });
+            }
+          }
+
+          Future<void> createInvite() async {
+            final expiryController = TextEditingController(text: '168');
+            final usesController = TextEditingController(text: '100');
+            final formKey = GlobalKey<FormState>();
+            final values = await showDialog<List<int>>(
+              context: sheetContext,
+              builder: (dialogContext) => AlertDialog(
+                title: const Text('ساخت کد دعوت جدید'),
+                content: Form(
+                  key: formKey,
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    TextFormField(
+                      controller: expiryController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'اعتبار به ساعت (۱ تا ۷۲۰)'),
+                      validator: (value) {
+                        final number = int.tryParse(value ?? '');
+                        return number == null || number < 1 || number > 720
+                            ? 'عدد باید بین ۱ تا ۷۲۰ باشد.' : null;
+                      },
+                    ),
+                    TextFormField(
+                      controller: usesController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'حداکثر دفعات استفاده (۱ تا ۵۰۰)'),
+                      validator: (value) {
+                        final number = int.tryParse(value ?? '');
+                        return number == null || number < 1 || number > 500
+                            ? 'عدد باید بین ۱ تا ۵۰۰ باشد.' : null;
+                      },
+                    ),
+                  ]),
+                ),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+                  FilledButton(
+                    onPressed: () {
+                      if (formKey.currentState!.validate()) {
+                        Navigator.pop(dialogContext, [
+                          int.parse(expiryController.text),
+                          int.parse(usesController.text),
+                        ]);
+                      }
+                    },
+                    child: const Text('ساخت کد'),
+                  ),
+                ],
+              ),
+            );
+            expiryController.dispose();
+            usesController.dispose();
+            if (values == null || !sheetContext.mounted) return;
+
+            try {
+              final token = await MessagingService.createChannelInvite(
+                conversationId,
+                expiresInHours: values[0],
+                maxUses: values[1],
+              );
+              if (!sheetContext.mounted) return;
+              await showDialog<void>(
+                context: sheetContext,
+                builder: (dialogContext) => AlertDialog(
+                  title: const Text('کد دعوت آماده است'),
+                  content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Text('این کد فقط همین بار نمایش داده می‌شود. آن را در جای امن نگه دارید و برای افراد موردنظر بفرستید.'),
+                    const SizedBox(height: 12),
+                    SelectableText(token, textDirection: TextDirection.ltr,
+                      style: const TextStyle(fontFamily: 'monospace', fontSize: 12, fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 12),
+                    SizedBox(width: double.infinity, child: OutlinedButton.icon(
+                      onPressed: () async {
+                        await Clipboard.setData(ClipboardData(text: token));
+                        if (dialogContext.mounted) {
+                          ScaffoldMessenger.of(dialogContext).showSnackBar(
+                            const SnackBar(content: Text('کد دعوت کپی شد.')),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.copy_rounded),
+                      label: const Text('کپی کد'),
+                    )),
+                  ]),
+                  actions: [
+                    FilledButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('بستن')),
+                  ],
+                ),
+              );
+              await reload();
+            } catch (_) {
+              if (sheetContext.mounted) {
+                ScaffoldMessenger.of(sheetContext).showSnackBar(
+                  const SnackBar(content: Text('ساخت کد دعوت انجام نشد.')),
+                );
+              }
+            }
+          }
+
+          Future<void> revokeInvite(String inviteId) async {
+            final confirmed = await showDialog<bool>(
+              context: sheetContext,
+              builder: (dialogContext) => AlertDialog(
+                title: const Text('غیرفعال‌سازی کد دعوت'),
+                content: const Text('با این کار، کد دیگر برای عضویت قابل استفاده نخواهد بود.'),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('انصراف')),
+                  FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('غیرفعال کن')),
+                ],
+              ),
+            );
+            if (confirmed != true || !sheetContext.mounted) return;
+            try {
+              await MessagingService.revokeChannelInvite(inviteId);
+              await reload();
+            } catch (_) {
+              if (sheetContext.mounted) {
+                ScaffoldMessenger.of(sheetContext).showSnackBar(
+                  const SnackBar(content: Text('غیرفعال‌سازی کد انجام نشد.')),
+                );
+              }
+            }
+          }
+
+          String statusLabel(String status) => switch (status) {
+            'active' => 'فعال',
+            'revoked' => 'غیرفعال‌شده',
+            'expired' => 'منقضی‌شده',
+            'exhausted' => 'ظرفیت تکمیل',
+            _ => 'نامشخص',
+          };
+
+          return SizedBox(
+            height: MediaQuery.sizeOf(sheetContext).height * .72,
+            child: Column(children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(18, 4, 18, 12),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Text('مدیریت کدهای دعوت', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: SizedBox(width: double.infinity, child: FilledButton.icon(
+                  onPressed: createInvite,
+                  icon: const Icon(Icons.add_link_rounded),
+                  label: const Text('ساخت یا تمدید کد دعوت'),
+                )),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : loadError != null
+                        ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                            Text(loadError!),
+                            TextButton(onPressed: reload, child: const Text('تلاش دوباره')),
+                          ]))
+                        : invites.isEmpty
+                            ? const Center(child: Text('هنوز کد دعوتی ساخته نشده است.'))
+                            : ListView.separated(
+                                itemCount: invites.length,
+                                separatorBuilder: (_, __) => const Divider(height: 1),
+                                itemBuilder: (ctx, index) {
+                                  final invite = invites[index];
+                                  final status = invite['invite_status'] as String? ?? '';
+                                  final expires = DateTime.tryParse(invite['expires_at'] as String? ?? '');
+                                  final expiryText = expires == null
+                                      ? 'زمان انقضا نامشخص'
+                                      : 'انقضا: ${expires.toLocal().toString().substring(0, 16)}';
+                                  return ListTile(
+                                    leading: Icon(
+                                      status == 'active' ? Icons.key_rounded : Icons.key_off_rounded,
+                                      color: status == 'active' ? Theme.of(ctx).colorScheme.primary : Theme.of(ctx).colorScheme.onSurfaceVariant,
+                                    ),
+                                    title: Text(statusLabel(status), style: const TextStyle(fontWeight: FontWeight.w800)),
+                                    subtitle: Text('${invite['use_count']} از ${invite['max_uses']} استفاده • $expiryText'),
+                                    trailing: status == 'active'
+                                        ? IconButton(
+                                            tooltip: 'غیرفعال‌سازی',
+                                            onPressed: () => revokeInvite(invite['id'] as String),
+                                            icon: const Icon(Icons.block_rounded),
+                                          )
+                                        : null,
+                                  );
+                                },
+                              ),
+              ),
+            ]),
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> _showConversationInfo() async {
     try {
       final info = await Supabase.instance.client.from('conversations')
-          .select('kind,title').eq('id', widget.conversationId).single();
+          .select('kind,title,channels(slug,description,is_public,members_can_post,members_can_send_media)')
+          .eq('id', widget.conversationId).single();
       var members = await MessagingService.loadConversationMembers(widget.conversationId);
       if (!mounted) return;
       String myRole = 'member';
@@ -477,6 +863,21 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       }
       final isGroup = info['kind'] == 'group';
+      final isChannel = info['kind'] == 'channel';
+      final canManage = myRole == 'owner' || myRole == 'admin';
+      final channelData = info['channels'] is Map
+          ? Map<String, dynamic>.from(info['channels'] as Map)
+          : <String, dynamic>{};
+
+      Future<void> manageMember(String targetId, String action) async {
+        if (isChannel) {
+          await MessagingService.manageChannelMember(widget.conversationId, targetId, action);
+        } else {
+          await MessagingService.manageGroupMember(widget.conversationId, targetId, action);
+        }
+        members = await MessagingService.loadConversationMembers(widget.conversationId);
+      }
+
       await showModalBottomSheet<void>(
         context: context, isScrollControlled: true, useSafeArea: true, showDragHandle: true,
         builder: (sheetContext) => StatefulBuilder(
@@ -487,34 +888,133 @@ class _ChatScreenState extends State<ChatScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                 child: Row(children: [
                   Expanded(child: Text(
-                    isGroup ? (info['title'] as String? ?? 'گروه') : widget.title,
+                    (info['title'] as String?) ?? (isChannel ? 'کانال' : isGroup ? 'گروه' : widget.title),
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
                   )),
-                  if (isGroup && (myRole == 'owner' || myRole == 'admin'))
+                  if ((isGroup || isChannel) && canManage)
                     IconButton(
-                      tooltip: 'تغییر نام گروه', icon: const Icon(Icons.edit_outlined),
+                      tooltip: isChannel ? 'ویرایش اطلاعات کانال' : 'تغییر نام گروه',
+                      icon: const Icon(Icons.edit_outlined),
                       onPressed: () async {
-                        final controller = TextEditingController(text: info['title'] as String? ?? '');
-                        final title = await showDialog<String>(
+                        final titleController = TextEditingController(text: info['title'] as String? ?? '');
+                        final slugController = TextEditingController(text: channelData['slug'] as String? ?? '');
+                        final descriptionController = TextEditingController(text: channelData['description'] as String? ?? '');
+                        final values = await showDialog<List<String>>(
                           context: context,
                           builder: (ctx) => AlertDialog(
-                            title: const Text('نام گروه'),
-                            content: TextField(controller: controller, maxLength: 100),
+                            title: Text(isChannel ? 'اطلاعات کانال' : 'نام گروه'),
+                            content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                              TextField(controller: titleController, maxLength: 100,
+                                decoration: const InputDecoration(labelText: 'نام')),
+                              if (isChannel) ...[
+                                TextField(controller: slugController, maxLength: 32,
+                                  decoration: const InputDecoration(labelText: 'شناسه', prefixText: '@')),
+                                TextField(controller: descriptionController, maxLength: 500, maxLines: 3,
+                                  decoration: const InputDecoration(labelText: 'توضیحات')),
+                              ],
+                            ])),
                             actions: [
                               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-                              FilledButton(onPressed: () => Navigator.pop(ctx, controller.text), child: const Text('ذخیره')),
+                              FilledButton(onPressed: () => Navigator.pop(ctx, [
+                                titleController.text, slugController.text, descriptionController.text,
+                              ]), child: const Text('ذخیره')),
                             ],
                           ),
                         );
-                        controller.dispose();
-                        if (title != null && title.trim().isNotEmpty) {
-                          await MessagingService.updateGroupTitle(widget.conversationId, title);
-                          if (mounted) setState(() {});
-                          if (sheetContext.mounted) Navigator.pop(sheetContext);
+                        titleController.dispose();
+                        slugController.dispose();
+                        descriptionController.dispose();
+                        if (values == null || values[0].trim().isEmpty) return;
+                        if (isChannel) {
+                          if (!RegExp(r'^[a-zA-Z0-9_]{3,32}$').hasMatch(values[1].trim())) {
+                            if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('شناسه باید ۳ تا ۳۲ حرف انگلیسی، عدد یا زیرخط باشد.')),
+                            );
+                            return;
+                          }
+                          await MessagingService.updateChannelDetails(
+                            conversationId: widget.conversationId,
+                            title: values[0], slug: values[1], description: values[2],
+                          );
+                        } else {
+                          await MessagingService.updateGroupTitle(widget.conversationId, values[0]);
+                        }
+                        if (mounted) setState(() {});
+                        if (sheetContext.mounted) Navigator.pop(sheetContext);
+                      },
+                    ),
+                  if (isChannel && canManage)
+                    IconButton(
+                      tooltip: 'تنظیمات دسترسی اعضا',
+                      icon: const Icon(Icons.tune_rounded),
+                      onPressed: () async {
+                        var canPost = channelData['members_can_post'] as bool? ?? true;
+                        var canSendMedia = channelData['members_can_send_media'] as bool? ?? true;
+                        final values = await showDialog<List<bool>>(
+                          context: context,
+                          builder: (dialogContext) => StatefulBuilder(
+                            builder: (dialogContext, setDialogState) => AlertDialog(
+                              title: const Text('دسترسی اعضای عادی'),
+                              content: Column(mainAxisSize: MainAxisSize.min, children: [
+                                SwitchListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: const Text('ارسال پیام متنی'),
+                                  subtitle: const Text('اعضای عادی بتوانند پیام متنی بفرستند.'),
+                                  value: canPost,
+                                  onChanged: (value) => setDialogState(() => canPost = value),
+                                ),
+                                SwitchListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: const Text('ارسال رسانه و فایل'),
+                                  subtitle: const Text('اعضای عادی بتوانند تصویر، ویدئو و فایل بفرستند.'),
+                                  value: canSendMedia,
+                                  onChanged: (value) => setDialogState(() => canSendMedia = value),
+                                ),
+                                const SizedBox(height: 4),
+                                const Text('مالک و مدیران کانال همیشه امکان ارسال دارند.',
+                                  style: TextStyle(fontSize: 12)),
+                              ]),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+                                FilledButton(onPressed: () => Navigator.pop(dialogContext, [canPost, canSendMedia]),
+                                  child: const Text('ذخیره تنظیمات')),
+                              ],
+                            ),
+                          ),
+                        );
+                        if (values == null) return;
+                        try {
+                          await MessagingService.updateChannelMemberPermissions(
+                            conversationId: widget.conversationId,
+                            membersCanPost: values[0],
+                            membersCanSendMedia: values[1],
+                          );
+                          channelData['members_can_post'] = values[0];
+                          channelData['members_can_send_media'] = values[1];
+                          if (sheetContext.mounted) setSheetState(() {});
+                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('دسترسی اعضا به‌روزرسانی شد.')),
+                          );
+                        } catch (_) {
+                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('ذخیره تنظیمات دسترسی انجام نشد.')),
+                          );
                         }
                       },
                     ),
-                  if (isGroup && (myRole == 'owner' || myRole == 'admin'))
+                  if (isChannel && canManage)
+                    IconButton(
+                      tooltip: 'تاریخچه فعالیت‌های کانال',
+                      icon: const Icon(Icons.history_rounded),
+                      onPressed: () => _showChannelAuditLogs(widget.conversationId),
+                    ),
+                  if (isChannel && canManage && channelData['is_public'] == false)
+                    IconButton(
+                      tooltip: 'مدیریت کدهای دعوت',
+                      icon: const Icon(Icons.key_rounded),
+                      onPressed: () => _manageChannelInvites(widget.conversationId),
+                    ),
+                  if ((isGroup || isChannel) && canManage)
                     IconButton(
                       tooltip: 'افزودن عضو', icon: const Icon(Icons.person_add_alt_1_rounded),
                       onPressed: () async {
@@ -523,10 +1023,12 @@ class _ChatScreenState extends State<ChatScreen> {
                           context: context,
                           builder: (ctx) => AlertDialog(
                             title: const Text('افزودن عضو'),
-                            content: TextField(controller: queryController, autofocus: true, decoration: const InputDecoration(hintText: 'نام کاربری')),
+                            content: TextField(controller: queryController, autofocus: true,
+                              decoration: const InputDecoration(hintText: 'نام کاربری')),
                             actions: [
                               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-                              FilledButton(onPressed: () => Navigator.pop(ctx, queryController.text), child: const Text('جست‌وجو')),
+                              FilledButton(onPressed: () => Navigator.pop(ctx, queryController.text),
+                                child: const Text('جست‌وجو')),
                             ],
                           ),
                         );
@@ -547,8 +1049,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         );
                         if (selected == null) return;
-                        await MessagingService.manageGroupMember(widget.conversationId, selected['id'] as String, 'add');
-                        members = await MessagingService.loadConversationMembers(widget.conversationId);
+                        await manageMember(selected['id'] as String, 'add');
                         if (sheetContext.mounted) setSheetState(() {});
                       },
                     ),
@@ -562,15 +1063,46 @@ class _ChatScreenState extends State<ChatScreen> {
                     final member = members[index];
                     final role = member['role'] as String? ?? 'member';
                     final isMe = member['user_id'] == _myId;
+                    final canAct = (isGroup || isChannel) && !isMe && canManage &&
+                        (myRole == 'owner' || role == 'member');
                     return ListTile(
                       leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
                       title: Text(member['display_name'] as String? ?? ''),
                       subtitle: Text('@${member['username']} • ${role == 'owner' ? 'مالک' : role == 'admin' ? 'مدیر' : 'عضو'}'),
-                      trailing: isGroup && !isMe && (myRole == 'owner' || (myRole == 'admin' && role == 'member'))
+                      trailing: canAct
                           ? PopupMenuButton<String>(
                               onSelected: (action) async {
-                                await MessagingService.manageGroupMember(widget.conversationId, member['user_id'] as String, action);
-                                members = await MessagingService.loadConversationMembers(widget.conversationId);
+                                if (action == 'transfer') {
+                                  final displayName = member['display_name'] as String? ?? member['username'] as String? ?? 'این عضو';
+                                  final confirmed = await showDialog<bool>(
+                                    context: context,
+                                    builder: (dialogContext) => AlertDialog(
+                                      title: const Text('انتقال مالکیت کانال'),
+                                      content: Text('مالکیت کانال به $displayName منتقل شود؟ شما پس از انتقال، مدیر کانال خواهید بود و مالک جدید کنترل کامل کانال را در اختیار می‌گیرد.'),
+                                      actions: [
+                                        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('انصراف')),
+                                        FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('تأیید انتقال')),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirmed != true) return;
+                                  try {
+                                    await MessagingService.transferChannelOwnership(
+                                      conversationId: widget.conversationId,
+                                      newOwnerUserId: member['user_id'] as String,
+                                    );
+                                    if (sheetContext.mounted) Navigator.pop(sheetContext);
+                                    if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('مالکیت کانال با موفقیت منتقل شد.')),
+                                    );
+                                  } catch (_) {
+                                    if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('انتقال مالکیت انجام نشد. فقط مالک فعلی می‌تواند این کار را انجام دهد.')),
+                                    );
+                                  }
+                                  return;
+                                }
+                                await manageMember(member['user_id'] as String, action);
                                 if (sheetContext.mounted) setSheetState(() {});
                               },
                               itemBuilder: (_) => [
@@ -578,8 +1110,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                   const PopupMenuItem(value: 'promote', child: Text('ارتقا به مدیر')),
                                 if (myRole == 'owner' && role == 'admin')
                                   const PopupMenuItem(value: 'demote', child: Text('تنزل به عضو')),
+                                if (isChannel && myRole == 'owner' && role != 'owner')
+                                  const PopupMenuItem(value: 'transfer', child: Text('انتقال مالکیت کانال')),
                                 if (role != 'owner' && (myRole == 'owner' || role == 'member'))
-                                  const PopupMenuItem(value: 'remove', child: Text('حذف از گروه')),
+                                  PopupMenuItem(value: 'remove', child: Text(isChannel ? 'حذف از کانال' : 'حذف از گروه')),
                               ],
                             )
                           : role == 'owner' ? const Icon(Icons.verified_rounded, size: 18) : null,
@@ -597,7 +1131,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       if (sheetContext.mounted) Navigator.pop(sheetContext);
                       if (mounted) Navigator.pop(context);
                     },
-                    icon: const Icon(Icons.logout_rounded), label: const Text('خروج از گفتگو'),
+                    icon: const Icon(Icons.logout_rounded),
+                    label: Text(isChannel ? 'خروج از کانال' : isGroup ? 'خروج از گروه' : 'خروج از گفتگو'),
                   )),
                 ),
               ),

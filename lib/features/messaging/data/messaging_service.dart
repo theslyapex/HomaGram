@@ -35,50 +35,93 @@ class MessagingService {
 
     final ids = memberships
         .map((row) => row['conversation_id'] as String)
+        .toSet()
         .toList(growable: false);
 
-    final conversations = await _client
-        .from('conversations')
-        .select('id,kind,title,updated_at')
-        .inFilter('id', ids)
-        .order('updated_at', ascending: false);
+    // Fetch inbox data in batches rather than issuing two or three requests
+    // for every conversation. This keeps inbox latency predictable as it grows.
+    final results = await Future.wait([
+      _client
+          .from('conversations')
+          .select('id,kind,title,updated_at')
+          .inFilter('id', ids)
+          .order('updated_at', ascending: false),
+      _client
+          .from('conversation_members')
+          .select('conversation_id,user_id')
+          .inFilter('conversation_id', ids)
+          .isFilter('left_at', null),
+      _client
+          .from('messages')
+          .select('conversation_id,body,message_type,deleted_at,created_at')
+          .inFilter('conversation_id', ids)
+          .order('created_at', ascending: false)
+          .limit(1000),
+    ]);
 
-    final previews = await Future.wait(conversations.map((conversation) async {
+    final conversations = results[0] as List;
+    final allMembers = results[1] as List;
+    final recentMessages = results[2] as List;
+
+    final otherUserIds = allMembers
+        .where((row) => row['user_id'] != _userId)
+        .map((row) => row['user_id'] as String)
+        .toSet()
+        .toList(growable: false);
+
+    final profiles = otherUserIds.isEmpty
+        ? <dynamic>[]
+        : await _client
+            .from('profiles')
+            .select('id,display_name,username')
+            .inFilter('id', otherUserIds);
+
+    final profileById = {
+      for (final profile in profiles)
+        profile['id'] as String: Map<String, dynamic>.from(profile),
+    };
+
+    final otherMemberByConversation = <String, String>{};
+    for (final member in allMembers) {
+      final userId = member['user_id'] as String;
+      if (userId != _userId) {
+        otherMemberByConversation.putIfAbsent(
+          member['conversation_id'] as String,
+          () => userId,
+        );
+      }
+    }
+
+    final latestByConversation = <String, Map<String, dynamic>>{};
+    for (final row in recentMessages) {
+      latestByConversation.putIfAbsent(
+        row['conversation_id'] as String,
+        () => Map<String, dynamic>.from(row),
+      );
+    }
+
+    final previews = <ConversationPreview>[];
+    for (final conversation in conversations) {
       final id = conversation['id'] as String;
       final kind = conversation['kind'] as String;
-      var title = (conversation['title'] as String?) ?? 'گفت‌وگوی خصوصی';
+      var title = (conversation['title'] as String?)?.trim();
+      if (title == null || title.isEmpty) title = 'گفت‌وگوی خصوصی';
 
       if (kind == 'direct') {
-        final otherMembers = await _client
-            .from('conversation_members')
-            .select('user_id')
-            .eq('conversation_id', id)
-            .isFilter('left_at', null)
-            .neq('user_id', _userId)
-            .limit(1);
-
-        if (otherMembers.isNotEmpty) {
-          final profile = await _client
-              .from('profiles')
-              .select('display_name,username')
-              .eq('id', otherMembers.first['user_id'] as String)
-              .maybeSingle();
-          if (profile != null) {
-            title = (profile['display_name'] as String?)?.trim().isNotEmpty == true
-                ? profile['display_name'] as String
-                : '@${profile['username']}';
-          }
+        final otherUserId = otherMemberByConversation[id];
+        final profile = otherUserId == null ? null : profileById[otherUserId];
+        if (profile != null) {
+          final displayName = (profile['display_name'] as String?)?.trim();
+          final username = (profile['username'] as String?)?.trim();
+          title = displayName != null && displayName.isNotEmpty
+              ? displayName
+              : username != null && username.isNotEmpty
+                  ? '@$username'
+                  : title;
         }
       }
 
-      final latest = await _client
-          .from('messages')
-          .select('body,message_type,deleted_at')
-          .eq('conversation_id', id)
-          .order('created_at', ascending: false)
-          .limit(1)
-          .maybeSingle();
-
+      final latest = latestByConversation[id];
       var subtitle = 'هنوز پیامی ارسال نشده';
       if (latest != null) {
         if (latest['deleted_at'] != null) {
@@ -87,19 +130,26 @@ class MessagingService {
           subtitle = 'تصویر';
         } else if (latest['message_type'] == 'video') {
           subtitle = 'ویدئو';
+        } else if (latest['message_type'] == 'audio') {
+          subtitle = 'فایل صوتی';
+        } else if (latest['message_type'] == 'file') {
+          subtitle = 'فایل';
         } else {
           subtitle = (latest['body'] as String?) ?? '';
         }
       }
 
-      return ConversationPreview(
+      previews.add(ConversationPreview(
         id: id,
         kind: kind,
         title: title,
         subtitle: subtitle,
-        updatedAt: DateTime.parse(conversation['updated_at'] as String),
-      );
-    }));
+        updatedAt: DateTime.tryParse(
+              conversation['updated_at'] as String? ?? '',
+            ) ??
+            DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      ));
+    }
 
     previews.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     return previews;
@@ -248,6 +298,30 @@ class MessagingService {
       'p_conversation_id': conversationId,
       'p_target_user': targetUserId,
       'p_action': action,
+    });
+  }
+
+  static Future<void> manageChannelMember(
+    String conversationId, String targetUserId, String action,
+  ) async {
+    await _client.rpc('manage_channel_member', params: {
+      'p_conversation_id': conversationId,
+      'p_target_user': targetUserId,
+      'p_action': action,
+    });
+  }
+
+  static Future<void> updateChannelDetails({
+    required String conversationId,
+    required String title,
+    required String slug,
+    required String description,
+  }) async {
+    await _client.rpc('update_channel_details', params: {
+      'p_conversation_id': conversationId,
+      'p_title': title.trim(),
+      'p_slug': slug.trim().toLowerCase(),
+      'p_description': description.trim(),
     });
   }
 
@@ -460,4 +534,144 @@ class MessagingService {
   static Future<void> removeChannel(RealtimeChannel channel) async {
     await _client.removeChannel(channel);
   }
+
+  static Future<List<Map<String, dynamic>>> loadPublicChannels() async {
+    final rows = await _client.from('channels')
+        .select('conversation_id,slug,description,is_public,created_at,conversations(title)')
+        .eq('is_public', true)
+        .order('created_at', ascending: false)
+        .limit(100);
+    return rows.map((row) => Map<String, dynamic>.from(row)).toList();
+  }
+
+  static Future<String> createChannel({
+    required String title,
+    required String slug,
+    required String description,
+    bool isPublic = true,
+  }) async {
+    final result = await _client.rpc('create_channel', params: {
+      'p_title': title.trim(),
+      'p_slug': slug.trim().toLowerCase(),
+      'p_description': description.trim(),
+      'p_is_public': isPublic,
+    });
+    return result as String;
+  }
+
+  static Future<void> joinPublicChannel(String conversationId) async {
+    await _client.rpc('join_public_channel', params: {
+      'p_conversation_id': conversationId,
+    });
+  }
+
+  static Future<String> createChannelInvite(
+    String conversationId, {
+    int expiresInHours = 168,
+    int maxUses = 100,
+  }) async {
+    final result = await _client.rpc('create_channel_invite', params: {
+      'p_conversation_id': conversationId,
+      'p_expires_in_hours': expiresInHours,
+      'p_max_uses': maxUses,
+    });
+    return result as String;
+  }
+
+  static Future<List<Map<String, dynamic>>> loadChannelInvites(
+    String conversationId,
+  ) async {
+    final rows = await _client.rpc('list_channel_invites', params: {
+      'p_conversation_id': conversationId,
+    });
+    return (rows as List)
+        .map((row) => Map<String, dynamic>.from(row as Map))
+        .toList();
+  }
+
+  static Future<void> revokeChannelInvite(String inviteId) async {
+    await _client.rpc('revoke_channel_invite', params: {
+      'p_invite_id': inviteId,
+    });
+  }
+
+  static Future<String> joinChannelByInvite(String token) async {
+    final result = await _client.rpc('join_channel_by_invite', params: {
+      'p_token': token.trim().toLowerCase(),
+    });
+    return result as String;
+  }
+
+  static Future<void> updateChannelMemberPermissions({
+    required String conversationId,
+    required bool membersCanPost,
+    required bool membersCanSendMedia,
+  }) async {
+    await _client.rpc('update_channel_member_permissions', params: {
+      'p_conversation_id': conversationId,
+      'p_members_can_post': membersCanPost,
+      'p_members_can_send_media': membersCanSendMedia,
+    });
+  }
+
+  static Future<void> transferChannelOwnership({
+    required String conversationId,
+    required String newOwnerUserId,
+  }) async {
+    await _client.rpc('transfer_channel_ownership', params: {
+      'p_conversation_id': conversationId,
+      'p_new_owner': newOwnerUserId,
+    });
+  }
+
+  static Future<List<Map<String, dynamic>>> loadChannelAuditLogs(
+    String conversationId,
+  ) async {
+    final rows = await _client
+        .from('channel_audit_logs')
+        .select('id,actor_id,target_user_id,action,metadata,created_at')
+        .eq('conversation_id', conversationId)
+        .order('created_at', ascending: false)
+        .limit(100);
+    final logs = rows.map((row) => Map<String, dynamic>.from(row)).toList();
+    final ids = <String>{
+      for (final row in logs)
+        if (row['actor_id'] is String) row['actor_id'] as String,
+      for (final row in logs)
+        if (row['target_user_id'] is String) row['target_user_id'] as String,
+    }.toList();
+    if (ids.isEmpty) return logs;
+    final profiles = await _client
+        .from('profiles')
+        .select('id,username,display_name')
+        .inFilter('id', ids);
+    final byId = {
+      for (final profile in profiles)
+        profile['id'] as String: Map<String, dynamic>.from(profile),
+    };
+    for (final row in logs) {
+      final actor = byId[row['actor_id']];
+      final target = byId[row['target_user_id']];
+      row['actor_label'] = actor == null
+          ? 'مدیر سابق'
+          : (actor['display_name'] as String?)?.trim().isNotEmpty == true
+              ? actor['display_name']
+              : '@${actor['username']}';
+      row['target_label'] = target == null
+          ? null
+          : (target['display_name'] as String?)?.trim().isNotEmpty == true
+              ? target['display_name']
+              : '@${target['username']}';
+    }
+    return logs;
+  }
+
+  static Future<String> loadChannelTitle(String conversationId) async {
+    final row = await _client.from('conversations')
+        .select('title').eq('id', conversationId).single();
+    return (row['title'] as String?)?.trim().isNotEmpty == true
+        ? row['title'] as String
+        : 'کانال خصوصی';
+  }
+
 }

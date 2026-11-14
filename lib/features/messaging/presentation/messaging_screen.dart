@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/messaging_service.dart';
+import '../../support/data/support_service.dart';
+import '../../support/presentation/support_chat_screen.dart';
+import '../../support/presentation/support_inbox_screen.dart';
 import 'chat_screen.dart';
+import 'channels_screen.dart';
 
 class MessagingScreen extends StatefulWidget {
   const MessagingScreen({super.key});
@@ -83,6 +87,26 @@ class _MessagingScreenState extends State<MessagingScreen> {
     ));
   }
 
+  Future<void> _openSupport() async {
+    try {
+      Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => const SupportChatScreen(),
+      ));
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('باز کردن پشتیبانی ممکن نشد.')),
+        );
+      }
+    }
+  }
+
+  void _openSupportInbox() {
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => const SupportInboxScreen(),
+    ));
+  }
+
   @override
   void dispose() {
     final channel = _channel;
@@ -99,6 +123,13 @@ class _MessagingScreenState extends State<MessagingScreen> {
         title: const Text('پیام‌ها', style: TextStyle(fontWeight: FontWeight.w900)),
         actions: [
           IconButton(
+            tooltip: 'کانال‌ها',
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
+              builder: (_) => const ChannelsScreen(),
+            )),
+            icon: const Icon(Icons.campaign_outlined),
+          ),
+          IconButton(
             tooltip: 'ساخت گروه',
             onPressed: _newGroup,
             icon: const Icon(Icons.group_add_outlined),
@@ -111,67 +142,140 @@ class _MessagingScreenState extends State<MessagingScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _load,
-        child: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : _error != null
-                ? ListView(children: [
-                    const SizedBox(height: 150),
-                    Center(child: Text(_error!)),
-                    Center(child: TextButton(onPressed: _load, child: const Text('تلاش دوباره'))),
-                  ])
-                : _items.isEmpty
-                    ? ListView(
-                        children: [
-                          const SizedBox(height: 105),
-                          Icon(Icons.forum_outlined, size: 58, color: colors.primary),
-                          const SizedBox(height: 16),
-                          const Center(child: Text('هنوز گفتگویی ندارید', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800))),
-                          const SizedBox(height: 8),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 42),
-                            child: Text('با شروع یک گفت‌وگوی خصوصی، ارتباط در HomaGram را آغاز کنید.', textAlign: TextAlign.center),
-                          ),
-                          const SizedBox(height: 18),
-                          Center(
-                            child: FilledButton.icon(
-                              onPressed: _newChat,
-                              icon: const Icon(Icons.add_comment_outlined),
-                              label: const Text('شروع گفت‌وگوی جدید'),
-                            ),
-                          ),
-                        ],
-                      )
-                    : ListView.separated(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: _items.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1, indent: 76),
-                        itemBuilder: (context, index) {
-                          final item = _items[index];
-                          return ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-                            leading: CircleAvatar(
-                              radius: 25,
-                              backgroundColor: colors.primaryContainer,
-                              child: Icon(
-                                item.kind == 'group' ? Icons.groups_rounded : Icons.person_rounded,
-                                color: colors.onPrimaryContainer,
-                              ),
-                            ),
-                            title: Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontWeight: FontWeight.w800)),
-                            subtitle: Padding(
-                              padding: const EdgeInsets.only(top: 5),
-                              child: Text(item.subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
-                            ),
-                            trailing: Text(_date(item.updatedAt), style: Theme.of(context).textTheme.labelSmall),
-                            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-                              builder: (_) => ChatScreen(conversationId: item.id, title: item.title),
-                            )),
-                          );
-                        },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
+            child: Column(children: [
+              InkWell(
+                onTap: _openSupport,
+                borderRadius: BorderRadius.circular(20),
+                child: Ink(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                      colors: [Color(0xFF34236F), Color(0xFF172C55), Color(0xFF123F58)],
+                    ),
+                    border: Border.all(color: const Color(0xFF9A83FF).withValues(alpha: .42)),
+                    boxShadow: [
+                      BoxShadow(color: const Color(0xFF7658E8).withValues(alpha: .15),
+                        blurRadius: 22, offset: const Offset(0, 8)),
+                    ],
+                  ),
+                  child: Row(children: [
+                    Container(
+                      width: 48, height: 48,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF9A75FF), Color(0xFF38C7E9)],
+                        ),
                       ),
+                      child: const Icon(Icons.headset_mic_rounded, color: Colors.white, size: 25),
+                    ),
+                    const SizedBox(width: 13),
+                    const Expanded(child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: [
+                          Flexible(child: Text('پشتیبانی هماگرام',
+                            style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900))),
+                          SizedBox(width: 6),
+                          Icon(Icons.verified_rounded, size: 16, color: Color(0xFF65D9F0)),
+                        ]),
+                        SizedBox(height: 5),
+                        Text('ارتباط مستقیم با تیم پشتیبانی',
+                          style: TextStyle(color: Color(0xFFD5DDF5), fontSize: 11)),
+                      ],
+                    )),
+                    const Icon(Icons.arrow_forward_ios_rounded, size: 17, color: Colors.white70),
+                  ]),
+                ),
+              ),
+              if (SupportService.isSupportAdmin)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: _openSupportInbox,
+                    icon: const Icon(Icons.inbox_outlined, size: 18),
+                    label: const Text('مدیریت درخواست‌های پشتیبانی'),
+                  ),
+                ),
+            ]),
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _load,
+              child: _loading
+                  ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
+                      SizedBox(height: 125),
+                      Center(child: CircularProgressIndicator()),
+                    ])
+                  : _error != null
+                      ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: [
+                          const SizedBox(height: 120),
+                          Center(child: Text(_error!)),
+                          Center(child: TextButton(onPressed: _load, child: const Text('تلاش دوباره'))),
+                        ])
+                      : _items.isEmpty
+                          ? ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: [
+                                const SizedBox(height: 75),
+                                Icon(Icons.forum_outlined, size: 58, color: colors.primary),
+                                const SizedBox(height: 16),
+                                const Center(child: Text('هنوز گفتگویی ندارید',
+                                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800))),
+                                const SizedBox(height: 8),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 42),
+                                  child: Text('با شروع یک گفت‌وگوی خصوصی، ارتباط در HomaGram را آغاز کنید.',
+                                    textAlign: TextAlign.center),
+                                ),
+                                const SizedBox(height: 18),
+                                Center(child: FilledButton.icon(
+                                  onPressed: _newChat,
+                                  icon: const Icon(Icons.add_comment_outlined),
+                                  label: const Text('شروع گفت‌وگوی جدید'),
+                                )),
+                              ],
+                            )
+                          : ListView.separated(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              itemCount: _items.length,
+                              separatorBuilder: (_, __) => const Divider(height: 1, indent: 76),
+                              itemBuilder: (context, index) {
+                                final item = _items[index];
+                                return ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                                  leading: CircleAvatar(
+                                    radius: 25,
+                                    backgroundColor: colors.primaryContainer,
+                                    child: Icon(
+                                      item.kind == 'group' ? Icons.groups_rounded : Icons.person_rounded,
+                                      color: colors.onPrimaryContainer,
+                                    ),
+                                  ),
+                                  title: Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontWeight: FontWeight.w800)),
+                                  subtitle: Padding(
+                                    padding: const EdgeInsets.only(top: 5),
+                                    child: Text(item.subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+                                  ),
+                                  trailing: Text(_date(item.updatedAt), style: Theme.of(context).textTheme.labelSmall),
+                                  onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                                    builder: (_) => ChatScreen(conversationId: item.id, title: item.title),
+                                  )),
+                                );
+                              },
+                            ),
+            ),
+          ),
+        ],
       ),
     );
   }

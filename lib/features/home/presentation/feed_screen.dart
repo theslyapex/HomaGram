@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -6,6 +8,8 @@ import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
 import 'create_post_screen.dart';
 import 'public_profile_screen.dart';
+import 'stories_screen.dart';
+import '../../messaging/data/messaging_service.dart';
 import '../../../core/utils/persian_date.dart';
 
 class FeedScreen extends StatefulWidget {
@@ -82,6 +86,7 @@ class _FeedScreenState extends State<FeedScreen> {
   @override
   Widget build(BuildContext context) => Column(
     children: [
+      const StoriesStrip(),
       Padding(
         padding: const EdgeInsets.fromLTRB(18, 14, 18, 8),
         child: InkWell(
@@ -191,7 +196,8 @@ class PostCard extends StatefulWidget {
 }
 
 class _PostCardState extends State<PostCard> {
-  bool _liked = false, _saved = false, _reposted = false, _busy = false;
+  bool _liked = false, _saved = false, _reposted = false, _busy = false, _heartBurst = false;
+  Timer? _heartTimer;
   int _likes = 0, _comments = 0;
   String get _userId => AuthService.client.auth.currentUser!.id;
   String get _postId => widget.post['id'] as String;
@@ -238,6 +244,19 @@ class _PostCardState extends State<PostCard> {
     } finally { if (mounted) setState(() => _busy = false); }
   }
 
+  Future<void> _doubleTapLike() async {
+    if (!_liked) await _like();
+    if (!mounted) return;
+    _heartTimer?.cancel();
+    setState(() => _heartBurst = true);
+    _heartTimer = Timer(const Duration(milliseconds: 720), () {
+      if (mounted) setState(() => _heartBurst = false);
+    });
+  }
+
+  @override
+  void dispose() { _heartTimer?.cancel(); super.dispose(); }
+
   Future<void> _like() => _toggle('post_likes', _liked, (v) {
     setState(() { _liked = v; _likes += v ? 1 : -1; });
   });
@@ -250,15 +269,61 @@ class _PostCardState extends State<PostCard> {
   }
 
   Future<void> _share() async {
+    final action = await showModalBottomSheet<String>(
+      context: context, showDragHandle: true, useSafeArea: true,
+      builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        const Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 14),
+          child: Align(alignment: Alignment.centerRight,
+            child: Text('همرسانی پست', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)))),
+        ListTile(leading: const CircleAvatar(child: Icon(Icons.send_rounded)),
+          title: const Text('ارسال برای کاربران HomaGram'),
+          subtitle: const Text('انتخاب یک یا چند نفر از گفتگوهای داخلی'),
+          onTap: () => Navigator.pop(ctx, 'inside')),
+        ListTile(leading: const CircleAvatar(child: Icon(Icons.link_rounded)),
+          title: const Text('کپی پیوند پست'),
+          subtitle: const Text('برای ارسال در هر پیام‌رسانی'),
+          onTap: () => Navigator.pop(ctx, 'copy')),
+        ListTile(leading: const CircleAvatar(child: Icon(Icons.ios_share_rounded)),
+          title: const Text('اشتراک‌گذاری خارج از HomaGram'),
+          subtitle: const Text('ارسال با برنامه‌های دیگر دستگاه'),
+          onTap: () => Navigator.pop(ctx, 'external')),
+        const SizedBox(height: 10),
+      ])),
+    );
+    if (!mounted || action == null) return;
     final link = Uri(scheme: 'homagram', host: 'post', path: '/$_postId');
-    try {
-      await SharePlus.instance.share(ShareParams(
-        text: 'این پست را در HomaGram ببین:\n$link',
-        subject: 'پست در HomaGram',
-      ));
-    } catch (_) {
+    if (action == 'copy') {
+      await Clipboard.setData(ClipboardData(text: link.toString()));
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('اشتراک‌گذاری در این دستگاه در دسترس نیست.')));
+        const SnackBar(content: Text('پیوند پست کپی شد.')));
+    } else if (action == 'external') {
+      try {
+        await SharePlus.instance.share(ShareParams(
+          text: 'این پست را در HomaGram ببین:\n$link',
+          subject: 'پست در HomaGram',
+        ));
+      } catch (_) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('اشتراک‌گذاری در این دستگاه در دسترس نیست.')));
+      }
+    } else if (action == 'inside') {
+      final recipients = await showModalBottomSheet<List<Map<String, dynamic>>>(
+        context: context, isScrollControlled: true, useSafeArea: true, showDragHandle: true,
+        builder: (_) => const _PostShareSheet(),
+      );
+      if (!mounted || recipients == null || recipients.isEmpty) return;
+      var sent = 0;
+      for (final recipient in recipients) {
+        try {
+          final conversationId = await MessagingService.createDirectConversation(recipient['id'] as String);
+          await MessagingService.sendTextMessage(
+            conversationId, 'HOMAGRAM_POST:$_postId\nاین پست را برای شما فرستادم.',
+          );
+          sent++;
+        } catch (_) {}
+      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(sent == 0 ? 'ارسال پست انجام نشد.' : 'پست برای $sent نفر ارسال شد.')));
     }
   }
 
@@ -405,14 +470,33 @@ class _PostCardState extends State<PostCard> {
             ]))),
           IconButton(onPressed: _menu, icon: const Icon(Icons.more_horiz_rounded, color: Color(0xFF8490A4))),
         ])),
-        if (caption.isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-          child: Text(caption, style: const TextStyle(height: 1.85, fontSize: 13))),
-        if (mediaUrl != null) mediaType == 'video' ? _FeedVideo(url: mediaUrl)
-          : Image.network(mediaUrl, fit: BoxFit.cover,
-            loadingBuilder: (context, child, progress) => progress == null ? child
-              : const AspectRatio(aspectRatio: 1, child: Center(child: CircularProgressIndicator())),
-            errorBuilder: (_, __, ___) => const _MediaError()),
-        if (post['media_unavailable'] == true) const _MediaError(),
+        if (caption.isNotEmpty || mediaUrl != null || post['media_unavailable'] == true)
+          GestureDetector(
+            onDoubleTap: _doubleTapLike,
+            child: Stack(alignment: Alignment.center, children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                if (caption.isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                  child: Text(caption, style: const TextStyle(height: 1.85, fontSize: 13))),
+                if (mediaUrl != null) mediaType == 'video' ? _FeedVideo(url: mediaUrl)
+                  : Image.network(mediaUrl, fit: BoxFit.cover,
+                    loadingBuilder: (context, child, progress) => progress == null ? child
+                      : const AspectRatio(aspectRatio: 1, child: Center(child: CircularProgressIndicator())),
+                    errorBuilder: (_, __, ___) => const _MediaError()),
+                if (post['media_unavailable'] == true) const _MediaError(),
+              ]),
+              IgnorePointer(child: AnimatedOpacity(
+                opacity: _heartBurst ? 1 : 0,
+                duration: const Duration(milliseconds: 140),
+                child: AnimatedScale(
+                  scale: _heartBurst ? 1 : .35,
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutBack,
+                  child: const Icon(Icons.favorite_rounded, size: 92, color: Colors.white,
+                    shadows: [Shadow(color: Colors.black45, blurRadius: 18)]),
+                ),
+              )),
+            ]),
+          ),
         Padding(padding: const EdgeInsets.fromLTRB(8, 4, 8, 8), child: Row(children: [
           TextButton.icon(onPressed: _busy ? null : _like,
             icon: Icon(_liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
@@ -428,6 +512,126 @@ class _PostCardState extends State<PostCard> {
       ]),
     );
   }
+}
+
+
+class _PostShareSheet extends StatefulWidget {
+  const _PostShareSheet();
+  @override
+  State<_PostShareSheet> createState() => _PostShareSheetState();
+}
+
+class _PostShareSheetState extends State<_PostShareSheet> {
+  final _controller = TextEditingController();
+  final Map<String, Map<String, dynamic>> _selectedUsers = {};
+  List<Map<String, dynamic>> _users = [];
+  bool _loading = false;
+  Timer? _debounce;
+  String? _error;
+
+  @override
+  void dispose() { _debounce?.cancel(); _controller.dispose(); super.dispose(); }
+
+  void _searchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () => _search(value));
+  }
+
+  Future<void> _search(String value) async {
+    final term = value.trim();
+    if (term.length < 2) {
+      if (mounted) setState(() { _users = []; _error = null; });
+      return;
+    }
+    setState(() => _loading = true);
+    try {
+      final client = AuthService.client;
+      final uid = client.auth.currentUser!.id;
+      final byUsername = await client.from('profiles').select('id,username,display_name')
+        .neq('id', uid).ilike('username', '%$term%').limit(20);
+      final byName = await client.from('profiles').select('id,username,display_name')
+        .neq('id', uid).ilike('display_name', '%$term%').limit(20);
+      final merged = <String, Map<String, dynamic>>{};
+      for (final row in [...byUsername, ...byName]) {
+        merged[row['id'] as String] = Map<String, dynamic>.from(row);
+      }
+      if (!mounted) return;
+      setState(() { _users = merged.values.take(30).toList(); _error = null; _loading = false; });
+    } catch (_) {
+      if (mounted) setState(() { _loading = false; _error = 'جست‌وجوی کاربران انجام نشد.'; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+    child: SizedBox(
+      height: MediaQuery.sizeOf(context).height * .72,
+      child: Column(children: [
+        const Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 12),
+          child: Align(alignment: Alignment.centerRight,
+            child: Text('انتخاب گیرندگان', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)))),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: TextField(
+            controller: _controller, onChanged: _searchChanged,
+            decoration: InputDecoration(
+              hintText: 'نام یا نام کاربری را جست‌وجو کنید',
+              prefixIcon: const Icon(Icons.search_rounded),
+              suffixIcon: IconButton(onPressed: () { _controller.clear(); _search(''); },
+                icon: const Icon(Icons.close_rounded)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+          ),
+        ),
+        if (_selectedUsers.isNotEmpty)
+          Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Align(alignment: Alignment.centerRight,
+              child: Text('${_selectedUsers.length} نفر انتخاب شده‌اند',
+                style: const TextStyle(fontWeight: FontWeight.w700)))),
+        Expanded(child: _loading ? const Center(child: CircularProgressIndicator())
+          : _error != null ? Center(child: Text(_error!))
+          : _users.isEmpty ? const Center(child: Text('برای پیدا کردن کاربران، نام یا نام کاربری را جست‌وجو کنید.'))
+          : ListView.separated(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: _users.length,
+              separatorBuilder: (_, __) => const Divider(height: 1, indent: 70),
+              itemBuilder: (context, index) {
+                final user = _users[index];
+                final id = user['id'] as String;
+                final selected = _selectedUsers.containsKey(id);
+                final name = (user['display_name'] as String?)?.trim();
+                final username = (user['username'] as String?)?.trim() ?? '';
+                final label = name != null && name.isNotEmpty ? name : username;
+                return ListTile(
+                  leading: CircleAvatar(child: Text(label.isEmpty ? '?' : label.characters.first.toUpperCase())),
+                  title: Text(name != null && name.isNotEmpty ? name : '@$username',
+                    maxLines: 1, overflow: TextOverflow.ellipsis),
+                  subtitle: Text('@$username', textDirection: TextDirection.ltr),
+                  trailing: Checkbox(value: selected, onChanged: (_) => setState(() {
+                    selected ? _selectedUsers.remove(id) : _selectedUsers[id] = user;
+                  })),
+                  onTap: () => setState(() {
+                    selected ? _selectedUsers.remove(id) : _selectedUsers[id] = user;
+                  }),
+                );
+              },
+            )),
+        SafeArea(top: false, child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+          child: SizedBox(width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _selectedUsers.isEmpty ? null : () {
+                Navigator.pop(context, _selectedUsers.values.toList());
+              },
+              icon: const Icon(Icons.send_rounded),
+              label: Text('ارسال برای ${_selectedUsers.length} نفر'),
+            ),
+          ),
+        )),
+      ]),
+    ),
+  );
 }
 
 class PostCommentsScreen extends StatefulWidget {

@@ -10,7 +10,8 @@ import '../../auth/data/auth_service.dart';
 import 'video_trim_screen.dart';
 
 class CreatePostScreen extends StatefulWidget {
-  const CreatePostScreen({super.key});
+  const CreatePostScreen({this.initialReel = false, super.key});
+  final bool initialReel;
 
   @override
   State<CreatePostScreen> createState() => _CreatePostScreenState();
@@ -23,6 +24,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   String? _mediaType;
   bool _posting = false;
   bool _editing = false;
+  bool _asReel = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _asReel = widget.initialReel;
+  }
 
   @override
   void dispose() {
@@ -140,6 +148,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     setState(() {
       _media = file;
       _mediaType = type;
+      if (type != 'video') _asReel = false;
     });
   }
 
@@ -170,6 +179,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   Future<void> _publish() async {
     final caption = _caption.text.trim();
+    if (_asReel && (_media == null || _mediaType != 'video')) {
+      _notice('برای انتشار ریلز باید یک ویدئو انتخاب کنید.', error: true);
+      return;
+    }
     if (caption.isEmpty && _media == null) {
       _notice('برای انتشار، متن یا یک تصویر/ویدئو اضافه کنید.', error: true);
       return;
@@ -209,6 +222,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         'caption': caption,
         'media_path': uploadedPath,
         'media_type': uploadedPath == null ? null : _mediaType,
+        'is_reel': _asReel,
       });
 
       if (!mounted) return;
@@ -344,6 +358,19 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             ),
             const SizedBox(height: 14),
             if (_media != null) _selectedMediaCard(),
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              value: _asReel,
+              onChanged: _mediaType == 'video' && !_posting && !_editing
+                  ? (value) => setState(() => _asReel = value)
+                  : null,
+              secondary: const Icon(Icons.video_collection_outlined, color: HomaGramTheme.turquoise),
+              title: const Text('انتشار به‌عنوان ریلز', style: TextStyle(fontWeight: FontWeight.w800)),
+              subtitle: Text(_asReel
+                  ? 'این ویدئو در بخش ریلز نمایش داده می‌شود.'
+                  : 'برای ریلز، ابتدا یک ویدئو انتخاب کنید.',
+                style: const TextStyle(fontSize: 11, color: Color(0xFF8490A4))),
+            ),
             OutlinedButton.icon(
               onPressed: _posting || _editing ? null : () => _chooseMedia(false),
               icon: const Icon(Icons.add_photo_alternate_outlined),

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Configure HomaGram Android internet permission and auth callback."""
+"""Configure HomaGram Android permissions, Firebase metadata and auth callback."""
 from pathlib import Path
 import sys
 import xml.etree.ElementTree as ET
@@ -15,13 +15,16 @@ def main() -> int:
         return 1
     tree = ET.parse(manifest)
     root = tree.getroot()
-    if not any(
-        item.get(android + "name") == "android.permission.INTERNET"
-        for item in root.findall("uses-permission")
-    ):
-        permission = ET.Element("uses-permission")
-        permission.set(android + "name", "android.permission.INTERNET")
-        root.insert(0, permission)
+    required_permissions = (
+        "android.permission.INTERNET",
+        "android.permission.POST_NOTIFICATIONS",
+    )
+    for permission_name in required_permissions:
+        if not any(item.get(android + "name") == permission_name
+                   for item in root.findall("uses-permission")):
+            permission = ET.Element("uses-permission")
+            permission.set(android + "name", permission_name)
+            root.insert(0, permission)
     activity = next((item for item in root.iter("activity")
                      if item.get(android + "name", "").endswith("MainActivity")), None)
     if activity is None:
@@ -38,12 +41,16 @@ def main() -> int:
         ET.SubElement(intent, "category").set(android + "name", "android.intent.category.DEFAULT")
         ET.SubElement(intent, "category").set(android + "name", "android.intent.category.BROWSABLE")
         ET.SubElement(intent, "data").set(android + "scheme", "homagram")
-    # Android activity declarations must be children of <application>, not <manifest>.
     application = root.find("application")
     if application is None:
         print("application element not found in AndroidManifest.xml", file=sys.stderr)
         return 1
-    # image_cropper requires the native uCrop activity.
+    fid_metadata = "firebase_messaging_installation_id_enabled"
+    if not any(item.get(android + "name") == fid_metadata
+               for item in application.findall("meta-data")):
+        metadata = ET.SubElement(application, "meta-data")
+        metadata.set(android + "name", fid_metadata)
+        metadata.set(android + "value", "true")
     cropper_name = "com.yalantis.ucrop.UCropActivity"
     if not any(item.get(android + "name") == cropper_name for item in application.findall("activity")):
         cropper = ET.SubElement(application, "activity")

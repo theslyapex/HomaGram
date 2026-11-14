@@ -1,7 +1,7 @@
 name: Flutter CI
 on:
   push:
-    branches: [main]
+    branches: [main, feature/stories-foundation]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -45,6 +45,10 @@ jobs:
         run: python3 tool/configure_android_manifest.py
       - name: Configure Android API and signing
         run: python3 tool/configure_android_build.py
+      - name: Configure Firebase Android
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: python3 tool/configure_firebase.py
       - name: Install dependencies
         run: flutter pub get
       - name: Analyze
@@ -56,13 +60,14 @@ jobs:
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEY_ALIAS: homagram-upload
           ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           test -n "$SUPABASE_URL" || (echo "Missing GitHub Actions variable: SUPABASE_URL" && exit 1)
           test -n "$SUPABASE_PUBLISHABLE_KEY" || (echo "Missing GitHub Actions variable: SUPABASE_PUBLISHABLE_KEY" && exit 1)
+          test -n "$GOOGLE_SERVICES_JSON" || (echo "Missing GitHub Actions secret: GOOGLE_SERVICES_JSON" && exit 1)
           test -n "$ANDROID_KEYSTORE_BASE64" || (echo "Missing GitHub Actions secret: ANDROID_KEYSTORE_BASE64" && exit 1)
           test -n "$ANDROID_STORE_PASSWORD" || (echo "Missing GitHub Actions secret: ANDROID_STORE_PASSWORD" && exit 1)
           test -n "$ANDROID_KEY_PASSWORD" || (echo "Missing GitHub Actions secret: ANDROID_KEY_PASSWORD" && exit 1)

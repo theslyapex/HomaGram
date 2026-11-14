@@ -1,0 +1,781 @@
+import 'dart:io';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../auth/data/auth_service.dart';
+import '../../messaging/data/messaging_service.dart';
+
+bool isSupportedStoryMedia({
+  required String mediaType,
+  required String mimeType,
+}) {
+  if (mediaType == 'image') {
+    return const {'image/jpeg', 'image/png', 'image/webp'}.contains(mimeType);
+  }
+  if (mediaType == 'video') {
+    return const {'video/mp4', 'video/quicktime'}.contains(mimeType);
+  }
+  return false;
+}
+
+class StoryService {
+  StoryService._();
+
+  static SupabaseClient get _client => AuthService.client;
+  static String get _uid => _client.auth.currentUser!.id;
+
+  static Future<List<Map<String, dynamic>>> loadCloseFriends() async {
+    final rows = await _client.rpc('get_close_friends') as List;
+    if (rows.isEmpty) return [];
+    final ids = rows.map((row) => row['friend_id'] as String).toList();
+    final profiles = await _client.from('profiles')
+        .select('id,username,display_name,avatar_path')
+        .inFilter('id', ids);
+    final byId = {for (final profile in profiles) profile['id'] as String: profile};
+    return ids.where(byId.containsKey).map((id) =>
+      Map<String, dynamic>.from(byId[id]!)
+    ).toList();
+  }
+
+  static Future<List<Map<String, dynamic>>> loadCloseFriendCandidates() async {
+    final follows = await _client.from('user_follows')
+        .select('follower_id')
+        .eq('following_id', _uid)
+        .order('created_at', ascending: false)
+        .limit(500);
+    if (follows.isEmpty) return [];
+    final ids = follows.map((row) => row['follower_id'] as String).toSet().toList();
+    final profiles = await _client.from('profiles')
+        .select('id,username,display_name,avatar_path')
+        .inFilter('id', ids);
+    return profiles.map((row) => Map<String, dynamic>.from(row)).toList();
+  }
+
+  static Future<void> addCloseFriend(String friendId) async {
+    await _client.rpc('add_close_friend', params: {'p_friend_id': friendId});
+  }
+
+  static Future<String> saveDraft({
+    required Map<String, dynamic> draftData,
+    File? mediaFile,
+    String? mediaFileName,
+    String? mediaMimeType,
+    File? musicFile,
+    String? musicFileName,
+    String? musicMimeType,
+    required List<Map<String, dynamic>> stickers,
+  }) async {
+    final stamp = DateTime.now().microsecondsSinceEpoch;
+    final uploaded = <String>[];
+    String? mediaPath;
+    String? musicPath;
+    final persistedStickers = <Map<String, dynamic>>[];
+    try {
+      if (mediaFile != null) {
+        final bytes = await mediaFile.readAsBytes();
+        if (bytes.isEmpty || bytes.length > 50 * 1024 * 1024 ||
+            mediaFileName == null || mediaMimeType == null ||
+            !const {'image/jpeg','image/png','image/webp','video/mp4','video/quicktime'}.contains(mediaMimeType)) {
+          throw ArgumentError('رسانه پیش‌نویس معتبر نیست.');
+        }
+        final ext = mediaFileName.contains('.') ? mediaFileName.split('.').last.toLowerCase() : 'bin';
+        mediaPath = '$_uid/$stamp/media.$ext';
+        await _client.storage.from('story-drafts').uploadBinary(
+          mediaPath, bytes, fileOptions: FileOptions(contentType: mediaMimeType, upsert: false),
+        );
+        uploaded.add(mediaPath);
+      }
+      if (musicFile != null) {
+        final bytes = await musicFile.readAsBytes();
+        if (bytes.isEmpty || bytes.length > 15 * 1024 * 1024 ||
+            musicFileName == null || musicMimeType == null ||
+            !const {'audio/mpeg','audio/mp4','audio/aac','audio/wav'}.contains(musicMimeType)) {
+          throw ArgumentError('موسیقی پیش‌نویس معتبر نیست.');
+        }
+        final ext = musicFileName.contains('.') ? musicFileName.split('.').last.toLowerCase() : 'mp3';
+        musicPath = '$_uid/$stamp/music.$ext';
+        await _client.storage.from('story-drafts').uploadBinary(
+          musicPath, bytes, fileOptions: FileOptions(contentType: musicMimeType, upsert: false),
+        );
+        uploaded.add(musicPath);
+      }
+      for (var i = 0; i < stickers.length; i++) {
+        final sticker = Map<String, dynamic>.from(stickers[i]);
+        if (sticker['type'] == 'image') {
+          final localPath = sticker['local_path'] as String?;
+          final mime = sticker['mime_type'] as String?;
+          final name = sticker['file_name'] as String? ?? 'sticker.png';
+          if (localPath == null || mime == null ||
+              !const {'image/gif','image/jpeg','image/png','image/webp'}.contains(mime)) {
+            throw ArgumentError('فایل استیکر پیش‌نویس معتبر نیست.');
+          }
+          final bytes = await File(localPath).readAsBytes();
+          if (bytes.isEmpty || bytes.length > 5 * 1024 * 1024) {
+            throw ArgumentError('حجم استیکر پیش‌نویس معتبر نیست.');
+          }
+          final ext = name.contains('.') ? name.split('.').last.toLowerCase() : 'png';
+          final stickerPath = '$_uid/$stamp/sticker_$i.$ext';
+          await _client.storage.from('story-drafts').uploadBinary(
+            stickerPath, bytes, fileOptions: FileOptions(contentType: mime, upsert: false),
+          );
+          uploaded.add(stickerPath);
+          sticker
+            ..['path'] = stickerPath
+            ..remove('local_path');
+        }
+        persistedStickers.add(sticker);
+      }
+      final row = await _client.from('story_drafts').insert({
+        'owner_id': _uid,
+        'media_path': mediaPath,
+        'music_path': musicPath,
+        'draft_data': {...draftData, 'stickers': persistedStickers},
+      }).select('id').single();
+      return row['id'] as String;
+    } catch (_) {
+      if (uploaded.isNotEmpty) {
+        try { await _client.storage.from('story-drafts').remove(uploaded); } catch (_) {}
+      }
+      rethrow;
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> loadDrafts() async {
+    final rows = await _client.from('story_drafts')
+        .select('id,media_path,music_path,draft_data,created_at,updated_at')
+        .eq('owner_id', _uid)
+        .order('updated_at', ascending: false)
+        .limit(50);
+    return rows.map((row) => Map<String, dynamic>.from(row)).toList();
+  }
+
+  static Future<Map<String, dynamic>?> loadDraft(String draftId) async {
+    final row = await _client.from('story_drafts')
+        .select('id,media_path,music_path,draft_data,created_at,updated_at')
+        .eq('id', draftId).eq('owner_id', _uid).maybeSingle();
+    if (row == null) return null;
+    final data = Map<String, dynamic>.from(row['draft_data'] as Map);
+    Future<String> restore(String path, String label) async {
+      final bytes = await _client.storage.from('story-drafts').download(path);
+      final file = File('${Directory.systemTemp.path}/homagram_${row['id']}_$label');
+      await file.writeAsBytes(bytes, flush: true);
+      return file.path;
+    }
+    final mediaPath = row['media_path'] as String?;
+    final musicPath = row['music_path'] as String?;
+    if (mediaPath != null) data['_media_file_path'] = await restore(mediaPath, 'media');
+    if (musicPath != null) data['_music_file_path'] = await restore(musicPath, 'music');
+    final rawStickers = data['stickers'];
+    if (rawStickers is List) {
+      final restored = <Map<String, dynamic>>[];
+      for (var i = 0; i < rawStickers.length; i++) {
+        final item = Map<String, dynamic>.from(rawStickers[i] as Map);
+        final path = item['path'] as String?;
+        if (item['type'] == 'image' && path != null) {
+          item['local_path'] = await restore(path, 'sticker_$i');
+        }
+        restored.add(item);
+      }
+      data['stickers'] = restored;
+    }
+    data['_draft_id'] = row['id'];
+    return data;
+  }
+
+  static Future<void> deleteDraft(String draftId) async {
+    final row = await _client.from('story_drafts')
+        .select('media_path,music_path,draft_data')
+        .eq('id', draftId).eq('owner_id', _uid).maybeSingle();
+    if (row == null) return;
+    final paths = <String>[
+      if (row['media_path'] is String) row['media_path'] as String,
+      if (row['music_path'] is String) row['music_path'] as String,
+    ];
+    final data = row['draft_data'];
+    if (data is Map && data['stickers'] is List) {
+      for (final item in data['stickers'] as List) {
+        if (item is Map && item['path'] is String) paths.add(item['path'] as String);
+      }
+    }
+    await _client.from('story_drafts').delete().eq('id', draftId).eq('owner_id', _uid);
+    if (paths.isNotEmpty) {
+      try { await _client.storage.from('story-drafts').remove(paths); } catch (_) {}
+    }
+  }
+
+
+  static Future<void> removeCloseFriend(String friendId) async {
+    await _client.rpc('remove_close_friend', params: {'p_friend_id': friendId});
+  }
+
+
+  static Future<List<Map<String, dynamic>>> loadActiveStories() async {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final rows = await _client.from('stories')
+        .select('id,author_id,audience,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,music_path,music_start_ms,music_volume,created_at,expires_at')
+        .gt('expires_at', now)
+        .order('created_at');
+    return _hydrate(rows);
+  }
+
+  // Active stories owned by the signed-in user, for immediate highlight selection.
+  static Future<List<Map<String, dynamic>>> loadMyActiveStories() async {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final rows = await _client.from('stories')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,music_path,music_start_ms,music_volume,created_at,expires_at')
+        .eq('author_id', _uid)
+        .gt('expires_at', now)
+        .order('created_at', ascending: false);
+    return _hydrate(rows);
+  }
+
+  static const int archivePageSize = 30;
+
+  static Future<List<Map<String, dynamic>>> loadArchivePage({
+    required int offset,
+    int limit = archivePageSize,
+  }) async {
+    if (offset < 0 || limit < 1 || limit > 100) {
+      throw ArgumentError('بازه صفحه‌بندی آرشیو معتبر نیست.');
+    }
+    final now = DateTime.now().toUtc().toIso8601String();
+    final rows = await _client.from('stories')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,music_path,music_start_ms,music_volume,created_at,expires_at')
+        .eq('author_id', _uid)
+        .lte('expires_at', now)
+        .order('created_at', ascending: false)
+        .order('id', ascending: false)
+        .range(offset, offset + limit - 1);
+    return _hydrate(rows);
+  }
+
+  static Future<List<Map<String, dynamic>>> loadArchive() =>
+      loadArchivePage(offset: 0, limit: archivePageSize);
+
+  // Sign storage paths in small concurrent batches. This avoids the old
+  // one-request-at-a-time loop while preventing a large burst of requests.
+  static Future<Map<String, String>> _signPaths(
+    String bucket,
+    Iterable<String> rawPaths,
+  ) async {
+    final paths = rawPaths.where((path) => path.isNotEmpty).toSet().toList();
+    final signed = <String, String>{};
+    const batchSize = 8;
+
+    for (var start = 0; start < paths.length; start += batchSize) {
+      final batch = paths.skip(start).take(batchSize);
+      final results = await Future.wait(batch.map((path) async {
+        try {
+          final url = await _client.storage.from(bucket).createSignedUrl(path, 3600);
+          return MapEntry(path, url);
+        } catch (_) {
+          return null;
+        }
+      }));
+      for (final entry in results) {
+        if (entry != null) signed[entry.key] = entry.value;
+      }
+    }
+    return signed;
+  }
+
+  static Future<List<Map<String, dynamic>>> _hydrate(List<dynamic> rows) async {
+    if (rows.isEmpty) return [];
+
+    final ids = rows.map((r) => r['author_id'] as String).toSet().toList();
+    final storyIds = rows.map((r) => r['id'] as String).toList();
+
+    // Fetch profiles and viewed-state data together instead of serially.
+    final profileAndViews = await Future.wait([
+      _client.from('profiles')
+          .select('id,username,display_name,avatar_path').inFilter('id', ids),
+      _client.from('story_views')
+          .select('story_id').eq('viewer_id', _uid).inFilter('story_id', storyIds),
+    ]);
+    final profiles = profileAndViews[0] as List;
+    final seenRows = profileAndViews[1] as List;
+    final byId = {
+      for (final p in profiles)
+        p['id'] as String: Map<String, dynamic>.from(p)
+    };
+    final seen = seenRows.map((r) => r['story_id'] as String).toSet();
+
+    final avatarPaths = byId.values
+        .map((profile) => profile['avatar_path'] as String?)
+        .whereType<String>();
+    final mediaPaths = rows
+        .map((row) => row['media_path'] as String?)
+        .whereType<String>();
+    final stickerPaths = <String>[];
+    for (final row in rows) {
+      final data = row['sticker_data'];
+      if (data is List) {
+        for (final item in data) {
+          if (item is Map && item['type'] == 'image' && item['path'] is String) {
+            stickerPaths.add(item['path'] as String);
+          }
+        }
+      }
+    }
+
+    // Sign each unique path once, with bounded concurrency.
+    final signedResults = await Future.wait([
+      _signPaths('avatars', avatarPaths),
+      _signPaths('story-media', mediaPaths),
+      _signPaths('story-stickers', stickerPaths),
+      _signPaths('story-audio', rows.map((row) => row['music_path'] as String?).whereType<String>()),
+    ]);
+    final avatarUrls = signedResults[0];
+    final mediaUrls = signedResults[1];
+    final stickerUrls = signedResults[2];
+    final musicUrls = signedResults[3];
+    final pollRows = await _client.rpc('get_story_polls', params: {'p_story_ids': storyIds});
+    final countdownRows = await _client.rpc('get_story_countdowns', params: {'p_story_ids': storyIds});
+    final countdownsByStory = <String, Map<String, dynamic>>{
+      for (final raw in (countdownRows as List))
+        if (raw is Map) raw['story_id'] as String: Map<String, dynamic>.from(raw),
+    };
+    final questionRows = await _client.rpc('get_story_questions', params: {'p_story_ids': storyIds});
+    final questionsByStory = <String, Map<String, dynamic>>{
+      for (final raw in (questionRows as List))
+        if (raw is Map) raw['story_id'] as String: Map<String, dynamic>.from(raw),
+    };
+    final pollsByStory = <String, Map<String, dynamic>>{
+      for (final raw in (pollRows as List))
+        if (raw is Map) raw['story_id'] as String: Map<String, dynamic>.from(raw),
+    };
+
+    return rows.map((row) {
+      final story = Map<String, dynamic>.from(row);
+      final profile = byId[story['author_id']] ?? <String, dynamic>{};
+      story['display_name'] = profile['display_name'] ?? 'کاربر HomaGram';
+      story['username'] = profile['username'] ?? 'user';
+      story['avatar_path'] = profile['avatar_path'];
+      story['avatar_url'] = avatarUrls[profile['avatar_path']];
+      story['media_url'] = mediaUrls[story['media_path']];
+      story['music_url'] = musicUrls[story['music_path']];
+      story['poll_data'] = pollsByStory[story['id']];
+      story['question_box_data'] = questionsByStory[story['id']];
+      story['countdown_data'] = countdownsByStory[story['id']];
+      final stickerData = story['sticker_data'];
+      if (stickerData is List) {
+        story['sticker_data'] = stickerData.map((raw) {
+          if (raw is! Map) return raw;
+          final item = Map<String, dynamic>.from(raw);
+          final path = item['path'] as String?;
+          if (path != null) item['signed_url'] = stickerUrls[path];
+          return item;
+        }).toList();
+      }
+      story['is_viewed'] = seen.contains(story['id']);
+      return story;
+    }).toList();
+  }
+
+  static Future<void> publish({
+    required File file,
+    required String mediaType,
+    required String fileName,
+    required String mimeType,
+    required String caption,
+    String? overlayText,
+    double overlayX = 0.5,
+    double overlayY = 0.5,
+    double overlayScale = 1.0,
+    String overlayColor = '#FFFFFF',
+    String overlayFont = 'estedad',
+    List<Map<String, dynamic>> drawingData = const [],
+    List<Map<String, dynamic>> stickerData = const [],
+    File? musicFile,
+    String? musicFileName,
+    String? musicMimeType,
+    int musicStartMs = 0,
+    double musicVolume = 0.75,
+    String? pollQuestion,
+    List<String>? pollOptions,
+    String? questionBoxPrompt,
+    String? countdownTitle,
+    DateTime? countdownTargetAt,
+    String audience = 'everyone',
+  }) async {
+    if (!const {'everyone','followers','close_friends'}.contains(audience)) {
+      throw ArgumentError('مخاطبان استوری معتبر نیستند.');
+    }
+    final cleanOverlay = overlayText?.trim();
+    if (cleanOverlay != null && cleanOverlay.length > 180) {
+      throw ArgumentError('متن روی رسانه حداکثر ۱۸۰ نویسه است.');
+    }
+    if (overlayX < 0 || overlayX > 1 || overlayY < 0 || overlayY > 1 ||
+        overlayScale < 0.6 || overlayScale > 2.5 ||
+        !const {'#FFFFFF', '#111827', '#FFE082', '#FF6B6B', '#45D6C5', '#A78BFA', '#F9A8D4'}.contains(overlayColor) ||
+        !const {'estedad', 'serif', 'mono'}.contains(overlayFont)) {
+      throw ArgumentError('تنظیمات متن روی رسانه معتبر نیست.');
+    }
+    if (drawingData.length > 100) throw ArgumentError('تعداد خطوط نقاشی بیش از حد مجاز است.');
+    const allowedStickers = {'❤️','😍','😂','🔥','✨','⭐','🌈','🌸','🦋','🎉','☀️','🌙','💯','👏','🎈','🍀','☕','🎧'};
+    if (stickerData.length > 20) throw ArgumentError('تعداد استیکرها بیش از حد مجاز است.');
+    if (!isSupportedStoryMedia(mediaType: mediaType, mimeType: mimeType)) {
+      throw ArgumentError('نوع رسانه یا فرمت فایل استوری پشتیبانی نمی‌شود.');
+    }
+    if (musicStartMs < 0 || musicStartMs > 600000 || musicVolume < 0 || musicVolume > 1) {
+      throw ArgumentError('تنظیمات موسیقی معتبر نیست.');
+    }
+    if (musicFile != null && (musicFileName == null || musicMimeType == null ||
+        !const {'audio/mpeg','audio/mp4','audio/aac','audio/wav','audio/x-wav'}.contains(musicMimeType))) {
+      throw ArgumentError('فرمت فایل موسیقی پشتیبانی نمی‌شود.');
+    }
+    if (caption.trim().length > 500) {
+      throw ArgumentError('متن استوری حداکثر ۵۰۰ نویسه است.');
+    }
+    final cleanCountdownTitle = countdownTitle?.trim();
+    final targetAt = countdownTargetAt;
+    if ((cleanCountdownTitle == null) != (targetAt == null)) {
+      throw ArgumentError('عنوان و زمان شمارش معکوس باید با هم وارد شوند.');
+    }
+    if (cleanCountdownTitle != null && (cleanCountdownTitle.isEmpty || cleanCountdownTitle.length > 100 ||
+        targetAt == null || !targetAt.isAfter(DateTime.now()) ||
+        targetAt.isAfter(DateTime.now().add(const Duration(days: 365))))) {
+      throw ArgumentError('عنوان یا زمان شمارش معکوس معتبر نیست.');
+    }
+    final cleanQuestionBoxPrompt = questionBoxPrompt?.trim();
+    if (cleanQuestionBoxPrompt != null && (cleanQuestionBoxPrompt.isEmpty || cleanQuestionBoxPrompt.length > 180)) {
+      throw ArgumentError('متن باکس پرسش باید بین ۱ تا ۱۸۰ نویسه باشد.');
+    }
+    final cleanPollQuestion = pollQuestion?.trim();
+    final cleanPollOptions = pollOptions?.map((option) => option.trim()).toList();
+    if (cleanPollQuestion != null || cleanPollOptions != null) {
+      if (cleanPollQuestion == null || cleanPollQuestion.isEmpty ||
+          cleanPollQuestion.length > 160 || cleanPollOptions == null ||
+          cleanPollOptions.length < 2 || cleanPollOptions.length > 4 ||
+          cleanPollOptions.any((option) => option.isEmpty || option.length > 60) ||
+          cleanPollOptions.map((option) => option.toLowerCase()).toSet().length != cleanPollOptions.length) {
+        throw ArgumentError('سؤال و گزینه‌های نظرسنجی معتبر نیستند.');
+      }
+    }
+
+    final uploadedStickerPaths = <String>[];
+    final persistedStickers = <Map<String, dynamic>>[];
+    try {
+      for (final raw in stickerData) {
+        final sticker = Map<String, dynamic>.from(raw);
+        if (sticker['type'] == 'image') {
+          final localPath = sticker.remove('local_path') as String?;
+          final mime = sticker['mime_type'] as String?;
+          final name = sticker['file_name'] as String? ?? 'sticker';
+          if (localPath == null || mime == null ||
+              !const {'image/gif','image/jpeg','image/png','image/webp'}.contains(mime)) {
+            throw ArgumentError('فایل استیکر معتبر نیست.');
+          }
+          final stickerBytes = await File(localPath).readAsBytes();
+          if (stickerBytes.isEmpty || stickerBytes.length > 5 * 1024 * 1024) {
+            throw ArgumentError('حجم استیکر باید حداکثر ۵ مگابایت باشد.');
+          }
+          final ext = name.contains('.') ? name.split('.').last.toLowerCase() : 'png';
+          if (!const {'gif','jpg','jpeg','png','webp'}.contains(ext)) {
+            throw ArgumentError('پسوند فایل استیکر پشتیبانی نمی‌شود.');
+          }
+          final stickerPath = '$_uid/${DateTime.now().microsecondsSinceEpoch}_${uploadedStickerPaths.length}.$ext';
+          await _client.storage.from('story-stickers').uploadBinary(
+            stickerPath, stickerBytes,
+            fileOptions: FileOptions(contentType: mime, upsert: false),
+          );
+          uploadedStickerPaths.add(stickerPath);
+          sticker
+            ..remove('mime_type')
+            ..remove('file_name')
+            ..['path'] = stickerPath;
+        } else if (sticker['type'] == 'emoji' || (sticker['type'] == null && allowedStickers.contains(sticker['emoji']))) {
+          sticker['type'] = 'emoji';
+          if (!allowedStickers.contains(sticker['emoji'])) {
+            throw ArgumentError('ایموجی استیکر معتبر نیست.');
+          }
+        } else {
+          throw ArgumentError('نوع استیکر پشتیبانی نمی‌شود.');
+        }
+        final x = (sticker['x'] as num?)?.toDouble();
+        final y = (sticker['y'] as num?)?.toDouble();
+        final scale = (sticker['scale'] as num?)?.toDouble();
+        final rotation = (sticker['rotation'] as num?)?.toDouble();
+        if (x == null || y == null || x < .05 || x > .95 || y < .05 || y > .95 ||
+            scale == null || scale < .5 || scale > 3 ||
+            rotation == null || rotation < -3.14 || rotation > 3.14) {
+          throw ArgumentError('موقعیت استیکر معتبر نیست.');
+        }
+        persistedStickers.add(sticker);
+      }
+    } catch (_) {
+      if (uploadedStickerPaths.isNotEmpty) {
+        try { await _client.storage.from('story-stickers').remove(uploadedStickerPaths); } catch (_) {}
+      }
+      rethrow;
+    }
+
+    final musicBytes = musicFile == null ? null : await musicFile.readAsBytes();
+    if (musicBytes != null && (musicBytes.isEmpty || musicBytes.length > 15 * 1024 * 1024)) {
+      if (uploadedStickerPaths.isNotEmpty) {
+        try { await _client.storage.from('story-stickers').remove(uploadedStickerPaths); } catch (_) {}
+      }
+      throw ArgumentError('حجم موسیقی باید حداکثر ۱۵ مگابایت باشد.');
+    }
+    final bytes = await file.readAsBytes();
+    if (bytes.isEmpty || bytes.length > 52428800) {
+      throw ArgumentError('حجم رسانه باید بیشتر از صفر و حداکثر ۵۰ مگابایت باشد.');
+    }
+    final ext = fileName.contains('.') ? fileName.split('.').last.toLowerCase()
+        : (mediaType == 'video' ? 'mp4' : 'jpg');
+    final path = '$_uid/${DateTime.now().microsecondsSinceEpoch}.$ext';
+    await _client.storage.from('story-media').uploadBinary(
+      path, bytes, fileOptions: FileOptions(contentType: mimeType, upsert: false),
+    );
+    String? uploadedMusicPath;
+    String? createdStoryId;
+    try {
+      if (musicBytes != null) {
+        final musicExt = musicFileName!.split('.').last.toLowerCase();
+        if (!const {'mp3','m4a','aac','wav'}.contains(musicExt)) {
+          throw ArgumentError('پسوند فایل موسیقی پشتیبانی نمی‌شود.');
+        }
+        uploadedMusicPath = '$_uid/${DateTime.now().microsecondsSinceEpoch}.$musicExt';
+        await _client.storage.from('story-audio').uploadBinary(
+          uploadedMusicPath, musicBytes,
+          fileOptions: FileOptions(contentType: musicMimeType!, upsert: false),
+        );
+      }
+      final insertedStory = await _client.from('stories').insert({
+        'author_id': _uid,
+        'audience': audience,
+        'media_path': path,
+        'media_type': mediaType,
+        'caption': caption.trim(),
+        'overlay_text': cleanOverlay == null || cleanOverlay.isEmpty ? null : cleanOverlay,
+        'overlay_x': overlayX,
+        'overlay_y': overlayY,
+        'overlay_scale': overlayScale,
+        'overlay_color': overlayColor,
+        'overlay_font': overlayFont,
+        'drawing_data': drawingData,
+        'sticker_data': persistedStickers,
+        'music_path': uploadedMusicPath,
+        'music_start_ms': musicStartMs,
+        'music_volume': musicVolume,
+      }).select('id').single();
+      createdStoryId = insertedStory['id'] as String;
+      if (cleanQuestionBoxPrompt != null) {
+        await _client.rpc('create_story_question', params: {'p_story_id': createdStoryId, 'p_prompt': cleanQuestionBoxPrompt});
+      }
+      if (cleanCountdownTitle != null && targetAt != null) {
+        await _client.rpc('create_story_countdown', params: {
+          'p_story_id': createdStoryId,
+          'p_title': cleanCountdownTitle,
+          'p_target_at': targetAt.toUtc().toIso8601String(),
+        });
+      }
+      if (cleanPollQuestion != null && cleanPollOptions != null) {
+        await _client.rpc('create_story_poll', params: {
+          'p_story_id': createdStoryId,
+          'p_question': cleanPollQuestion,
+          'p_options': cleanPollOptions,
+        });
+      }
+    } catch (_) {
+      if (createdStoryId != null) {
+        try { await _client.from('stories').delete().eq('id', createdStoryId); } catch (_) {}
+      }
+      try { await _client.storage.from('story-media').remove([path]); } catch (_) {}
+      if (uploadedMusicPath != null) {
+        try { await _client.storage.from('story-audio').remove([uploadedMusicPath]); } catch (_) {}
+      }
+      if (uploadedStickerPaths.isNotEmpty) {
+        try { await _client.storage.from('story-stickers').remove(uploadedStickerPaths); } catch (_) {}
+      }
+      rethrow;
+    }
+  }
+
+  static const Set<String> textBackgroundKeys = {
+    'aurora', 'sunset', 'ocean', 'forest', 'midnight', 'rose',
+  };
+
+  static Future<void> publishText({
+    required String textContent,
+    required String backgroundKey,
+    String audience = 'everyone',
+  }) async {
+    if (!const {'everyone','followers','close_friends'}.contains(audience)) {
+      throw ArgumentError('مخاطبان استوری معتبر نیستند.');
+    }
+    final content = textContent.trim();
+    if (content.isEmpty || content.length > 1000) {
+      throw ArgumentError('متن استوری باید بین ۱ تا ۱۰۰۰ نویسه باشد.');
+    }
+    if (!textBackgroundKeys.contains(backgroundKey)) {
+      throw ArgumentError('پس‌زمینه انتخاب‌شده معتبر نیست.');
+    }
+    await _client.from('stories').insert({
+      'author_id': _uid,
+      'audience': audience,
+      'media_path': null,
+      'media_type': 'text',
+      'text_content': content,
+      'background_key': backgroundKey,
+      'caption': '',
+    });
+  }
+
+  static Future<void> recordView(String storyId) async {
+    await _client.from('story_views').upsert({
+      'story_id': storyId, 'viewer_id': _uid,
+    }, onConflict: 'story_id,viewer_id', ignoreDuplicates: true);
+  }
+
+  static Future<void> react(String storyId, String emoji) async {
+    await _client.from('story_reactions').upsert({
+      'story_id': storyId, 'user_id': _uid, 'emoji': emoji,
+    }, onConflict: 'story_id,user_id');
+  }
+
+  static Future<int> recordViewDuration(String storyId, int durationSeconds) async {
+    if (durationSeconds < 1 || durationSeconds > 600) return 0;
+    final result = await _client.rpc('record_story_view_duration', params: {
+      'p_story_id': storyId,
+      'p_duration_seconds': durationSeconds,
+    });
+    return (result as num).toInt();
+  }
+
+  static Future<Map<String, dynamic>> loadStoryAnalytics(String storyId) async {
+    final results = await Future.wait([
+      _client.from('story_views')
+          .select('viewer_id,viewed_at,duration_seconds')
+          .eq('story_id', storyId)
+          .order('viewed_at', ascending: false),
+      _client.from('story_reactions')
+          .select('user_id,emoji')
+          .eq('story_id', storyId),
+    ]);
+    final rows = results[0] as List;
+    final reactions = results[1] as List;
+    final ids = <String>{
+      ...rows.map((r) => r['viewer_id'] as String),
+      ...reactions.map((r) => r['user_id'] as String),
+    }.toList();
+    final profiles = ids.isEmpty ? <dynamic>[] : await _client.from('profiles')
+        .select('id,username,display_name,avatar_path').inFilter('id', ids);
+    final byId = {for (final p in profiles) p['id'] as String: p};
+    final reactionByUser = {
+      for (final r in reactions) r['user_id'] as String: r['emoji'] as String,
+    };
+    final reactionCounts = <String, int>{};
+    for (final reaction in reactions) {
+      final emoji = reaction['emoji'] as String;
+      reactionCounts[emoji] = (reactionCounts[emoji] ?? 0) + 1;
+    }
+    final viewers = rows.map((r) {
+      final id = r['viewer_id'] as String;
+      final profile = byId[id] ?? <String, dynamic>{};
+      return <String, dynamic>{
+        'username': profile['username'] ?? 'user',
+        'display_name': profile['display_name'] ?? 'کاربر',
+        'viewed_at': r['viewed_at'],
+        'duration_seconds': (r['duration_seconds'] as num?)?.toInt() ?? 0,
+        'reaction': reactionByUser[id],
+      };
+    }).toList();
+    final totalSeconds = viewers.fold<int>(
+      0, (sum, viewer) => sum + (viewer['duration_seconds'] as int),
+    );
+    final sortedReactions = reactionCounts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return {
+      'view_count': viewers.length,
+      'reaction_count': reactions.length,
+      'total_watch_seconds': totalSeconds,
+      'average_watch_seconds': viewers.isEmpty ? 0 : (totalSeconds / viewers.length).round(),
+      'reaction_counts': {for (final item in sortedReactions) item.key: item.value},
+      'viewers': viewers,
+    };
+  }
+
+  static Future<List<Map<String, dynamic>>> loadViewers(String storyId) async {
+    final analytics = await loadStoryAnalytics(storyId);
+    return (analytics['viewers'] as List)
+        .map((item) => Map<String, dynamic>.from(item as Map)).toList();
+  }
+
+  static Future<void> deleteStory(Map<String, dynamic> story) async {
+    final stickerPaths = <String>[];
+    final rawStickers = story['sticker_data'];
+    if (rawStickers is List) {
+      for (final item in rawStickers) {
+        if (item is Map && item['type'] == 'image' && item['path'] is String) {
+          stickerPaths.add(item['path'] as String);
+        }
+      }
+    }
+    await _client.from('stories').delete().eq('id', story['id'] as String);
+    final mediaPath = story['media_path'] as String?;
+    if (mediaPath != null && mediaPath.isNotEmpty) {
+      try { await _client.storage.from('story-media').remove([mediaPath]); } catch (_) {}
+    }
+    if (stickerPaths.isNotEmpty) {
+      try { await _client.storage.from('story-stickers').remove(stickerPaths); } catch (_) {}
+    }
+    final musicPath = story['music_path'] as String?;
+    if (musicPath != null && musicPath.isNotEmpty) {
+      try { await _client.storage.from('story-audio').remove([musicPath]); } catch (_) {}
+    }
+  }
+
+  static Future<Map<String, dynamic>?> loadStoryById(String storyId) async {
+    final rows = await _client.from('stories')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,music_path,music_start_ms,music_volume,created_at,expires_at')
+        .eq('id', storyId)
+        .limit(1);
+    if (rows.isEmpty) return null;
+    final hydrated = await _hydrate(rows);
+    return hydrated.isEmpty ? null : hydrated.first;
+  }
+
+  static Future<List<Map<String, dynamic>>> searchMentionUsers(String query) async {
+    final clean = query.trim().toLowerCase();
+    if (clean.isEmpty || !RegExp(r'^[a-z0-9_]{1,24}$').hasMatch(clean)) return [];
+    final currentId = _client.auth.currentUser?.id;
+    final rows = await _client.from('profiles')
+        .select('id,username,display_name')
+        .ilike('username', '$clean%')
+        .neq('id', currentId ?? '')
+        .order('username')
+        .limit(6);
+    return List<Map<String, dynamic>>.from(rows);
+  }
+
+  static Future<Map<String, dynamic>?> findUserByUsername(String username) async {
+    final clean = username.trim().replaceFirst(RegExp(r'^@'), '').toLowerCase();
+    if (!RegExp(r'^[a-z0-9_]{3,24}$').hasMatch(clean)) return null;
+    return await _client.from('profiles')
+        .select('id,username,display_name')
+        .eq('username', clean)
+        .maybeSingle();
+  }
+
+  static Future<Map<String, dynamic>> voteStoryPoll(String pollId, int optionIndex) async {
+    if (optionIndex < 0 || optionIndex > 3) throw ArgumentError('گزینه نظرسنجی معتبر نیست.');
+    final result = await _client.rpc('submit_story_poll_vote', params: {
+      'p_poll_id': pollId,
+      'p_option_index': optionIndex,
+    });
+    if (result is! Map) throw StateError('نتیجه نظرسنجی معتبر نیست.');
+    return Map<String, dynamic>.from(result);
+  }
+
+  static Future<Map<String, dynamic>> submitStoryQuestionResponse(String questionId, String response) async {
+    final clean = response.trim();
+    if (clean.isEmpty || clean.length > 1000) throw ArgumentError('پاسخ باید بین ۱ تا ۱۰۰۰ نویسه باشد.');
+    final result = await _client.rpc('submit_story_question_response', params: {'p_question_id': questionId, 'p_response': clean});
+    if (result is! Map) throw StateError('نتیجه پاسخ معتبر نیست.');
+    return Map<String, dynamic>.from(result);
+  }
+
+  static Future<void> replyToStory(String authorId, String text) async {
+    final conversationId = await MessagingService.createDirectConversation(authorId);
+    await MessagingService.sendTextMessage(conversationId, text);
+  }
+}

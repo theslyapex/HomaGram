@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/theme/app_theme.dart';
-import '../../auth/presentation/profile_home_screen.dart';
+import '../../auth/data/auth_service.dart';
 import 'feed_screen.dart';
+import 'reels_screen.dart';
+import 'explore_screen.dart';
+import 'public_profile_screen.dart';
 import '../../messaging/presentation/messaging_screen.dart';
+import '../../notifications/presentation/notifications_screen.dart';
+import '../../notifications/data/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,28 +20,51 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _tab = 0;
+  int _unreadNotifications = 0;
+  RealtimeChannel? _notificationChannel;
 
-  void _openProfile() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const ProfileHomeScreen()),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _refreshUnread();
+    final userId = AuthService.client.auth.currentUser?.id;
+    if (userId != null) {
+      _notificationChannel = AuthService.client.channel('home-notification-count-$userId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'notifications',
+          filter: PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'recipient_id', value: userId),
+          callback: (_) => _refreshUnread(),
+        ).subscribe();
+    }
+  }
+
+  Future<void> _refreshUnread() async {
+    try {
+      final count = await NotificationService.unreadCount();
+      if (mounted && count != _unreadNotifications) {
+        setState(() => _unreadNotifications = count);
+      }
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    final channel = _notificationChannel;
+    if (channel != null) AuthService.client.removeChannel(channel);
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final pages = [
       const FeedScreen(),
-      const _ComingSoonPage(
-        icon: Icons.explore_outlined,
-        title: 'کشف HomaGram',
-        description: 'جست‌وجوی افراد، موضوعات و محتوای موردعلاقه در مرحله بعد فعال می‌شود.',
-      ),
+      const ReelsScreen(),
+      const ExploreScreen(),
       const MessagingScreen(),
-      const _ComingSoonPage(
-        icon: Icons.notifications_none_rounded,
-        title: 'اعلان‌ها',
-        description: 'اعلان‌های دنبال‌کردن، پسندیدن و پیام‌ها اینجا نمایش داده می‌شوند.',
-      ),
+      const NotificationsScreen(),
+      PublicProfileScreen(userId: AuthService.client.auth.currentUser!.id),
     ];
 
     return Scaffold(
@@ -49,66 +78,34 @@ class _HomeScreenState extends State<HomeScreen> {
             Text('HomaGram', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -.4)),
           ],
         ),
-        actions: [
-          IconButton(
-            tooltip: 'پروفایل من',
-            onPressed: _openProfile,
-            icon: const Icon(Icons.account_circle_outlined),
-          ),
-          const SizedBox(width: 6),
-        ],
+
       ),
       body: IndexedStack(index: _tab, children: pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
         onDestinationSelected: (value) => setState(() => _tab = value),
-        destinations: const [
+        destinations: [
           NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded), label: 'خانه'),
+          NavigationDestination(icon: Icon(Icons.video_collection_outlined), selectedIcon: Icon(Icons.video_collection_rounded), label: 'ریلز'),
           NavigationDestination(icon: Icon(Icons.search_rounded), label: 'جست‌وجو'),
           NavigationDestination(icon: Icon(Icons.chat_bubble_outline_rounded), selectedIcon: Icon(Icons.chat_rounded), label: 'پیام‌ها'),
-          NavigationDestination(icon: Icon(Icons.notifications_none_rounded), selectedIcon: Icon(Icons.notifications_rounded), label: 'اعلان‌ها'),
+          NavigationDestination(
+            icon: Badge(
+              isLabelVisible: _unreadNotifications > 0,
+              label: Text(_unreadNotifications > 99 ? '99+' : '$_unreadNotifications'),
+              child: const Icon(Icons.notifications_none_rounded),
+            ),
+            selectedIcon: Badge(
+              isLabelVisible: _unreadNotifications > 0,
+              label: Text(_unreadNotifications > 99 ? '99+' : '$_unreadNotifications'),
+              child: const Icon(Icons.notifications_rounded),
+            ),
+            label: 'اعلان‌ها',
+          ),
+        NavigationDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded), label: 'پروفایل'),
         ],
       ),
     );
   }
 }
 
-class _ComingSoonPage extends StatelessWidget {
-  const _ComingSoonPage({
-    required this.icon,
-    required this.title,
-    required this.description,
-  });
-
-  final IconData icon;
-  final String title;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(30),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 86,
-                height: 86,
-                decoration: BoxDecoration(
-                  color: HomaGramTheme.turquoise.withValues(alpha: .12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, size: 40, color: HomaGramTheme.turquoise),
-              ),
-              const SizedBox(height: 20),
-              Text(title, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 9),
-              Text(description, textAlign: TextAlign.center,
-                  style: const TextStyle(height: 1.9, color: Color(0xFF7A879B))),
-              const SizedBox(height: 14),
-              const Chip(label: Text('در حال توسعه')),
-            ],
-          ),
-        ),
-      );
-}

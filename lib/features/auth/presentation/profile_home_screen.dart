@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../data/auth_service.dart';
+import '../../home/data/story_service.dart';
 
 class ProfileHomeScreen extends StatefulWidget {
   const ProfileHomeScreen({this.onCompleted, super.key});
@@ -24,6 +25,9 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
   bool _saving = false;
   bool _uploadingAvatar = false;
   bool _private = false;
+  bool _showFollowers = true;
+  bool _showFollowing = true;
+  bool _showProfileVisitors = true;
   bool _onboarding = false;
   String? _avatarPath;
   String? _avatarUrl;
@@ -58,7 +62,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
             .single(),
         AuthService.client
             .from('account_settings')
-            .select('is_private')
+            .select('is_private,show_followers,show_following,show_profile_visitors')
             .eq('user_id', id)
             .single(),
       ]);
@@ -69,11 +73,21 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
       _avatarPath = profile['avatar_path'] as String?;
       _onboarding = profile['profile_completed_at'] == null;
       _private = rows[1]['is_private'] as bool? ?? false;
-      _avatarUrl = _avatarPath == null
-          ? null
-          : await AuthService.client.storage
+      _showFollowers = rows[1]['show_followers'] as bool? ?? true;
+      _showFollowing = rows[1]['show_following'] as bool? ?? true;
+      _showProfileVisitors = rows[1]['show_profile_visitors'] as bool? ?? true;
+      // Avatar delivery is optional: a temporary Storage signing failure
+      // must not prevent the user's account details from loading.
+      _avatarUrl = null;
+      if (_avatarPath != null) {
+        try {
+          _avatarUrl = await AuthService.client.storage
               .from('avatars')
               .createSignedUrl(_avatarPath!, 3600);
+        } catch (_) {
+          _avatarUrl = null;
+        }
+      }
     } catch (_) {
       _error = 'اطلاعات حساب دریافت نشد. اتصال و دسترسی دیتابیس را بررسی کنید.';
     } finally {
@@ -219,6 +233,34 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
     }
   }
 
+  Future<void> _setVisibility(String column, bool value) async {
+    final previous = switch (column) {
+      'show_followers' => _showFollowers,
+      'show_following' => _showFollowing,
+      'show_profile_visitors' => _showProfileVisitors,
+      _ => false,
+    };
+    setState(() {
+      if (column == 'show_followers') _showFollowers = value;
+      if (column == 'show_following') _showFollowing = value;
+      if (column == 'show_profile_visitors') _showProfileVisitors = value;
+    });
+    try {
+      final id = AuthService.client.auth.currentUser!.id;
+      await AuthService.client.from('account_settings')
+          .update({column: value}).eq('user_id', id);
+      _message('تنظیم حریم خصوصی ذخیره شد.');
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        if (column == 'show_followers') _showFollowers = previous;
+        if (column == 'show_following') _showFollowing = previous;
+        if (column == 'show_profile_visitors') _showProfileVisitors = previous;
+      });
+      _message('ذخیره تنظیم حریم خصوصی انجام نشد.', error: true);
+    }
+  }
+
   Future<void> _signOut({bool otherDevices = false}) async {
     try {
       if (otherDevices) {
@@ -320,9 +362,60 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                           onChanged: _setPrivacy,
                           title: const Text('حساب خصوصی'),
                           subtitle: const Text(
-                            'تنظیم ذخیره می‌شود؛ اعمال کامل آن بر نمایش محتوا در مرحله شبکه اجتماعی تکمیل خواهد شد.',
+                            'حالت خصوصی ذخیره می‌شود؛ محدودیت نمایش محتوا و فید خصوصی در مرحله بعد تکمیل می‌شود.',
                           ),
                           secondary: const Icon(Icons.lock_outline),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Card(
+                        child: ListTile(
+                          leading: const Icon(Icons.people_alt_outlined),
+                          title: const Text('دوستان نزدیک',
+                              style: TextStyle(fontWeight: FontWeight.w800)),
+                          subtitle: const Text('فهرست خصوصی دوستان نزدیکت را مدیریت کن؛ فقط خودت آن را می‌بینی.'),
+                          trailing: const Icon(Icons.chevron_right_rounded),
+                          onTap: () => showModalBottomSheet<void>(
+                            context: context,
+                            isScrollControlled: true,
+                            useSafeArea: true,
+                            builder: (_) => const CloseFriendsManagerSheet(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Column(
+                            children: [
+                              const ListTile(
+                                leading: Icon(Icons.visibility_off_outlined),
+                                title: Text('حریم خصوصی فهرست‌ها',
+                                    style: TextStyle(fontWeight: FontWeight.w800)),
+                                subtitle: Text('کنترل کن دیگران کدام فهرست‌های ارتباطی را ببینند.'),
+                              ),
+                              SwitchListTile(
+                                value: _showFollowers,
+                                onChanged: (value) => _setVisibility('show_followers', value),
+                                title: const Text('نمایش دنبال‌کنندگان'),
+                                subtitle: const Text('با خاموش‌کردن، فهرست دنبال‌کنندگان برای دیگران پنهان می‌شود.'),
+                              ),
+                              SwitchListTile(
+                                value: _showFollowing,
+                                onChanged: (value) => _setVisibility('show_following', value),
+                                title: const Text('نمایش دنبال‌شوندگان'),
+                                subtitle: const Text('با خاموش‌کردن، فهرست دنبال‌شوندگان برای دیگران پنهان می‌شود.'),
+                              ),
+                              const Divider(height: 1),
+                              SwitchListTile(
+                                value: _showProfileVisitors,
+                                onChanged: (value) => _setVisibility('show_profile_visitors', value),
+                                title: const Text('اجازه نمایش بازدیدکنندگان پروفایل'),
+                                subtitle: const Text('با روشن‌بودن این گزینه، فهرست بازدیدکنندگان در پروفایل خودت قابل مشاهده است.'),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -475,4 +568,153 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
           ),
         ),
       );
+}
+
+
+class CloseFriendsManagerSheet extends StatefulWidget {
+  const CloseFriendsManagerSheet({super.key});
+
+  @override
+  State<CloseFriendsManagerSheet> createState() => _CloseFriendsManagerSheetState();
+}
+
+class _CloseFriendsManagerSheetState extends State<CloseFriendsManagerSheet> {
+  final _search = TextEditingController();
+  List<Map<String, dynamic>> _candidates = [];
+  Set<String> _selected = {};
+  bool _loading = true;
+  String? _savingId;
+  String _query = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+    _search.addListener(() {
+      if (mounted) setState(() => _query = _search.text.trim().toLowerCase());
+    });
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    try {
+      final values = await Future.wait([
+        StoryService.loadCloseFriendCandidates(),
+        StoryService.loadCloseFriends(),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _candidates = values[0];
+        _selected = values[1].map((row) => row['id'] as String).toSet();
+        _loading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _toggle(Map<String, dynamic> person) async {
+    final id = person['id'] as String;
+    if (_savingId != null) return;
+    final adding = !_selected.contains(id);
+    setState(() => _savingId = id);
+    try {
+      if (adding) {
+        await StoryService.addCloseFriend(id);
+      } else {
+        await StoryService.removeCloseFriend(id);
+      }
+      if (!mounted) return;
+      setState(() {
+        if (adding) {
+          _selected.add(id);
+        } else {
+          _selected.remove(id);
+        }
+        _savingId = null;
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() => _savingId = null);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('به‌روزرسانی فهرست دوستان نزدیک انجام نشد.')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final visible = _candidates.where((person) {
+      final username = (person['username'] ?? '').toString().toLowerCase();
+      final name = (person['display_name'] ?? '').toString().toLowerCase();
+      return _query.isEmpty || username.contains(_query) || name.contains(_query);
+    }).toList();
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(18, 18, 18, 18 + MediaQuery.of(context).viewInsets.bottom),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * .72,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(children: [
+              const Expanded(child: Text('مدیریت دوستان نزدیک',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900))),
+              Text('${_selected.length} نفر',
+                style: const TextStyle(color: Color(0xFF20B8B0), fontWeight: FontWeight.w800)),
+            ]),
+            const SizedBox(height: 6),
+            const Text('افرادی را انتخاب کن که بتوانند استوری‌های مخصوص دوستان نزدیک را ببینند.',
+              style: TextStyle(height: 1.6, color: Color(0xFF7A879B), fontSize: 12)),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _search,
+              decoration: const InputDecoration(
+                hintText: 'جست‌وجو میان دنبال‌کنندگان',
+                prefixIcon: Icon(Icons.search_rounded),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _candidates.isEmpty
+                  ? const Center(child: Text('هنوز دنبال‌کننده‌ای برای افزودن وجود ندارد.'))
+                  : visible.isEmpty
+                    ? const Center(child: Text('نتیجه‌ای پیدا نشد.'))
+                    : ListView.separated(
+                        itemCount: visible.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final person = visible[index];
+                          final id = person['id'] as String;
+                          final selected = _selected.contains(id);
+                          return ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
+                            title: Text(person['display_name']?.toString() ?? 'کاربر'),
+                            subtitle: Text('@${person['username'] ?? 'user'}'),
+                            trailing: _savingId == id
+                              ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))
+                              : Switch(
+                                  value: selected,
+                                  onChanged: (_) => _toggle(person),
+                                ),
+                            onTap: _savingId == null ? () => _toggle(person) : null,
+                          );
+                        },
+                      ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

@@ -30,3 +30,6 @@ secrets/
 # OS
 .DS_Store
 Thumbs.db
+
+# Firebase app configuration (generated from GitHub Actions secret)
+android/app/google-services.json
