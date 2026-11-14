@@ -580,39 +580,43 @@ class _StoryOverlayTextView extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = (story['overlay_text'] as String?)?.trim() ?? '';
     if (text.isEmpty) return const SizedBox.shrink();
-    final x = ((story['overlay_x'] as num?)?.toDouble() ?? 0.5).clamp(0.0, 1.0);
-    final y = ((story['overlay_y'] as num?)?.toDouble() ?? 0.5).clamp(0.0, 1.0);
-    final scale = ((story['overlay_scale'] as num?)?.toDouble() ?? 1.0).clamp(0.6, 2.5);
+    final allLayout = story['widget_layout'];
+    final rawLayout = allLayout is Map ? allLayout['text'] : null;
+    final layout = rawLayout is Map ? rawLayout : const <String, dynamic>{};
+    final x = ((layout['x'] as num?)?.toDouble() ?? (story['overlay_x'] as num?)?.toDouble() ?? .5).clamp(.03, .97);
+    final y = ((layout['y'] as num?)?.toDouble() ?? (story['overlay_y'] as num?)?.toDouble() ?? .5).clamp(.05, .95);
+    final scale = ((layout['scale'] as num?)?.toDouble() ?? (story['overlay_scale'] as num?)?.toDouble() ?? 1).clamp(.55, 2.5);
+    final rotation = ((layout['rotation'] as num?)?.toDouble() ?? 0).clamp(-3.14, 3.14);
     return Positioned.fill(
-      child: Align(
-        alignment: Alignment(x * 2 - 1, y * 2 - 1),
-        child: Transform.scale(
-          scale: scale,
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 320),
-            margin: const EdgeInsets.symmetric(horizontal: 30),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: .22),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: StoryInteractiveText(
-              text: text,
-              textAlign: TextAlign.center,
-              maxLines: 6,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: storyOverlayColor(story['overlay_color'] as String?),
-                fontSize: 24,
-                fontFamily: _storyOverlayFont(story['overlay_font'] as String?),
-                height: 1.35,
-                fontWeight: FontWeight.w800,
-                shadows: const [Shadow(color: Colors.black54, blurRadius: 8)],
-              ),
+      child: LayoutBuilder(builder: (context, constraints) => Stack(children: [
+        Positioned(
+          left: x * constraints.maxWidth, top: y * constraints.maxHeight,
+          child: FractionalTranslation(
+            translation: const Offset(-.5, -.5),
+            child: Transform.rotate(angle: rotation,
+              child: Transform.scale(scale: scale, child: Container(
+                constraints: BoxConstraints(maxWidth: constraints.maxWidth * .82),
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: .22),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: StoryInteractiveText(
+                  text: text, textAlign: TextAlign.center, maxLines: 6,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: storyOverlayColor(story['overlay_color'] as String?),
+                    fontSize: 24, fontFamily: _storyOverlayFont(story['overlay_font'] as String?),
+                    height: 1.35, fontWeight: FontWeight.w800,
+                    shadows: const [Shadow(color: Colors.black54, blurRadius: 8)],
+                  ),
+                ),
+              )),
             ),
           ),
         ),
-      ),
+      ])),
     );
   }
 }
@@ -941,6 +945,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   final List<Map<String, dynamic>> _drawingStrokes = [];
   final List<Map<String, dynamic>> _stickers = [];
   final Map<String, Map<String, double>> _widgetLayout = {
+    'text': {'x': .5, 'y': .5, 'scale': 1, 'rotation': 0},
     'poll': {'x': .5, 'y': .58, 'scale': 1, 'rotation': 0},
     'question': {'x': .5, 'y': .76, 'scale': 1, 'rotation': 0},
     'countdown': {'x': .5, 'y': .38, 'scale': 1, 'rotation': 0},
@@ -1413,7 +1418,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         ..addAll((data['stickers'] as List? ?? []).map((e) => Map<String, dynamic>.from(e as Map)));
       final savedLayout = data['widget_layout'];
       if (savedLayout is Map) {
-        for (final key in const ['poll', 'question', 'countdown']) {
+        for (final key in const ['text', 'poll', 'question', 'countdown']) {
           final raw = savedLayout[key];
           if (raw is Map) _widgetLayout[key] = {
             'x': ((raw['x'] as num?)?.toDouble() ?? .5).clamp(.05, .95).toDouble(),
@@ -1423,6 +1428,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           };
         }
       }
+      if (!_widgetLayout.containsKey('text')) _widgetLayout['text'] = {
+        'x': _overlayX, 'y': _overlayY, 'scale': _overlayScale, 'rotation': 0,
+      };
       _selectedWidget = null;
       _pollEnabled = data['poll_enabled'] == true;
       _pollQuestion.text = value('poll_question');
@@ -1656,44 +1664,30 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                         child: const SizedBox.expand(),
                       )),
                     if (_overlayText.text.trim().isNotEmpty)
-                      Align(
-                        alignment: Alignment(_overlayX * 2 - 1, _overlayY * 2 - 1),
-                        child: GestureDetector(
-                          onScaleStart: (_) => _overlayStartScale = _overlayScale,
-                          onScaleUpdate: (details) {
-                            setState(() {
-                              _overlayX = (_overlayX + details.focalPointDelta.dx / constraints.maxWidth)
-                                  .clamp(0.06, 0.94).toDouble();
-                              _overlayY = (_overlayY + details.focalPointDelta.dy / constraints.maxHeight)
-                                  .clamp(0.08, 0.92).toDouble();
-                              _overlayScale = (_overlayStartScale * details.scale)
-                                  .clamp(0.6, 2.5).toDouble();
-                            });
-                          },
-                          child: Transform.scale(
-                            scale: _overlayScale,
-                            child: Container(
-                              constraints: BoxConstraints(maxWidth: constraints.maxWidth * .82),
-                              margin: const EdgeInsets.symmetric(horizontal: 10),
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: .22),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                _overlayText.text,
-                                textAlign: TextAlign.center,
-                                maxLines: 5,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: storyOverlayColor(_overlayColor),
-                                  fontSize: 24,
-                                  fontFamily: _storyOverlayFont(_overlayFont),
-                                  height: 1.35,
-                                  fontWeight: FontWeight.w800,
-                                  shadows: const [Shadow(color: Colors.black54, blurRadius: 8)],
-                                ),
-                              ),
+                      _TransformableStoryElement(
+                        layout: _widgetTransform('text'), editing: true,
+                        selected: _selectedWidget == 'text',
+                        onChanged: (value) {
+                          _updateWidgetTransform('text', value);
+                          _overlayX = value['x']!;
+                          _overlayY = value['y']!;
+                          _overlayScale = value['scale']!;
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: .22),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            _overlayText.text, textAlign: TextAlign.center,
+                            maxLines: 5, overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: storyOverlayColor(_overlayColor), fontSize: 24,
+                              fontFamily: _storyOverlayFont(_overlayFont), height: 1.35,
+                              fontWeight: FontWeight.w800,
+                              shadows: const [Shadow(color: Colors.black54, blurRadius: 8)],
                             ),
                           ),
                         ),
