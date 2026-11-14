@@ -172,6 +172,7 @@ class SupportService {
     required Uint8List bytes,
     required String fileName,
     required String mimeType,
+    String? caption,
   }) async {
     if (bytes.isEmpty || bytes.length > 52428800) {
       throw ArgumentError('File size must be between 1 byte and 50 MB');
@@ -195,7 +196,7 @@ class SupportService {
         'conversation_id': conversationId,
         'sender_id': _userId,
         'message_type': isImage ? 'image' : 'file',
-        'body': '',
+        'body': (caption ?? '').trim(),
         'storage_path': path,
         'file_name': safeName.isEmpty ? 'attachment' : safeName,
         'mime_type': mimeType,
