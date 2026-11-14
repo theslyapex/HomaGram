@@ -523,7 +523,7 @@ class _PostShareSheet extends StatefulWidget {
 
 class _PostShareSheetState extends State<_PostShareSheet> {
   final _controller = TextEditingController();
-  final Set<String> _selected = {};
+  final Map<String, Map<String, dynamic>> _selectedUsers = {};
   List<Map<String, dynamic>> _users = [];
   bool _loading = false;
   Timer? _debounce;
@@ -584,10 +584,10 @@ class _PostShareSheetState extends State<_PostShareSheet> {
             ),
           ),
         ),
-        if (_selected.isNotEmpty)
+        if (_selectedUsers.isNotEmpty)
           Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: Align(alignment: Alignment.centerRight,
-              child: Text('${_selected.length} نفر انتخاب شده‌اند',
+              child: Text('${_selectedUsers.length} نفر انتخاب شده‌اند',
                 style: const TextStyle(fontWeight: FontWeight.w700)))),
         Expanded(child: _loading ? const Center(child: CircularProgressIndicator())
           : _error != null ? Center(child: Text(_error!))
@@ -599,7 +599,7 @@ class _PostShareSheetState extends State<_PostShareSheet> {
               itemBuilder: (context, index) {
                 final user = _users[index];
                 final id = user['id'] as String;
-                final selected = _selected.contains(id);
+                final selected = _selectedUsers.containsKey(id);
                 final name = (user['display_name'] as String?)?.trim();
                 final username = (user['username'] as String?)?.trim() ?? '';
                 final label = name != null && name.isNotEmpty ? name : username;
@@ -609,10 +609,10 @@ class _PostShareSheetState extends State<_PostShareSheet> {
                     maxLines: 1, overflow: TextOverflow.ellipsis),
                   subtitle: Text('@$username', textDirection: TextDirection.ltr),
                   trailing: Checkbox(value: selected, onChanged: (_) => setState(() {
-                    selected ? _selected.remove(id) : _selected.add(id);
+                    selected ? _selectedUsers.remove(id) : _selectedUsers[id] = user;
                   })),
                   onTap: () => setState(() {
-                    selected ? _selected.remove(id) : _selected.add(id);
+                    selected ? _selectedUsers.remove(id) : _selectedUsers[id] = user;
                   }),
                 );
               },
@@ -621,11 +621,11 @@ class _PostShareSheetState extends State<_PostShareSheet> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
           child: SizedBox(width: double.infinity,
             child: FilledButton.icon(
-              onPressed: _selected.isEmpty ? null : () {
-                Navigator.pop(context, _users.where((u) => _selected.contains(u['id'])).toList());
+              onPressed: _selectedUsers.isEmpty ? null : () {
+                Navigator.pop(context, _selectedUsers.values.toList());
               },
               icon: const Icon(Icons.send_rounded),
-              label: Text('ارسال برای ${_selected.length} نفر'),
+              label: Text('ارسال برای ${_selectedUsers.length} نفر'),
             ),
           ),
         )),
