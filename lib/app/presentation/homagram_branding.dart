@@ -75,8 +75,7 @@ class _HomaGramLaunchScreenState extends State<HomaGramLaunchScreen>
         setState(() => _finished = true);
         return;
       }
-      _controller.forward().whenComplete(() async {
-        await Future<void>.delayed(const Duration(milliseconds: 350));
+      _controller.forward().whenComplete(() {
         if (mounted) setState(() => _finished = true);
       });
     });
