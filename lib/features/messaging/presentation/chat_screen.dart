@@ -577,7 +577,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: loading
                     ? const Center(child: CircularProgressIndicator())
                     : error != null
-                        ? Center(child: Text(error!))
+                        ? Center(child: Text(error))
                         : logs.isEmpty
                             ? const Center(child: Text('هنوز فعالیت مدیریتی ثبت نشده است.'))
                             : ListView.separated(
