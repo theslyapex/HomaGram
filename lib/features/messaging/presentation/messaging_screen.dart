@@ -6,6 +6,7 @@ import '../../support/data/support_service.dart';
 import '../../support/presentation/support_chat_screen.dart';
 import '../../support/presentation/support_inbox_screen.dart';
 import 'chat_screen.dart';
+import 'channels_screen.dart';
 
 class MessagingScreen extends StatefulWidget {
   const MessagingScreen({super.key});
@@ -121,6 +122,13 @@ class _MessagingScreenState extends State<MessagingScreen> {
         automaticallyImplyLeading: false,
         title: const Text('پیام‌ها', style: TextStyle(fontWeight: FontWeight.w900)),
         actions: [
+          IconButton(
+            tooltip: 'کانال‌ها',
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
+              builder: (_) => const ChannelsScreen(),
+            )),
+            icon: const Icon(Icons.campaign_outlined),
+          ),
           IconButton(
             tooltip: 'ساخت گروه',
             onPressed: _newGroup,
