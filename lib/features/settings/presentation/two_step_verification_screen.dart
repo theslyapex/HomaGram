@@ -66,7 +66,7 @@ class _TwoStepVerificationScreenState extends State<TwoStepVerificationScreen> {
       if (!mounted) return;
       setState(() {
         _factorId = result.id;
-        _secret = result.totp.secret;
+        _secret = result.totp?.secret ?? '';
         _code.clear();
       });
     } catch (_) {
@@ -118,7 +118,7 @@ class _TwoStepVerificationScreenState extends State<TwoStepVerificationScreen> {
     setState(() { _busy = true; _error = null; });
     try {
       await _client.auth.mfa.challengeAndVerify(factorId: id, code: code);
-      await _client.auth.mfa.unenroll(factorId: id);
+      await _client.auth.mfa.unenroll(id);
       await _client.auth.refreshSession();
       _code.clear();
       await _load();
