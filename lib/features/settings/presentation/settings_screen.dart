@@ -61,7 +61,7 @@ class SettingsScreen extends StatelessWidget {
     ];
     return Scaffold(
       appBar: AppBar(title: const Text('تنظیمات', style: TextStyle(fontWeight: FontWeight.w900))),
-      body: ListView(padding: const EdgeInsets.fromLTRB(16, 12, 16, 28), children: [
+      body: HomaGramEntrance(child: ListView(padding: const EdgeInsets.fromLTRB(16, 12, 16, 28), children: [
         Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(borderRadius: BorderRadius.circular(24),
@@ -112,7 +112,7 @@ class SettingsScreen extends StatelessWidget {
         const SizedBox(height: 14),
         const Text('این متن‌ها پیش‌نویس حقوقی محصول هستند؛ پیش از انتشار عمومی باید با قوانین کشور محل فعالیت و نظر مشاور حقوقی تطبیق داده شوند.',
           textAlign: TextAlign.center, style: TextStyle(fontSize: 10, height: 1.7, color: Color(0xFF8490A4))),
-      ]),
+      ])),
     );
   }
 }
