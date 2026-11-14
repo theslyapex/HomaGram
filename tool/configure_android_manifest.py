@@ -45,6 +45,9 @@ def main() -> int:
     if application is None:
         print("application element not found in AndroidManifest.xml", file=sys.stderr)
         return 1
+    # Keep the icon shown by Android Settings/App info identical to the launcher icon.
+    application.set(android + "icon", "@mipmap/ic_launcher")
+    application.set(android + "roundIcon", "@mipmap/ic_launcher_round")
     fid_metadata = "firebase_messaging_installation_id_enabled"
     if not any(item.get(android + "name") == fid_metadata
                for item in application.findall("meta-data")):
