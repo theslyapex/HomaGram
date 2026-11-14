@@ -5,6 +5,7 @@ import 'package:app_links/app_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 
 import '../features/auth/data/auth_service.dart';
 import '../features/auth/presentation/auth_gate.dart';
@@ -15,6 +16,7 @@ import '../features/notifications/data/push_notification_service.dart';
 import '../features/notifications/presentation/notifications_screen.dart';
 import '../features/support/data/support_service.dart';
 import '../features/support/presentation/support_chat_screen.dart';
+import 'bug_report_service.dart';
 import 'theme/app_theme.dart';
 import 'presentation/homagram_branding.dart';
 
@@ -35,7 +37,10 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
   StreamSubscription<dynamic>? _authSubscription;
   StreamSubscription<RemoteMessage>? _pushOpenSubscription;
   StreamSubscription<RemoteMessage>? _foregroundPushSubscription;
+  StreamSubscription<AccelerometerEvent>? _shakeSubscription;
   Timer? _presenceHeartbeat;
+  DateTime _lastShakeAt = DateTime.fromMillisecondsSinceEpoch(0);
+  bool _bugReportDialogOpen = false;
   bool? _lastPresenceState;
   String? _lastPresenceUserId;
   String? _activitySessionId;
@@ -47,6 +52,11 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     if (!widget.supabaseConfigured) return;
+    BugReportPreferences.load();
+    _shakeSubscription = accelerometerEventStream().listen(
+      _handleAccelerometer,
+      onError: (_) {},
+    );
 
     _authSubscription = AuthService.client.auth.onAuthStateChange.listen((_) {
       _syncPresence();
@@ -68,6 +78,96 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
           .catchError((_) {});
     } catch (error) {
       debugPrint('Push-open routing unavailable: $error');
+    }
+  }
+
+  void _handleAccelerometer(AccelerometerEvent event) {
+    if (!BugReportPreferences.shakeEnabled.value ||
+        AuthService.client.auth.currentUser == null) return;
+    final magnitude = math.sqrt(
+      event.x * event.x + event.y * event.y + event.z * event.z,
+    );
+    if (magnitude < 22) return;
+    final now = DateTime.now();
+    if (now.difference(_lastShakeAt) < const Duration(seconds: 3)) return;
+    _lastShakeAt = now;
+    unawaited(_openQuickBugReport());
+  }
+
+  Future<void> _openQuickBugReport() async {
+    if (_bugReportDialogOpen || !mounted) return;
+    _bugReportDialogOpen = true;
+    final controller = TextEditingController();
+    try {
+      final bytes = await BugReportPreferences.captureScreen();
+      final dialogContext = homagramNavigatorKey.currentContext;
+      if (!mounted || dialogContext == null || bytes == null) return;
+      final send = await showDialog<bool>(
+        context: dialogContext,
+        builder: (ctx) => AlertDialog(
+          title: const Text('گزارش سریع مشکل'),
+          content: SizedBox(
+            width: 360,
+            child: SingleChildScrollView(child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('تصویر همین صفحه ثبت شده است. پیش از ارسال، پیش‌نمایش را بررسی کنید و اطلاعات خصوصی ناخواسته را ارسال نکنید.',
+                  style: TextStyle(fontSize: 12, height: 1.7)),
+                const SizedBox(height: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(13),
+                  child: Image.memory(bytes, height: 190, fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Text('پیش‌نمایش تصویر در دسترس نیست.')),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controller,
+                  minLines: 2,
+                  maxLines: 4,
+                  maxLength: 1200,
+                  decoration: const InputDecoration(
+                    labelText: 'توضیح مشکل یا باگ',
+                    hintText: 'چه اتفاقی افتاد؟',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            )),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('لغو')),
+            FilledButton.icon(
+              onPressed: () => Navigator.pop(ctx, true),
+              icon: const Icon(Icons.send_rounded),
+              label: const Text('ارسال به پشتیبانی'),
+            ),
+          ],
+        ),
+      );
+      if (send != true || !mounted) return;
+      final conversationId = await SupportService.getOrCreateConversation();
+      await SupportService.sendAttachment(
+        conversationId: conversationId,
+        bytes: bytes,
+        fileName: 'homagram-bug-report.png',
+        mimeType: 'image/png',
+        caption: controller.text.trim().isEmpty
+            ? 'گزارش خطا از طریق قابلیت تکان‌دادن گوشی.'
+            : 'گزارش خطا: ${controller.text.trim()}',
+      );
+      if (!mounted) return;
+      homagramNavigatorKey.currentState?.push(MaterialPageRoute<void>(
+        builder: (_) => SupportChatScreen(conversationId: conversationId),
+      ));
+    } catch (_) {
+      final context = homagramNavigatorKey.currentContext;
+      if (context != null && mounted) ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        const SnackBar(content: Text('ثبت گزارش خطا انجام نشد. دوباره تلاش کنید.')),
+      );
+    } finally {
+      controller.dispose();
+      _bugReportDialogOpen = false;
     }
   }
 
@@ -246,6 +346,7 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
     _authSubscription?.cancel();
     _pushOpenSubscription?.cancel();
     _foregroundPushSubscription?.cancel();
+    _shakeSubscription?.cancel();
     _presenceHeartbeat?.cancel();
     if (widget.supabaseConfigured &&
         AuthService.client.auth.currentUser != null) {
@@ -255,7 +356,9 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
   }
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
+  Widget build(BuildContext context) => RepaintBoundary(
+      key: homagramScreenCaptureKey,
+      child: MaterialApp(
         navigatorKey: homagramNavigatorKey,
         title: 'HomaGram',
         debugShowCheckedModeBanner: false,
