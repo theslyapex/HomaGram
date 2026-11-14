@@ -143,6 +143,11 @@ class StoryService {
     final stickerUrls = signedResults[2];
     final musicUrls = signedResults[3];
     final pollRows = await _client.rpc('get_story_polls', params: {'p_story_ids': storyIds});
+    final countdownRows = await _client.rpc('get_story_countdowns', params: {'p_story_ids': storyIds});
+    final countdownsByStory = <String, Map<String, dynamic>>{
+      for (final raw in (countdownRows as List))
+        if (raw is Map) raw['story_id'] as String: Map<String, dynamic>.from(raw),
+    };
     final questionRows = await _client.rpc('get_story_questions', params: {'p_story_ids': storyIds});
     final questionsByStory = <String, Map<String, dynamic>>{
       for (final raw in (questionRows as List))
@@ -164,6 +169,7 @@ class StoryService {
       story['music_url'] = musicUrls[story['music_path']];
       story['poll_data'] = pollsByStory[story['id']];
       story['question_box_data'] = questionsByStory[story['id']];
+      story['countdown_data'] = countdownsByStory[story['id']];
       final stickerData = story['sticker_data'];
       if (stickerData is List) {
         story['sticker_data'] = stickerData.map((raw) {
@@ -201,6 +207,8 @@ class StoryService {
     String? pollQuestion,
     List<String>? pollOptions,
     String? questionBoxPrompt,
+    String? countdownTitle,
+    DateTime? countdownTargetAt,
   }) async {
     final cleanOverlay = overlayText?.trim();
     if (cleanOverlay != null && cleanOverlay.length > 180) {
@@ -227,6 +235,15 @@ class StoryService {
     }
     if (caption.trim().length > 500) {
       throw ArgumentError('متن استوری حداکثر ۵۰۰ نویسه است.');
+    }
+    final cleanCountdownTitle = countdownTitle?.trim();
+    if ((cleanCountdownTitle == null) != (countdownTargetAt == null)) {
+      throw ArgumentError('عنوان و زمان شمارش معکوس باید با هم وارد شوند.');
+    }
+    if (cleanCountdownTitle != null && (cleanCountdownTitle.isEmpty || cleanCountdownTitle.length > 100 ||
+        !countdownTargetAt!.isAfter(DateTime.now()) ||
+        countdownTargetAt.isAfter(DateTime.now().add(const Duration(days: 365))))) {
+      throw ArgumentError('عنوان یا زمان شمارش معکوس معتبر نیست.');
     }
     final cleanQuestionBoxPrompt = questionBoxPrompt?.trim();
     if (cleanQuestionBoxPrompt != null && (cleanQuestionBoxPrompt.isEmpty || cleanQuestionBoxPrompt.length > 180)) {
@@ -352,6 +369,13 @@ class StoryService {
       createdStoryId = insertedStory['id'] as String;
       if (cleanQuestionBoxPrompt != null) {
         await _client.rpc('create_story_question', params: {'p_story_id': createdStoryId, 'p_prompt': cleanQuestionBoxPrompt});
+      }
+      if (cleanCountdownTitle != null && countdownTargetAt != null) {
+        await _client.rpc('create_story_countdown', params: {
+          'p_story_id': createdStoryId,
+          'p_title': cleanCountdownTitle,
+          'p_target_at': countdownTargetAt.toUtc().toIso8601String(),
+        });
       }
       if (cleanPollQuestion != null && cleanPollOptions != null) {
         await _client.rpc('create_story_poll', params: {
