@@ -24,12 +24,18 @@ class MessagingService {
   static SupabaseClient get _client => Supabase.instance.client;
   static String get _userId => _client.auth.currentUser!.id;
 
-  static Future<List<ConversationPreview>> loadInbox() async {
-    final memberships = await _client
-        .from('conversation_members')
-        .select('conversation_id')
-        .eq('user_id', _userId)
-        .isFilter('left_at', null);
+  static Future<List<ConversationPreview>> loadInbox({bool archived = false}) async {
+    final memberships = archived
+        ? await _client.from('conversation_members')
+            .select('conversation_id')
+            .eq('user_id', _userId)
+            .isFilter('left_at', null)
+            .not('archived_at', 'is', null)
+        : await _client.from('conversation_members')
+            .select('conversation_id')
+            .eq('user_id', _userId)
+            .isFilter('left_at', null)
+            .isFilter('archived_at', null);
 
     if (memberships.isEmpty) return [];
 
@@ -173,6 +179,15 @@ class MessagingService {
       params: {'p_target_user': targetUserId},
     );
     return result as String;
+  }
+
+  static Future<void> setConversationArchived(
+    String conversationId, {
+    required bool archived,
+  }) async {
+    await _client.from('conversation_members').update({
+      'archived_at': archived ? DateTime.now().toUtc().toIso8601String() : null,
+    }).eq('conversation_id', conversationId).eq('user_id', _userId);
   }
 
   static Future<void> leaveConversation(String conversationId) async {
