@@ -8,6 +8,55 @@ import '../data/story_service.dart';
 import 'story_image.dart';
 import '../../../core/cache/story_video_cache.dart';
 
+const Map<String, List<Color>> storyTextGradients = {
+  'aurora': [Color(0xFF173A70), Color(0xFF8056B8), Color(0xFFDA6F9D)],
+  'sunset': [Color(0xFF8E3158), Color(0xFFE0784E), Color(0xFFF3B65B)],
+  'ocean': [Color(0xFF063B55), Color(0xFF087E8B), Color(0xFF4CC9B0)],
+  'forest': [Color(0xFF123B32), Color(0xFF28745A), Color(0xFF9AAE62)],
+  'midnight': [Color(0xFF111827), Color(0xFF263B63), Color(0xFF485A86)],
+  'rose': [Color(0xFF672D54), Color(0xFFB44C79), Color(0xFFE6A0A8)],
+};
+
+LinearGradient storyTextGradient(String? key) => LinearGradient(
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
+  colors: storyTextGradients[key] ?? storyTextGradients['aurora']!,
+);
+
+class StoryTextStoryView extends StatelessWidget {
+  const StoryTextStoryView({
+    required this.text,
+    required this.backgroundKey,
+    this.compact = false,
+    super.key,
+  });
+
+  final String text;
+  final String? backgroundKey;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    decoration: BoxDecoration(gradient: storyTextGradient(backgroundKey)),
+    alignment: Alignment.center,
+    padding: EdgeInsets.all(compact ? 8 : 34),
+    child: Text(
+      text,
+      textAlign: TextAlign.center,
+      maxLines: compact ? 5 : 18,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: compact ? 10 : 28,
+        height: 1.55,
+        fontWeight: FontWeight.w700,
+        shadows: const [Shadow(color: Colors.black26, blurRadius: 10)],
+      ),
+    ),
+  );
+}
+
+
 class StoriesStrip extends StatefulWidget {
   const StoriesStrip({super.key});
 
@@ -220,6 +269,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   final _caption = TextEditingController();
   XFile? _file;
   String? _type;
+  bool _textMode = false;
+  String _backgroundKey = 'aurora';
   bool _busy = false;
 
   @override
@@ -249,7 +300,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         _notice('حجم رسانه باید حداکثر ۵۰ مگابایت باشد.', true);
         return;
       }
-      setState(() { _file = picked; _type = video ? 'video' : 'image'; });
+      setState(() { _file = picked; _type = video ? 'video' : 'image'; _textMode = false; });
     } catch (_) {
       _notice('انتخاب رسانه انجام نشد.', true);
     }
@@ -266,26 +317,41 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   Future<void> _publish() async {
     final file = _file;
     final type = _type;
-    if (file == null || type == null || _busy) {
-      _notice('ابتدا تصویر یا ویدئو انتخاب کنید.', true);
-      return;
-    }
-    if (_caption.text.trim().length > 500) {
-      _notice('متن استوری حداکثر ۵۰۰ نویسه است.', true);
-      return;
+    if (_busy) return;
+    if (_textMode) {
+      if (_caption.text.trim().isEmpty || _caption.text.trim().length > 1000) {
+        _notice('متن استوری باید بین ۱ تا ۱۰۰۰ نویسه باشد.', true);
+        return;
+      }
+    } else {
+      if (file == null || type == null) {
+        _notice('ابتدا تصویر یا ویدئو انتخاب کنید.', true);
+        return;
+      }
+      if (_caption.text.trim().length > 500) {
+        _notice('متن استوری حداکثر ۵۰۰ نویسه است.', true);
+        return;
+      }
     }
     setState(() => _busy = true);
     try {
-      final mime = file.mimeType ?? (type == 'video'
-          ? (file.name.toLowerCase().endsWith('.mov') ? 'video/quicktime' : 'video/mp4')
-          : _imageMime(file.name));
-      await StoryService.publish(
-        file: File(file.path),
-        mediaType: type,
-        fileName: file.name,
-        mimeType: mime,
-        caption: _caption.text,
-      );
+      if (_textMode) {
+        await StoryService.publishText(
+          textContent: _caption.text,
+          backgroundKey: _backgroundKey,
+        );
+      } else {
+        final mime = file!.mimeType ?? (type == 'video'
+            ? (file.name.toLowerCase().endsWith('.mov') ? 'video/quicktime' : 'video/mp4')
+            : _imageMime(file.name));
+        await StoryService.publish(
+          file: File(file.path),
+          mediaType: type!,
+          fileName: file.name,
+          mimeType: mime,
+          caption: _caption.text,
+        );
+      }
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (_) {
@@ -308,7 +374,18 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     body: ListView(
       padding: const EdgeInsets.all(18),
       children: [
-        if (_file == null)
+        if (_textMode)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(22),
+            child: SizedBox(
+              height: 330,
+              child: StoryTextStoryView(
+                text: _caption.text.isEmpty ? 'متن استوری شما اینجا نمایش داده می‌شود' : _caption.text,
+                backgroundKey: _backgroundKey,
+              ),
+            ),
+          )
+        else if (_file == null)
           Container(
             height: 260,
             decoration: BoxDecoration(
@@ -332,15 +409,69 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             ),
           ),
         const SizedBox(height: 14),
-        OutlinedButton.icon(onPressed: _busy ? null : () => _pick(false),
-          icon: const Icon(Icons.image_outlined), label: const Text('انتخاب تصویر')),
-        const SizedBox(height: 8),
-        OutlinedButton.icon(onPressed: _busy ? null : () => _pick(true),
-          icon: const Icon(Icons.video_library_outlined), label: const Text('انتخاب ویدئو (حداکثر ۶۰ ثانیه)')),
+        OutlinedButton.icon(
+          onPressed: _busy ? null : () => setState(() {
+            _textMode = true;
+            _file = null;
+            _type = 'text';
+            _caption.clear();
+          }),
+          icon: const Icon(Icons.text_fields_rounded),
+          label: const Text('ساخت استوری متنی'),
+        ),
+        if (!_textMode) ...[
+          const SizedBox(height: 8),
+          OutlinedButton.icon(onPressed: _busy ? null : () => _pick(false),
+            icon: const Icon(Icons.image_outlined), label: const Text('انتخاب تصویر')),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(onPressed: _busy ? null : () => _pick(true),
+            icon: const Icon(Icons.video_library_outlined), label: const Text('انتخاب ویدئو (حداکثر ۶۰ ثانیه)')),
+        ] else ...[
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: _busy ? null : () => setState(() {
+                _textMode = false;
+                _type = null;
+                _caption.clear();
+              }),
+              icon: const Icon(Icons.photo_library_outlined),
+              label: const Text('بازگشت به استوری تصویری'),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: storyTextGradients.entries.map((entry) => InkWell(
+              onTap: _busy ? null : () => setState(() => _backgroundKey = entry.key),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: entry.value),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _backgroundKey == entry.key ? Colors.white : Colors.transparent,
+                    width: 3,
+                  ),
+                ),
+              ),
+            )).toList(),
+          ),
+        ],
         const SizedBox(height: 14),
         TextField(
-          controller: _caption, maxLength: 500, maxLines: 3,
-          decoration: const InputDecoration(labelText: 'متن استوری (اختیاری)', border: OutlineInputBorder()),
+          controller: _caption,
+          maxLength: _textMode ? 1000 : 500,
+          maxLines: _textMode ? 6 : 3,
+          onChanged: (_) { if (_textMode && mounted) setState(() {}); },
+          decoration: InputDecoration(
+            labelText: _textMode ? 'متن استوری' : 'توضیح تصویر یا ویدئو (اختیاری)',
+            border: const OutlineInputBorder(),
+          ),
         ),
         const SizedBox(height: 10),
         const Text('استوری پس از ۲۴ ساعت از نمایش عمومی خارج می‌شود و در آرشیو شخصی شما باقی می‌ماند.',
@@ -391,7 +522,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     )..addStatusListener(_onProgressStatus);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _markViewed();
-      if (_story['media_type'] == 'image') _startProgress();
+      if (_story['media_type'] != 'video') _startProgress();
     });
   }
 
@@ -504,7 +635,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     setState(() => _paused = shouldPause);
     if (shouldPause) {
       _progress.stop();
-    } else if (_story['media_type'] == 'image') {
+    } else if (_story['media_type'] != 'video') {
       _progress.forward();
     }
   }
@@ -587,14 +718,14 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     ));
     if (yes != true) return;
     try {
-      final mediaPath = _story['media_path'] as String;
+      final mediaPath = _story['media_path'] as String?;
       final mediaUrl = _story['media_url'] as String?;
-      if (mediaUrl != null) {
+      if (mediaPath != null && mediaUrl != null) {
         await imageCache.evict(StoryImageProvider(mediaUrl, cacheKey: 'story-media:$mediaPath'));
       }
       await StoryService.deleteStory(_story);
       final userId = AuthService.client.auth.currentUser?.id;
-      if (userId != null) {
+      if (userId != null && mediaPath != null) {
         await StoryVideoCache.evict(userId: userId, storagePath: mediaPath);
       }
       if (mounted) Navigator.of(context).pop(true);
@@ -915,6 +1046,14 @@ class _StoryMediaState extends State<_StoryMedia> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.story['media_type'] == 'text') {
+      return Positioned.fill(
+        child: StoryTextStoryView(
+          text: widget.story['text_content'] as String? ?? '',
+          backgroundKey: widget.story['background_key'] as String?,
+        ),
+      );
+    }
     final url = widget.story['media_url'] as String?;
     if (url == null || url.isEmpty) {
       return const Center(
@@ -1066,22 +1205,28 @@ class _StoryArchiveScreenState extends State<StoryArchiveScreen> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Stack(fit: StackFit.expand, children: [
-          story['media_type'] == 'image' && story['media_url'] != null
-              ? Image(
-                  image: StoryImageProvider(
-                    story['media_url'] as String,
-                    cacheKey: 'story-media:${story['media_path']}',
-                  ),
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: Colors.black87,
-                    child: const Icon(Icons.broken_image_outlined, color: Colors.white70),
-                  ),
+          story['media_type'] == 'text'
+              ? StoryTextStoryView(
+                  text: story['text_content'] as String? ?? '',
+                  backgroundKey: story['background_key'] as String?,
+                  compact: true,
                 )
-              : Container(
-                  color: Colors.black87,
-                  child: const Icon(Icons.play_circle_outline, color: Colors.white, size: 34),
-                ),
+              : story['media_type'] == 'image' && story['media_url'] != null
+                  ? Image(
+                      image: StoryImageProvider(
+                        story['media_url'] as String,
+                        cacheKey: 'story-media:${story['media_path']}',
+                      ),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: Colors.black87,
+                        child: const Icon(Icons.broken_image_outlined, color: Colors.white70),
+                      ),
+                    )
+                  : Container(
+                      color: Colors.black87,
+                      child: const Icon(Icons.play_circle_outline, color: Colors.white, size: 34),
+                    ),
           Positioned(
             bottom: 5, left: 5, right: 5,
             child: Text(
