@@ -38,6 +38,8 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
   bool _loading = true;
   bool _sending = false;
   bool _initialMessageSent = false;
+  String? _replyToId;
+  String? _replyToBody;
   String? _error;
 
   String get _myId => Supabase.instance.client.auth.currentUser!.id;
@@ -117,7 +119,8 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
     _controller.clear();
     setState(() => _sending = true);
     try {
-      await SupportService.sendText(id, text);
+      await SupportService.sendText(id, text, replyToId: _replyToId);
+      if (mounted) setState(() { _replyToId = null; _replyToBody = null; });
       await _loadMessages();
     } catch (_) {
       if (mounted) {
@@ -383,9 +386,35 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                                   color: mine ? colors.primaryContainer : colors.surfaceContainerHighest,
                                   borderRadius: BorderRadius.circular(18),
                                 ),
-                                child: Column(
+                                child: GestureDetector(
+                                  onHorizontalDragEnd: (details) {
+                                    final velocity = details.primaryVelocity ?? 0;
+                                    if (velocity > 280) {
+                                      setState(() {
+                                        _replyToId = message['id'] as String;
+                                        _replyToBody = (message['body'] as String? ?? '').isNotEmpty
+                                            ? message['body'] as String
+                                            : (isImage ? 'تصویر' : 'پیام');
+                                      });
+                                    }
+                                  },
+                                  child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    if (message['reply_to_id'] != null)
+                                      Container(
+                                        width: double.infinity,
+                                        margin: const EdgeInsets.only(bottom: 7),
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: colors.surface.withValues(alpha: .55),
+                                          borderRadius: BorderRadius.circular(9),
+                                          border: Border(right: BorderSide(color: colors.primary, width: 3)),
+                                        ),
+                                        child: Text('پاسخ به: ${message['reply_to_body'] ?? 'پیام'}',
+                                          maxLines: 2, overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(fontSize: 10, color: colors.onSurfaceVariant)),
+                                      ),
                                     if (url != null && isImage)
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(12),
@@ -410,6 +439,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                                     Text(_time(message['created_at']),
                                         style: TextStyle(fontSize: 10, color: colors.onSurfaceVariant)),
                                   ],
+                                  ),
                                 ),
                               ),
                             );
@@ -429,36 +459,58 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
             top: false,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-              child: Row(children: [
-                HomaGramSpringPress(child: IconButton(
-                  onPressed: _sending ? null : _pickAttachment,
-                  icon: const Icon(Icons.add_circle_outline_rounded),
-                  tooltip: 'افزودن فایل یا تصویر',
-                )),
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    minLines: 1,
-                    maxLines: 5,
-                    textInputAction: TextInputAction.newline,
-                    decoration: InputDecoration(
-                      hintText: 'پیام خود را بنویسید…',
-                      filled: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: BorderSide.none,
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                if (_replyToId != null)
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 7),
+                    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: colors.primaryContainer.withValues(alpha: .55),
+                      borderRadius: BorderRadius.circular(11),
+                    ),
+                    child: Row(children: [
+                      Expanded(child: Text('پاسخ به: ${_replyToBody ?? 'پیام'}',
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 11))),
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => setState(() { _replyToId = null; _replyToBody = null; }),
+                        icon: const Icon(Icons.close_rounded, size: 17),
+                      ),
+                    ]),
+                  ),
+                Row(children: [
+                  HomaGramSpringPress(child: IconButton(
+                    onPressed: _sending ? null : _pickAttachment,
+                    icon: const Icon(Icons.add_circle_outline_rounded),
+                    tooltip: 'افزودن فایل یا تصویر',
+                  )),
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      minLines: 1,
+                      maxLines: 5,
+                      textInputAction: TextInputAction.newline,
+                      decoration: InputDecoration(
+                        hintText: 'پیام خود را بنویسید…',
+                        filled: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 6),
-                HomaGramSpringPress(child: IconButton.filled(
-                  onPressed: _sending ? null : _sendText,
-                  icon: _sending
-                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.send_rounded),
-                )),
+                  const SizedBox(width: 6),
+                  HomaGramSpringPress(child: IconButton.filled(
+                    onPressed: _sending ? null : _sendText,
+                    icon: _sending
+                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.send_rounded),
+                  )),
+                ]),
               ]),
             ),
           ),
