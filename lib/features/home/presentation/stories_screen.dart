@@ -863,6 +863,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   XFile? _file;
   String? _type;
   bool _textMode = false;
+  String _audience = 'everyone';
   String _backgroundKey = 'aurora';
   double _overlayX = 0.5;
   double _overlayY = 0.5;
@@ -1189,6 +1190,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         await StoryService.publishText(
           textContent: _caption.text,
           backgroundKey: _backgroundKey,
+          audience: _audience,
         );
       } else {
         final mime = file!.mimeType ?? (type == 'video'
@@ -1218,6 +1220,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           questionBoxPrompt: _questionBoxEnabled ? _questionBoxPrompt.text : null,
           countdownTitle: _countdownEnabled ? _countdownTitle.text : null,
           countdownTargetAt: _countdownEnabled ? _countdownTarget : null,
+          audience: _audience,
         );
       }
       if (!mounted) return;
@@ -1697,6 +1700,48 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           const Text('برای جابه‌جایی، متن را روی پیش‌نمایش بکشید؛ برای تغییر اندازه از دو انگشت استفاده کنید.',
             style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4))),
         ],
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Row(children: [
+                  Icon(Icons.visibility_outlined, size: 20),
+                  SizedBox(width: 8),
+                  Text('مخاطبان استوری', style: TextStyle(fontWeight: FontWeight.w800)),
+                ]),
+                const SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  value: _audience,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'everyone', child: Text('همه افراد مجاز')),
+                    DropdownMenuItem(value: 'followers', child: Text('فقط دنبال‌کنندگان')),
+                    DropdownMenuItem(value: 'close_friends', child: Text('فقط دوستان نزدیک')),
+                  ],
+                  onChanged: _busy ? null : (value) {
+                    if (value != null) setState(() => _audience = value);
+                  },
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  _audience == 'everyone'
+                    ? 'حریم خصوصی حساب و مسدودسازی کاربران همچنان رعایت می‌شود.'
+                    : _audience == 'followers'
+                      ? 'فقط افرادی که شما را دنبال می‌کنند و مجاز به دیدن حساب هستند.'
+                      : 'فقط افرادی که در فهرست دوستان نزدیکت قرار دارند؛ این فهرست خصوصی است.',
+                  style: const TextStyle(fontSize: 11, height: 1.6, color: Color(0xFF8490A4)),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
         const SizedBox(height: 14),
         TextField(
           controller: _caption,
