@@ -143,6 +143,11 @@ class StoryService {
     final stickerUrls = signedResults[2];
     final musicUrls = signedResults[3];
     final pollRows = await _client.rpc('get_story_polls', params: {'p_story_ids': storyIds});
+    final questionRows = await _client.rpc('get_story_questions', params: {'p_story_ids': storyIds});
+    final questionsByStory = <String, Map<String, dynamic>>{
+      for (final raw in (questionRows as List))
+        if (raw is Map) raw['story_id'] as String: Map<String, dynamic>.from(raw),
+    };
     final pollsByStory = <String, Map<String, dynamic>>{
       for (final raw in (pollRows as List))
         if (raw is Map) raw['story_id'] as String: Map<String, dynamic>.from(raw),
@@ -158,6 +163,7 @@ class StoryService {
       story['media_url'] = mediaUrls[story['media_path']];
       story['music_url'] = musicUrls[story['music_path']];
       story['poll_data'] = pollsByStory[story['id']];
+      story['question_box_data'] = questionsByStory[story['id']];
       final stickerData = story['sticker_data'];
       if (stickerData is List) {
         story['sticker_data'] = stickerData.map((raw) {
@@ -194,6 +200,7 @@ class StoryService {
     double musicVolume = 0.75,
     String? pollQuestion,
     List<String>? pollOptions,
+    String? questionBoxPrompt,
   }) async {
     final cleanOverlay = overlayText?.trim();
     if (cleanOverlay != null && cleanOverlay.length > 180) {
@@ -220,6 +227,10 @@ class StoryService {
     }
     if (caption.trim().length > 500) {
       throw ArgumentError('متن استوری حداکثر ۵۰۰ نویسه است.');
+    }
+    final cleanQuestionBoxPrompt = questionBoxPrompt?.trim();
+    if (cleanQuestionBoxPrompt != null && (cleanQuestionBoxPrompt.isEmpty || cleanQuestionBoxPrompt.length > 180)) {
+      throw ArgumentError('متن باکس پرسش باید بین ۱ تا ۱۸۰ نویسه باشد.');
     }
     final cleanPollQuestion = pollQuestion?.trim();
     final cleanPollOptions = pollOptions?.map((option) => option.trim()).toList();
@@ -339,6 +350,9 @@ class StoryService {
         'music_volume': musicVolume,
       }).select('id').single();
       createdStoryId = insertedStory['id'] as String;
+      if (cleanQuestionBoxPrompt != null) {
+        await _client.rpc('create_story_question', params: {'p_story_id': createdStoryId, 'p_prompt': cleanQuestionBoxPrompt});
+      }
       if (cleanPollQuestion != null && cleanPollOptions != null) {
         await _client.rpc('create_story_poll', params: {
           'p_story_id': createdStoryId,
@@ -484,6 +498,14 @@ class StoryService {
       'p_option_index': optionIndex,
     });
     if (result is! Map) throw StateError('نتیجه نظرسنجی معتبر نیست.');
+    return Map<String, dynamic>.from(result);
+  }
+
+  static Future<Map<String, dynamic>> submitStoryQuestionResponse(String questionId, String response) async {
+    final clean = response.trim();
+    if (clean.isEmpty || clean.length > 1000) throw ArgumentError('پاسخ باید بین ۱ تا ۱۰۰۰ نویسه باشد.');
+    final result = await _client.rpc('submit_story_question_response', params: {'p_question_id': questionId, 'p_response': clean});
+    if (result is! Map) throw StateError('نتیجه پاسخ معتبر نیست.');
     return Map<String, dynamic>.from(result);
   }
 
