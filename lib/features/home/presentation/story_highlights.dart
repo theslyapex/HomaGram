@@ -688,7 +688,13 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Stack(fit: StackFit.expand, children: [
-                        if (story['media_type'] == 'image' && url != null)
+                        if (story['media_type'] == 'text')
+                          StoryTextStoryView(
+                            text: story['text_content'] as String? ?? '',
+                            backgroundKey: story['background_key'] as String?,
+                            compact: true,
+                          )
+                        else if (story['media_type'] == 'image' && url != null)
                           Image(
                             image: StoryImageProvider(url, cacheKey: 'highlight-select:$id'),
                             fit: BoxFit.cover,
