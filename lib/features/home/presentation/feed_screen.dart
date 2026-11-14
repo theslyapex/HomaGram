@@ -106,7 +106,7 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Column(
+  Widget build(BuildContext context) => HomaGramEntrance(child: Column(
     children: [
       const StoriesStrip(),
       Padding(
@@ -196,7 +196,7 @@ class _FeedScreenState extends State<FeedScreen> {
         ),
       ),
     ],
-  );
+  ));
 
   Widget _stateMessage({required IconData icon, required String title, required String message, Widget? action}) =>
       Center(child: Padding(
