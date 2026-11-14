@@ -258,8 +258,12 @@ class _UserCard extends StatelessWidget {
           Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(name, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w800)),
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                Flexible(child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w800))),
+                const SizedBox(width: 4),
+                HomaGramVerifiedBadge(userId: user.id, size: 14),
+              ]),
               const SizedBox(height: 4),
               Text('@${user.username ?? 'بدون نام کاربری'}',
                 textDirection: TextDirection.ltr, maxLines: 1,
