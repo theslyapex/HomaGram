@@ -280,6 +280,7 @@ class _ExplorePostViewer extends StatefulWidget {
 
 class _ExplorePostViewerState extends State<_ExplorePostViewer> {
   late final PageController _controller = PageController(initialPage: widget.initialIndex);
+  late int _activeIndex = widget.initialIndex;
   @override
   void dispose() {
     _controller.dispose();
@@ -294,9 +295,11 @@ class _ExplorePostViewerState extends State<_ExplorePostViewer> {
         controller: _controller,
         scrollDirection: Axis.vertical,
         itemCount: widget.posts.length,
+        onPageChanged: (index) => setState(() => _activeIndex = index),
         itemBuilder: (context, index) => _ExplorePostPage(
           key: ValueKey(widget.posts[index]['id']),
           post: widget.posts[index],
+          isActive: index == _activeIndex,
         ),
       ),
       SafeArea(
@@ -329,8 +332,9 @@ class _ExplorePostViewerState extends State<_ExplorePostViewer> {
 }
 
 class _ExplorePostPage extends StatefulWidget {
-  const _ExplorePostPage({super.key, required this.post});
+  const _ExplorePostPage({super.key, required this.post, required this.isActive});
   final Map<String, dynamic> post;
+  final bool isActive;
 
   @override
   State<_ExplorePostPage> createState() => _ExplorePostPageState();
@@ -351,8 +355,20 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
         ..initialize().then((_) {
           if (!mounted) return;
           setState(() => _videoReady = true);
-          _video?.play();
+          if (widget.isActive) _video?.play();
         }).catchError((_) {});
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _ExplorePostPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive != widget.isActive && _videoReady) {
+      if (widget.isActive) {
+        _video?.play();
+      } else {
+        _video?.pause();
+      }
     }
   }
 
