@@ -44,8 +44,12 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
       _syncPushRegistration();
       _linkSubscription = _appLinks.uriLinkStream.listen(_handleUri);
       _appLinks.getInitialLink().then(_handleUri).catchError((_) {});
-      _pushOpenSubscription = FirebaseMessaging.onMessageOpenedApp.listen(_handlePushOpen);
-      FirebaseMessaging.instance.getInitialMessage().then(_handlePushOpen).catchError((_) {});
+      try {
+        _pushOpenSubscription = FirebaseMessaging.onMessageOpenedApp.listen(_handlePushOpen);
+        FirebaseMessaging.instance.getInitialMessage().then(_handlePushOpen).catchError((_) {});
+      } catch (error) {
+        debugPrint('Push-open routing unavailable: $error');
+      }
     }
   }
 
