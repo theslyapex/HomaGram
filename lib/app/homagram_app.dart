@@ -401,5 +401,6 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
               : const BootstrapScreen(supabaseConfigured: false),
         ),
       ),
-    );
+    ),
+  );
 }
