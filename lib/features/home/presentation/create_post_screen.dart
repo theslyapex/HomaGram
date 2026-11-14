@@ -155,7 +155,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           if (bytes != null && token == requestId) update(() => preview = bytes);
         } catch (_) {}
       }
-      await render(selectedMs, (_) {});
+      preview = await VideoThumbnail.thumbnailData(
+        video: media.path,
+        imageFormat: ImageFormat.JPEG,
+        maxWidth: 900,
+        quality: 90,
+        timeMs: selectedMs,
+      );
       final selected = await showModalBottomSheet<Uint8List>(
         context: context, isScrollControlled: true,
         backgroundColor: Theme.of(context).colorScheme.surface,
@@ -189,6 +195,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           ));
         }),
       );
+      requestId++;
       if (selected != null && mounted) setState(() => _coverBytes = selected);
     } catch (error) { _notice('استخراج فریم انجام نشد: $error', error: true); }
     finally {
@@ -330,7 +337,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: Text(_isReel ? 'ساخت ریلز' : 'ایجاد پست',
+      appBar: AppBar(title: Text((widget.initialReel || _isReel) ? 'ساخت ریلز' : 'ایجاد پست',
         style: const TextStyle(fontWeight: FontWeight.w900))),
       body: ListView(padding: const EdgeInsets.fromLTRB(18, 10, 18, 28), children: [
         Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(
@@ -342,7 +349,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               const Text('لحظه‌ات را به اشتراک بگذار',
                 style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900)),
               const SizedBox(height: 4),
-              Text(_isReel ? 'ویدئو به‌صورت خودکار به ریلز تبدیل می‌شود.'
+              Text((widget.initialReel || _isReel) ? 'ویدئو به‌صورت خودکار به ریلز تبدیل می‌شود.'
                 : 'متن یا تصویر منتشر کن؛ انتخاب ویدئو یعنی ساخت ریلز.',
                 style: const TextStyle(color: Colors.white70, fontSize: 11, height: 1.6)),
             ])),
