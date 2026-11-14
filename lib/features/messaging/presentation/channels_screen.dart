@@ -1,3 +1,4 @@
+import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../data/messaging_service.dart';
@@ -55,7 +56,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
             const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton.icon(
+              child: HomaGramSpringPress(child: OutlinedButton.icon(
                 onPressed: () async {
                   await Clipboard.setData(ClipboardData(text: token));
                   if (ctx.mounted) {
@@ -66,12 +67,12 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                 },
                 icon: const Icon(Icons.copy_rounded),
                 label: const Text('کپی کد دعوت'),
-              ),
+              )),
             ),
           ],
         ),
         actions: [
-          FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('متوجه شدم')),
+          HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('متوجه شدم'))),
         ],
       ),
     );
@@ -127,8 +128,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-            FilledButton(
+            HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف'))),
+            HomaGramSpringPress(child: FilledButton(
               onPressed: () {
                 if (formKey.currentState!.validate()) {
                   Navigator.pop(ctx, {
@@ -140,7 +141,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                 }
               },
               child: const Text('ساخت کانال'),
-            ),
+            )),
           ],
         ),
       ),
@@ -235,13 +236,13 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-          FilledButton(
+          HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف'))),
+          HomaGramSpringPress(child: FilledButton(
             onPressed: () {
               if (formKey.currentState!.validate()) Navigator.pop(ctx, controller.text.trim());
             },
             child: const Text('عضویت'),
-          ),
+          )),
         ],
       ),
     );
@@ -271,16 +272,16 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
       appBar: AppBar(
         title: const Text('کانال‌ها'),
         actions: [
-          IconButton(
+          HomaGramSpringPress(child: IconButton(
             onPressed: _joinByCode,
             tooltip: 'ورود با کد دعوت',
             icon: const Icon(Icons.key_rounded),
-          ),
-          IconButton(
+          )),
+          HomaGramSpringPress(child: IconButton(
             onPressed: _create,
             tooltip: 'ساخت کانال',
             icon: const Icon(Icons.add_circle_outline),
-          ),
+          )),
         ],
       ),
       body: RefreshIndicator(
@@ -294,7 +295,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                 ? ListView(children: [
                     const SizedBox(height: 140),
                     Center(child: Text(_error!)),
-                    Center(child: TextButton(onPressed: _load, child: const Text('تلاش دوباره'))),
+                    Center(child: HomaGramSpringPress(child: TextButton(onPressed: _load, child: const Text('تلاش دوباره')))),
                   ])
                 : _channels.isEmpty
                     ? ListView(
@@ -305,16 +306,16 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                           const SizedBox(height: 12),
                           const Center(child: Text('هنوز کانال عمومی ساخته نشده است')),
                           const SizedBox(height: 12),
-                          Center(child: FilledButton.icon(
+                          Center(child: HomaGramSpringPress(child: FilledButton.icon(
                             onPressed: _create,
                             icon: const Icon(Icons.add),
                             label: const Text('ساخت اولین کانال'),
-                          )),
-                          Center(child: TextButton.icon(
+                          ))),
+                          Center(child: HomaGramSpringPress(child: TextButton.icon(
                             onPressed: _joinByCode,
                             icon: const Icon(Icons.key_rounded),
                             label: const Text('ورود با کد دعوت خصوصی'),
-                          )),
+                          ))),
                         ],
                       )
                     : ListView.separated(
@@ -341,10 +342,10 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            trailing: FilledButton.tonal(
+                            trailing: HomaGramSpringPress(child: FilledButton.tonal(
                               onPressed: () => _join(item),
                               child: const Text('عضویت'),
-                            ),
+                            )),
                           );
                         },
                       ),
