@@ -25,7 +25,7 @@ class StoryService {
   static Future<List<Map<String, dynamic>>> loadActiveStories() async {
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _client.from('stories')
-        .select('id,author_id,media_path,media_type,caption,text_content,background_key,created_at,expires_at')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,created_at,expires_at')
         .gt('expires_at', now)
         .order('created_at');
     return _hydrate(rows);
@@ -35,7 +35,7 @@ class StoryService {
   static Future<List<Map<String, dynamic>>> loadMyActiveStories() async {
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _client.from('stories')
-        .select('id,author_id,media_path,media_type,caption,text_content,background_key,created_at,expires_at')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,created_at,expires_at')
         .eq('author_id', _uid)
         .gt('expires_at', now)
         .order('created_at', ascending: false);
@@ -53,7 +53,7 @@ class StoryService {
     }
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _client.from('stories')
-        .select('id,author_id,media_path,media_type,caption,text_content,background_key,created_at,expires_at')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,created_at,expires_at')
         .eq('author_id', _uid)
         .lte('expires_at', now)
         .order('created_at', ascending: false)
@@ -147,7 +147,21 @@ class StoryService {
     required String fileName,
     required String mimeType,
     required String caption,
+    String? overlayText,
+    double overlayX = 0.5,
+    double overlayY = 0.5,
+    double overlayScale = 1.0,
+    String overlayColor = '#FFFFFF',
   }) async {
+    final cleanOverlay = overlayText?.trim();
+    if (cleanOverlay != null && cleanOverlay.length > 180) {
+      throw ArgumentError('متن روی رسانه حداکثر ۱۸۰ نویسه است.');
+    }
+    if (overlayX < 0 || overlayX > 1 || overlayY < 0 || overlayY > 1 ||
+        overlayScale < 0.6 || overlayScale > 2.5 ||
+        !const {'#FFFFFF', '#111827', '#FFE082'}.contains(overlayColor)) {
+      throw ArgumentError('تنظیمات متن روی رسانه معتبر نیست.');
+    }
     if (!isSupportedStoryMedia(mediaType: mediaType, mimeType: mimeType)) {
       throw ArgumentError('نوع رسانه یا فرمت فایل استوری پشتیبانی نمی‌شود.');
     }
@@ -171,6 +185,11 @@ class StoryService {
         'media_path': path,
         'media_type': mediaType,
         'caption': caption.trim(),
+        'overlay_text': cleanOverlay == null || cleanOverlay.isEmpty ? null : cleanOverlay,
+        'overlay_x': overlayX,
+        'overlay_y': overlayY,
+        'overlay_scale': overlayScale,
+        'overlay_color': overlayColor,
       });
     } catch (_) {
       try { await _client.storage.from('story-media').remove([path]); } catch (_) {}
