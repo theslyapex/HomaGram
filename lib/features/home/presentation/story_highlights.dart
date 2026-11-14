@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
 import '../data/story_service.dart';
@@ -13,7 +15,7 @@ class StoryHighlightService {
   static Future<List<Map<String, dynamic>>> loadHighlights(String ownerId) async {
     final highlights = await _client
         .from('story_highlights')
-        .select('id,title,cover_story_id,position,created_at')
+        .select('id,title,cover_story_id,cover_image_path,position,created_at')
         .eq('owner_id', ownerId)
         .order('position')
         .order('created_at')
@@ -116,13 +118,22 @@ class StoryHighlightService {
       }
     }
 
-    return highlights.map((h) => {
-      ...Map<String, dynamic>.from(h),
-      'stories': itemsByHighlight[h['id'] as String] ?? <Map<String, dynamic>>[],
-    }).where((h) => (h['stories'] as List).isNotEmpty).toList();
+    final enriched = <Map<String, dynamic>>[];
+    for (final row in highlights) {
+      final item = Map<String, dynamic>.from(row);
+      final coverPath = item['cover_image_path'] as String?;
+      if (coverPath != null && coverPath.isNotEmpty) {
+        try {
+          item['cover_image_url'] = await _client.storage.from('avatars').createSignedUrl(coverPath, 3600);
+        } catch (_) {}
+      }
+      item['stories'] = itemsByHighlight[item['id'] as String] ?? <Map<String, dynamic>>[];
+      if ((item['stories'] as List).isNotEmpty) enriched.add(item);
+    }
+    return enriched;
   }
 
-  static Future<void> createHighlight(String title, List<String> storyIds, {String? coverStoryId}) async {
+  static Future<void> createHighlight(String title, List<String> storyIds, {String? coverStoryId, String? coverImagePath}) async {
     final cleanTitle = title.trim();
     final uniqueIds = storyIds.toSet().toList();
     if (cleanTitle.isEmpty || cleanTitle.length > 30 || uniqueIds.isEmpty || uniqueIds.length > 100) {
@@ -135,7 +146,8 @@ class StoryHighlightService {
     final created = await _client
         .from('story_highlights')
         .insert({'owner_id': ownerId, 'title': cleanTitle,
-          'position': ((last?['position'] as int?) ?? -1) + 1})
+          'position': ((last?['position'] as int?) ?? -1) + 1,
+          'cover_image_path': coverImagePath})
         .select('id')
         .single();
     final highlightId = created['id'] as String;
@@ -163,6 +175,7 @@ class StoryHighlightService {
     required String title,
     required List<String> storyIds,
     String? coverStoryId,
+    String? coverImagePath,
   }) async {
     final cleanTitle = title.trim();
     final uniqueIds = storyIds.toSet().toList();
@@ -202,7 +215,7 @@ class StoryHighlightService {
       final selectedCover = coverStoryId != null && selectedIds.contains(coverStoryId)
           ? coverStoryId : uniqueIds.first;
       await _client.from('story_highlights')
-          .update({'title': cleanTitle, 'cover_story_id': selectedCover})
+          .update({'title': cleanTitle, 'cover_story_id': selectedCover, 'cover_image_path': coverImagePath})
           .eq('id', highlightId)
           .eq('owner_id', ownerId);
 
@@ -416,8 +429,8 @@ class _StoryHighlightsStripState extends State<StoryHighlightsStrip> {
               children: [
                 _HighlightAvatar(
                   title: highlight['title'] as String,
-                  imageUrl: cover['media_url'] as String?,
-                  textStory: cover['media_type'] == 'text',
+                  imageUrl: highlight['cover_image_url'] as String? ?? cover['media_url'] as String?,
+                  textStory: highlight['cover_image_url'] == null && cover['media_type'] == 'text',
                   textPreview: cover['text_content'] as String?,
                   textBackgroundKey: cover['background_key'] as String?,
                   onTap: () => _open(highlight),
@@ -547,6 +560,8 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
   late Future<List<Map<String, dynamic>>> _availableStories;
   final Set<String> _selected = {};
   String? _coverStoryId;
+  String? _coverImagePath;
+  String? _coverImageUrl;
   bool _saving = false;
 
   @override
@@ -560,6 +575,8 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
       _selected.addAll(stories.map((story) => story['id'] as String));
       _coverStoryId = existing['cover_story_id'] as String? ??
           (stories.isEmpty ? null : stories.first['id'] as String);
+      _coverImagePath = existing['cover_image_path'] as String?;
+      _coverImageUrl = existing['cover_image_url'] as String?;
     }
     _availableStories = _loadAvailableStories();
   }
@@ -586,6 +603,31 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
     super.dispose();
   }
 
+  Future<void> _pickCustomCover() async {
+    try {
+      final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 90);
+      if (picked == null) return;
+      final extension = picked.name.split('.').last.toLowerCase();
+      final ext = ['jpg', 'jpeg', 'png', 'webp'].contains(extension) ? extension : 'jpg';
+      final mime = ext == 'png' ? 'image/png' : (ext == 'webp' ? 'image/webp' : 'image/jpeg');
+      final bytes = await picked.readAsBytes();
+      if (bytes.isEmpty || bytes.length > 5 * 1024 * 1024) {
+        _message('تصویر کاور باید کمتر از ۵ مگابایت باشد.');
+        return;
+      }
+      final ownerId = AuthService.client.auth.currentUser!.id;
+      final path = '$ownerId/highlights/${DateTime.now().microsecondsSinceEpoch}.$ext';
+      await AuthService.client.storage.from('avatars').uploadBinary(
+        path, bytes, fileOptions: FileOptions(contentType: mime, upsert: false),
+      );
+      final url = await AuthService.client.storage.from('avatars').createSignedUrl(path, 3600);
+      if (!mounted) return;
+      setState(() { _coverImagePath = path; _coverImageUrl = url; });
+    } catch (_) {
+      _message('انتخاب یا بارگذاری تصویر کاور انجام نشد.');
+    }
+  }
+
   Future<void> _save() async {
     if (_saving) return;
     if (_title.text.trim().isEmpty || _title.text.trim().length > 30) {
@@ -601,7 +643,7 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
       final existing = widget.highlight;
       if (existing == null) {
         await StoryHighlightService.createHighlight(
-          _title.text, _selected.toList(), coverStoryId: _coverStoryId,
+          _title.text, _selected.toList(), coverStoryId: _coverStoryId, coverImagePath: _coverImagePath,
         );
       } else {
         await StoryHighlightService.updateHighlight(
@@ -610,6 +652,7 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
           title: _title.text,
           storyIds: _selected.toList(),
           coverStoryId: _coverStoryId,
+          coverImagePath: _coverImagePath,
         );
       }
       if (mounted) Navigator.of(context).pop(true);
@@ -675,6 +718,35 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
                   border: OutlineInputBorder(),
                 ),
               ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
+              child: Row(children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(13),
+                  child: SizedBox(width: 62, height: 62,
+                    child: _coverImageUrl == null
+                      ? Container(color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          child: const Icon(Icons.photo_outlined, size: 26))
+                      : Image.network(_coverImageUrl!, fit: BoxFit.cover)),
+                ),
+                const SizedBox(width: 12),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Text('کاور اختصاصی هایلایت', style: TextStyle(fontWeight: FontWeight.w800, fontFamily: 'Estedad')),
+                  const SizedBox(height: 3),
+                  const Text('یک تصویر از گالری انتخاب کن یا کاور یکی از استوری‌ها را نگه دار.',
+                    style: TextStyle(fontSize: 10, height: 1.5)),
+                  TextButton.icon(
+                    onPressed: _saving ? null : _pickCustomCover,
+                    icon: const Icon(Icons.photo_library_outlined, size: 17),
+                    label: const Text('انتخاب از گالری', style: TextStyle(fontFamily: 'Estedad')),
+                  ),
+                ])),
+                if (_coverImagePath != null)
+                  IconButton(tooltip: 'حذف تصویر انتخابی',
+                    onPressed: () => setState(() { _coverImagePath = null; _coverImageUrl = null; }),
+                    icon: const Icon(Icons.close_rounded)),
+              ]),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
