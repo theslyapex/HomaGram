@@ -245,6 +245,151 @@ class _StoryStickerView extends StatelessWidget {
   }
 }
 
+class _StoryPollCard extends StatelessWidget {
+  const _StoryPollCard({
+    required this.poll,
+    required this.isOwner,
+    this.onVote,
+    this.busy = false,
+  });
+
+  final Map<String, dynamic> poll;
+  final bool isOwner;
+  final ValueChanged<int>? onVote;
+  final bool busy;
+
+  @override
+  Widget build(BuildContext context) {
+    final options = (poll['options'] as List? ?? const [])
+        .map((value) => value.toString()).toList();
+    final counts = (poll['counts'] as List? ?? const [])
+        .map((value) => value is num ? value.toInt() : 0).toList();
+    final total = (poll['total_votes'] as num?)?.toInt() ??
+        counts.fold<int>(0, (sum, value) => sum + value);
+    final selected = (poll['my_option'] as num?)?.toInt();
+    final showResults = isOwner || selected != null;
+
+    if (options.length < 2 || options.length > 4) return const SizedBox.shrink();
+
+    return Material(
+      color: const Color(0xE9161D2B),
+      borderRadius: BorderRadius.circular(18),
+      child: Padding(
+        padding: const EdgeInsets.all(13),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              poll['question'] as String? ?? 'نظرسنجی',
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 10),
+            for (var i = 0; i < options.length; i++) ...[
+              if (i > 0) const SizedBox(height: 7),
+              _buildOption(
+                context,
+                options[i],
+                i,
+                counts.length > i ? counts[i] : 0,
+                total,
+                selected,
+                showResults,
+              ),
+            ],
+            if (showResults) ...[
+              const SizedBox(height: 8),
+              Text(
+                '$total رأی',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70, fontSize: 11),
+              ),
+            ] else
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text(
+                  'برای ثبت رأی یکی از گزینه‌ها را انتخاب کنید.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white60, fontSize: 10),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOption(
+    BuildContext context,
+    String label,
+    int index,
+    int count,
+    int total,
+    int? selected,
+    bool showResults,
+  ) {
+    final percent = total == 0 ? 0 : ((count / total) * 100).round();
+    final direction = Directionality.of(context);
+    final canVote = !showResults && !isOwner && onVote != null && !busy;
+
+    return Material(
+      color: Colors.white.withValues(alpha: .09),
+      borderRadius: BorderRadius.circular(11),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(11),
+        onTap: canVote ? () => onVote!(index) : null,
+        child: SizedBox(
+          height: 42,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(11),
+            child: Stack(
+              children: [
+                if (showResults && percent > 0)
+                  Align(
+                    alignment: direction == TextDirection.rtl
+                        ? Alignment.centerRight : Alignment.centerLeft,
+                    child: FractionallySizedBox(
+                      widthFactor: (percent / 100).clamp(0.0, 1.0),
+                      child: Container(color: const Color(0xFF21B8A6).withValues(alpha: .42)),
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 11),
+                  child: Row(
+                    children: [
+                      if (selected == index)
+                        const Icon(Icons.check_circle_rounded, color: Color(0xFF62E5D0), size: 17)
+                      else if (canVote)
+                        const Icon(Icons.circle_outlined, color: Colors.white54, size: 17),
+                      if (selected == index || canVote) const SizedBox(width: 7),
+                      Expanded(
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      if (showResults)
+                        Text(
+                          '$percent%',
+                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _StoryOverlayTextView extends StatelessWidget {
   const _StoryOverlayTextView({required this.story});
 
@@ -591,6 +736,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   final _picker = ImagePicker();
   final _caption = TextEditingController();
   final _overlayText = TextEditingController();
+  final _pollQuestion = TextEditingController();
+  final List<TextEditingController> _pollOptions = [
+    TextEditingController(), TextEditingController(),
+  ];
+  bool _pollEnabled = false;
   XFile? _file;
   String? _type;
   bool _textMode = false;
@@ -626,6 +776,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     _mentionTimer?.cancel();
     _caption.dispose();
     _overlayText.dispose();
+    _pollQuestion.dispose();
+    for (final option in _pollOptions) { option.dispose(); }
     _musicPreview?.dispose();
     super.dispose();
   }
@@ -866,6 +1018,15 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         _notice('متن استوری حداکثر ۵۰۰ نویسه است.', true);
         return;
       }
+      if (_pollEnabled) {
+        final question = _pollQuestion.text.trim();
+        final options = _pollOptions.map((item) => item.text.trim()).toList();
+        if (question.isEmpty || question.length > 160 || options.any((item) => item.isEmpty || item.length > 60) ||
+            options.map((item) => item.toLowerCase()).toSet().length != options.length) {
+          _notice('سؤال و گزینه‌های نظرسنجی را کامل و بدون تکرار وارد کنید.', true);
+          return;
+        }
+      }
     }
     setState(() => _busy = true);
     try {
@@ -897,6 +1058,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           musicMimeType: _musicMimeType,
           musicStartMs: _musicStartMs,
           musicVolume: _musicVolume,
+          pollQuestion: _pollEnabled ? _pollQuestion.text : null,
+          pollOptions: _pollEnabled ? _pollOptions.map((item) => item.text).toList() : null,
         );
       }
       if (!mounted) return;
@@ -957,6 +1120,17 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                             color: Colors.black87,
                             child: const Center(child: Icon(Icons.play_circle_outline, size: 70, color: Colors.white)),
                           ),
+                    if (_pollEnabled)
+                      Positioned(left: 12, right: 12, bottom: 10,
+                        child: IgnorePointer(child: _StoryPollCard(
+                          poll: {
+                            'question': _pollQuestion.text.trim().isEmpty ? 'سؤال نظرسنجی' : _pollQuestion.text.trim(),
+                            'options': _pollOptions.map((item) => item.text.trim().isEmpty ? 'گزینه' : item.text.trim()).toList(),
+                            'counts': List<int>.filled(_pollOptions.length, 0),
+                            'total_votes': 0,
+                          },
+                          isOwner: true,
+                        ))),
                     if (_stickers.isNotEmpty)
                       Positioned.fill(child: _StoryStickerLayer(
                         stickers: _stickers,
@@ -1127,6 +1301,73 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           const Text('استیکر را روی پیش‌نمایش بکشید؛ با دو انگشت اندازه و زاویه را تغییر دهید. برای حذف یک استیکر، آن را چند لحظه نگه دارید.',
             style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4))),
           const SizedBox(height: 12),
+          const SizedBox(height: 12),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            value: _pollEnabled,
+            onChanged: _busy ? null : (value) => setState(() => _pollEnabled = value),
+            title: const Text('افزودن نظرسنجی'),
+            subtitle: const Text('مخاطبان استوری می‌توانند رأی بدهند.'),
+            secondary: const Icon(Icons.poll_outlined),
+          ),
+          if (_pollEnabled) ...[
+            TextField(
+              controller: _pollQuestion,
+              maxLength: 160,
+              maxLines: 2,
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(
+                labelText: 'سؤال نظرسنجی',
+                hintText: 'مثلاً کدام طرح را بیشتر می‌پسندید؟',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 5),
+            for (var i = 0; i < _pollOptions.length; i++) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _pollOptions[i],
+                      maxLength: 60,
+                      onChanged: (_) => setState(() {}),
+                      decoration: InputDecoration(
+                        labelText: 'گزینه \${i + 1}',
+                        counterText: '',
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  if (_pollOptions.length > 2)
+                    IconButton(
+                      tooltip: 'حذف گزینه',
+                      onPressed: _busy ? null : () {
+                        setState(() {
+                          _pollOptions.removeAt(i).dispose();
+                        });
+                      },
+                      icon: const Icon(Icons.remove_circle_outline),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 7),
+            ],
+            if (_pollOptions.length < 4)
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: _busy ? null : () => setState(() {
+                    _pollOptions.add(TextEditingController());
+                  }),
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('افزودن گزینه'),
+                ),
+              ),
+            const Text(
+              'هر نظرسنجی بین ۲ تا ۴ گزینه دارد. هر کاربر یک رأی ثبت می‌کند و می‌تواند رأی خود را تغییر دهد.',
+              style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4)),
+            ),
+          ],
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             value: _drawingMode,
@@ -1423,6 +1664,26 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     try { await StoryService.recordView(_story['id'] as String); } catch (_) {}
   }
 
+  Future<void> _votePoll(int optionIndex) async {
+    final poll = _story['poll_data'];
+    if (poll is! Map || _busy || _isMine) return;
+    setState(() => _busy = true);
+    try {
+      final updated = await StoryService.voteStoryPoll(poll['id'] as String, optionIndex);
+      if (mounted && _story['id'] == updated['story_id']) {
+        setState(() => _story['poll_data'] = updated);
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('ثبت رأی انجام نشد؛ ممکن است مهلت نظرسنجی تمام شده باشد.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _react(String emoji) async {
     if (_busy || _isMine) return;
     setState(() => _busy = true);
@@ -1557,6 +1818,14 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
           _StoryDrawingView(story: _story),
           _StoryStickerView(story: _story),
           _StoryOverlayTextView(story: _story),
+          if (_story['poll_data'] is Map)
+            Positioned(left: 22, right: 22, bottom: 142,
+              child: _StoryPollCard(
+                poll: Map<String, dynamic>.from(_story['poll_data'] as Map),
+                isOwner: _isMine,
+                onVote: _isMine ? null : _votePoll,
+                busy: _busy,
+              )),
         ],
         Positioned.fill(
           child: Row(children: [
