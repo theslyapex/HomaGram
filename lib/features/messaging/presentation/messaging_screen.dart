@@ -321,8 +321,12 @@ class _MessagingScreenState extends State<MessagingScreen> {
                                       color: colors.onPrimaryContainer,
                                     ),
                                   ),
-                                  title: Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontWeight: FontWeight.w800)),
+                                  title: Row(mainAxisSize: MainAxisSize.min, children: [
+                                    Flexible(child: Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontWeight: FontWeight.w800))),
+                                    const SizedBox(width: 4),
+                                    HomaGramVerifiedBadge(userId: item.peerUserId),
+                                  ]),
                                   subtitle: Padding(
                                     padding: const EdgeInsets.only(top: 5),
                                     child: Text(item.subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -453,7 +457,12 @@ class _NewChatSheetState extends State<_NewChatSheet> {
                   final user = _users[index];
                   return ListTile(
                     leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
-                    title: Text(user['display_name'] as String? ?? user['username'] as String),
+                    title: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Flexible(child: Text(user['display_name'] as String? ?? user['username'] as String,
+                        maxLines: 1, overflow: TextOverflow.ellipsis)),
+                      const SizedBox(width: 4),
+                      HomaGramVerifiedBadge(userId: user['id'] as String?),
+                    ]),
                     subtitle: Text('@${user['username']}'),
                     onTap: _opening ? null : () => _open(user),
                   );
