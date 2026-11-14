@@ -202,13 +202,34 @@ class MessagingService {
   ) async {
     final rows = await _client
         .from('messages')
-        .select('id,sender_id,body,message_type,deleted_at,created_at,edited_at')
+        .select('id,sender_id,body,message_type,reply_to_id,deleted_at,created_at,edited_at')
         .eq('conversation_id', conversationId)
         .order('created_at', ascending: true)
         .limit(200);
     final messages = rows.map((row) => Map<String, dynamic>.from(row)).toList();
     if (messages.isEmpty) return messages;
     final ids = messages.map((m) => m['id'] as String).toList();
+    final replyIds = messages
+        .map((m) => m['reply_to_id'] as String?)
+        .whereType<String>()
+        .toSet()
+        .toList();
+    if (replyIds.isNotEmpty) {
+      final replyRows = await _client.from('messages')
+          .select('id,body,deleted_at')
+          .eq('conversation_id', conversationId)
+          .inFilter('id', replyIds);
+      final replyById = {
+        for (final row in replyRows)
+          row['id'] as String: row['deleted_at'] == null
+              ? (row['body'] as String? ?? '')
+              : 'پیام حذف شده است',
+      };
+      for (final message in messages) {
+        final replyId = message['reply_to_id'] as String?;
+        if (replyId != null) message['reply_to_body'] = replyById[replyId];
+      }
+    }
     final attachments = await _client.from('message_attachments')
         .select('message_id,storage_path,mime_type,file_name,size_bytes')
         .inFilter('message_id', ids);
