@@ -104,7 +104,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
       body: RefreshIndicator(
         onRefresh: _load,
         child: _loading
-          ? const ListView(children: [SizedBox(height: 220), Center(child: CircularProgressIndicator())])
+          ? ListView(children: [const SizedBox(height: 220), const Center(child: CircularProgressIndicator())])
           : _error != null
             ? ListView(children: [const SizedBox(height: 140), Center(child: Text(_error!)),
                 Center(child: TextButton(onPressed: _load, child: const Text('تلاش دوباره')))])
