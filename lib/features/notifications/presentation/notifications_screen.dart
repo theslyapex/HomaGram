@@ -218,6 +218,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(title: const Text('اعلان‌ها', style: TextStyle(fontWeight: FontWeight.w900))),
       body: SafeArea(child: FutureBuilder<List<Map<String, dynamic>>>(
       future: _future,
       builder: (context, snapshot) {
