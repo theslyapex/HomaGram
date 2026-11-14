@@ -169,13 +169,6 @@ class _PolicyScreen extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900))),
     body: ListView(padding: const EdgeInsets.all(16), children: [
-      Container(padding: const EdgeInsets.all(17),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(20),
-          color: HomaGramTheme.turquoise.withValues(alpha: .09),
-          border: Border.all(color: HomaGramTheme.turquoise.withValues(alpha: .2))),
-        child: const Text('لطفاً این موارد را مطالعه کنید. متن نهایی، نسخه معتبر و تاریخ اجرای شرایط باید پیش از انتشار رسمی تعیین و تغییرات مهم به کاربران اعلام شود.',
-          style: TextStyle(height: 1.9, fontSize: 12))),
-      const SizedBox(height: 14),
       for (var i = 0; i < sections.length; i++)
         Card(margin: const EdgeInsets.only(bottom: 10), child: Padding(
           padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
