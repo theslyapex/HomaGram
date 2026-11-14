@@ -3,6 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
+import '../../admin/data/admin_service.dart';
+import '../../admin/presentation/admin_dashboard_screen.dart';
 import 'feed_screen.dart';
 import 'reels_screen.dart';
 import 'explore_screen.dart';
@@ -21,12 +23,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _tab = 0;
   int _unreadNotifications = 0;
+  bool _isAdmin = false;
   RealtimeChannel? _notificationChannel;
 
   @override
   void initState() {
     super.initState();
     _refreshUnread();
+    _loadAdminAccess();
     final userId = AuthService.client.auth.currentUser?.id;
     if (userId != null) {
       _notificationChannel = AuthService.client.channel('home-notification-count-$userId')
@@ -37,6 +41,15 @@ class _HomeScreenState extends State<HomeScreen> {
           filter: PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'recipient_id', value: userId),
           callback: (_) => _refreshUnread(),
         ).subscribe();
+    }
+  }
+
+  Future<void> _loadAdminAccess() async {
+    try {
+      final allowed = await AdminService.isCurrentUserAdmin();
+      if (mounted) setState(() => _isAdmin = allowed);
+    } catch (_) {
+      if (mounted) setState(() => _isAdmin = false);
     }
   }
 
@@ -78,7 +91,19 @@ class _HomeScreenState extends State<HomeScreen> {
             Text('HomaGram', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -.4)),
           ],
         ),
-
+        actions: [
+          if (_isAdmin)
+            IconButton(
+              tooltip: 'پنل مدیریت',
+              icon: const Icon(Icons.admin_panel_settings_outlined),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const AdminDashboardScreen(),
+                ),
+              ),
+            ),
+          const SizedBox(width: 6),
+        ],
       ),
       body: IndexedStack(index: _tab, children: pages),
       bottomNavigationBar: NavigationBar(
@@ -102,10 +127,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             label: 'اعلان‌ها',
           ),
-        NavigationDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded), label: 'پروفایل'),
+          NavigationDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded), label: 'پروفایل'),
         ],
       ),
     );
   }
 }
-
