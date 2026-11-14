@@ -1,3 +1,4 @@
+import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -60,7 +61,7 @@ class _SupportInboxScreenState extends State<SupportInboxScreen> {
           : _error != null
               ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                   Text(_error!),
-                  TextButton(onPressed: _load, child: const Text('تلاش دوباره')),
+                  HomaGramSpringPress(child: TextButton(onPressed: _load, child: const Text('تلاش دوباره'))),
                 ]))
               : RefreshIndicator(
                   onRefresh: _load,
