@@ -130,6 +130,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       case 'comment_reply': return Icons.mode_comment_rounded;
       case 'post_repost': return Icons.repeat_rounded;
       case 'story_reaction': return Icons.auto_awesome_rounded;
+      case 'story_mention': return Icons.alternate_email_rounded;
       case 'message_new': return Icons.mark_chat_unread_rounded;
       case 'support_message':
       case 'support_reply': return Icons.support_agent_rounded;
