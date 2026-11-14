@@ -5,6 +5,8 @@ import '../../auth/data/auth_service.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../home/presentation/public_profile_screen.dart';
+import '../../home/data/story_service.dart';
+import '../../home/presentation/stories_screen.dart';
 import '../../messaging/presentation/chat_screen.dart';
 import '../../support/data/support_service.dart';
 import '../../support/presentation/support_chat_screen.dart';
@@ -162,6 +164,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final actorId = actor?['id'] as String?;
     final type = item['type'] as String? ?? '';
     final entityId = item['entity_id'] as String?;
+    if (type == 'story_mention' && entityId != null) {
+      try {
+        final story = await StoryService.loadStoryById(entityId);
+        if (!mounted) return;
+        if (story != null) {
+          Navigator.of(context).push(MaterialPageRoute<void>(
+            builder: (_) => StoryViewerScreen(stories: [story]),
+          ));
+          return;
+        }
+      } catch (_) {}
+    }
     if ((type == 'support_reply' || type == 'support_message') && entityId != null) {
       if (type == 'support_message' && SupportService.isSupportAdmin) {
         Navigator.of(context).push(MaterialPageRoute(
