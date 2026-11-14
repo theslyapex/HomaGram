@@ -8,7 +8,6 @@ import '../../home/presentation/public_profile_screen.dart';
 import '../../messaging/presentation/chat_screen.dart';
 import '../../support/data/support_service.dart';
 import '../../support/presentation/support_chat_screen.dart';
-import '../../support/presentation/support_inbox_screen.dart';
 import '../data/notification_service.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -87,7 +86,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('پیام‌ها'),
-                subtitle: const Text('اعلان پیام‌های خصوصی و گروهی'),
+                subtitle: const Text('پیام‌های خصوصی، گروهی و پشتیبانی'),
                 value: messages,
                 onChanged: (value) => setDialogState(() => messages = value),
               ),
