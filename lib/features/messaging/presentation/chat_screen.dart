@@ -51,6 +51,13 @@ class _ChatScreenState extends State<ChatScreen> {
     _refreshPresence();
   }
 
+  Future<void> _loadPeerIdentity() async {
+    try {
+      final id = await MessagingService.loadDirectPeerUserId(widget.conversationId);
+      if (mounted) setState(() => _peerUserId = id);
+    } catch (_) {}
+  }
+
   Future<void> _refresh() async {
     try {
       final messages = await MessagingService.loadMessages(widget.conversationId);
