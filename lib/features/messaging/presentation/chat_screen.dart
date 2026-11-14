@@ -734,7 +734,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _showConversationInfo() async {
     try {
       final info = await Supabase.instance.client.from('conversations')
-          .select('kind,title,channels(slug,description,is_public)')
+          .select('kind,title,channels(slug,description,is_public,members_can_post,members_can_send_media)')
           .eq('id', widget.conversationId).single();
       var members = await MessagingService.loadConversationMembers(widget.conversationId);
       if (!mounted) return;
@@ -826,6 +826,65 @@ class _ChatScreenState extends State<ChatScreen> {
                         if (sheetContext.mounted) Navigator.pop(sheetContext);
                       },
                     ),
+                  if (isChannel && canManage)
+                    IconButton(
+                      tooltip: 'تنظیمات دسترسی اعضا',
+                      icon: const Icon(Icons.tune_rounded),
+                      onPressed: () async {
+                        var canPost = channelData['members_can_post'] as bool? ?? true;
+                        var canSendMedia = channelData['members_can_send_media'] as bool? ?? true;
+                        final values = await showDialog<List<bool>>(
+                          context: context,
+                          builder: (dialogContext) => StatefulBuilder(
+                            builder: (dialogContext, setDialogState) => AlertDialog(
+                              title: const Text('دسترسی اعضای عادی'),
+                              content: Column(mainAxisSize: MainAxisSize.min, children: [
+                                SwitchListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: const Text('ارسال پیام متنی'),
+                                  subtitle: const Text('اعضای عادی بتوانند پیام متنی بفرستند.'),
+                                  value: canPost,
+                                  onChanged: (value) => setDialogState(() => canPost = value),
+                                ),
+                                SwitchListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: const Text('ارسال رسانه و فایل'),
+                                  subtitle: const Text('اعضای عادی بتوانند تصویر، ویدئو و فایل بفرستند.'),
+                                  value: canSendMedia,
+                                  onChanged: (value) => setDialogState(() => canSendMedia = value),
+                                ),
+                                const SizedBox(height: 4),
+                                const Text('مالک و مدیران کانال همیشه امکان ارسال دارند.',
+                                  style: TextStyle(fontSize: 12)),
+                              ]),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+                                FilledButton(onPressed: () => Navigator.pop(dialogContext, [canPost, canSendMedia]),
+                                  child: const Text('ذخیره تنظیمات')),
+                              ],
+                            ),
+                          ),
+                        );
+                        if (values == null) return;
+                        try {
+                          await MessagingService.updateChannelMemberPermissions(
+                            conversationId: widget.conversationId,
+                            membersCanPost: values[0],
+                            membersCanSendMedia: values[1],
+                          );
+                          channelData['members_can_post'] = values[0];
+                          channelData['members_can_send_media'] = values[1];
+                          if (sheetContext.mounted) setSheetState(() {});
+                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('دسترسی اعضا به‌روزرسانی شد.')),
+                          );
+                        } catch (_) {
+                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('ذخیره تنظیمات دسترسی انجام نشد.')),
+                          );
+                        }
+                      },
+                    ),
                   if (isChannel && canManage && channelData['is_public'] == false)
                     IconButton(
                       tooltip: 'مدیریت کدهای دعوت',
@@ -890,6 +949,36 @@ class _ChatScreenState extends State<ChatScreen> {
                       trailing: canAct
                           ? PopupMenuButton<String>(
                               onSelected: (action) async {
+                                if (action == 'transfer') {
+                                  final displayName = member['display_name'] as String? ?? member['username'] as String? ?? 'این عضو';
+                                  final confirmed = await showDialog<bool>(
+                                    context: context,
+                                    builder: (dialogContext) => AlertDialog(
+                                      title: const Text('انتقال مالکیت کانال'),
+                                      content: Text('مالکیت کانال به $displayName منتقل شود؟ شما پس از انتقال، مدیر کانال خواهید بود و مالک جدید کنترل کامل کانال را در اختیار می‌گیرد.'),
+                                      actions: [
+                                        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('انصراف')),
+                                        FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('تأیید انتقال')),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirmed != true) return;
+                                  try {
+                                    await MessagingService.transferChannelOwnership(
+                                      conversationId: widget.conversationId,
+                                      newOwnerUserId: member['user_id'] as String,
+                                    );
+                                    if (sheetContext.mounted) Navigator.pop(sheetContext);
+                                    if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('مالکیت کانال با موفقیت منتقل شد.')),
+                                    );
+                                  } catch (_) {
+                                    if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('انتقال مالکیت انجام نشد. فقط مالک فعلی می‌تواند این کار را انجام دهد.')),
+                                    );
+                                  }
+                                  return;
+                                }
                                 await manageMember(member['user_id'] as String, action);
                                 if (sheetContext.mounted) setSheetState(() {});
                               },
@@ -898,6 +987,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                   const PopupMenuItem(value: 'promote', child: Text('ارتقا به مدیر')),
                                 if (myRole == 'owner' && role == 'admin')
                                   const PopupMenuItem(value: 'demote', child: Text('تنزل به عضو')),
+                                if (isChannel && myRole == 'owner' && role != 'owner')
+                                  const PopupMenuItem(value: 'transfer', child: Text('انتقال مالکیت کانال')),
                                 if (role != 'owner' && (myRole == 'owner' || role == 'member'))
                                   PopupMenuItem(value: 'remove', child: Text(isChannel ? 'حذف از کانال' : 'حذف از گروه')),
                               ],
