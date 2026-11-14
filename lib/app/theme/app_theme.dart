@@ -136,6 +136,13 @@ abstract final class HomaGramTheme {
     );
     return ThemeData(
       useMaterial3: true,
+      pageTransitionsTheme: const PageTransitionsTheme(builders: {
+        TargetPlatform.android: HomaGramPageTransitionsBuilder(),
+        TargetPlatform.iOS: HomaGramPageTransitionsBuilder(),
+        TargetPlatform.windows: HomaGramPageTransitionsBuilder(),
+        TargetPlatform.macOS: HomaGramPageTransitionsBuilder(),
+        TargetPlatform.linux: HomaGramPageTransitionsBuilder(),
+      }),
       fontFamily: 'Estedad',
       colorScheme: scheme,
       scaffoldBackgroundColor: darkCanvas,
