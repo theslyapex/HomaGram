@@ -632,27 +632,72 @@ class StoryService {
     }, onConflict: 'story_id,user_id');
   }
 
-  static Future<List<Map<String, dynamic>>> loadViewers(String storyId) async {
-    final rows = await _client.from('story_views')
-        .select('viewer_id,viewed_at').eq('story_id', storyId)
-        .order('viewed_at', ascending: false);
-    if (rows.isEmpty) return [];
-    final ids = rows.map((r) => r['viewer_id'] as String).toList();
-    final profiles = await _client.from('profiles')
+  static Future<int> recordViewDuration(String storyId, int durationSeconds) async {
+    if (durationSeconds < 1 || durationSeconds > 600) return 0;
+    final result = await _client.rpc('record_story_view_duration', params: {
+      'p_story_id': storyId,
+      'p_duration_seconds': durationSeconds,
+    });
+    return (result as num).toInt();
+  }
+
+  static Future<Map<String, dynamic>> loadStoryAnalytics(String storyId) async {
+    final results = await Future.wait([
+      _client.from('story_views')
+          .select('viewer_id,viewed_at,duration_seconds')
+          .eq('story_id', storyId)
+          .order('viewed_at', ascending: false),
+      _client.from('story_reactions')
+          .select('user_id,emoji')
+          .eq('story_id', storyId),
+    ]);
+    final rows = results[0] as List;
+    final reactions = results[1] as List;
+    final ids = <String>{
+      ...rows.map((r) => r['viewer_id'] as String),
+      ...reactions.map((r) => r['user_id'] as String),
+    }.toList();
+    final profiles = ids.isEmpty ? <dynamic>[] : await _client.from('profiles')
         .select('id,username,display_name,avatar_path').inFilter('id', ids);
     final byId = {for (final p in profiles) p['id'] as String: p};
-    final reactions = await _client.from('story_reactions')
-        .select('user_id,emoji').eq('story_id', storyId);
-    final reactionByUser = {for (final r in reactions) r['user_id'] as String: r['emoji'] as String};
-    return rows.map((r) {
-      final p = byId[r['viewer_id']] ?? <String,dynamic>{};
-      return <String,dynamic>{
-        'username': p['username'] ?? 'user',
-        'display_name': p['display_name'] ?? 'کاربر',
+    final reactionByUser = {
+      for (final r in reactions) r['user_id'] as String: r['emoji'] as String,
+    };
+    final reactionCounts = <String, int>{};
+    for (final reaction in reactions) {
+      final emoji = reaction['emoji'] as String;
+      reactionCounts[emoji] = (reactionCounts[emoji] ?? 0) + 1;
+    }
+    final viewers = rows.map((r) {
+      final id = r['viewer_id'] as String;
+      final profile = byId[id] ?? <String, dynamic>{};
+      return <String, dynamic>{
+        'username': profile['username'] ?? 'user',
+        'display_name': profile['display_name'] ?? 'کاربر',
         'viewed_at': r['viewed_at'],
-        'reaction': reactionByUser[r['viewer_id']],
+        'duration_seconds': (r['duration_seconds'] as num?)?.toInt() ?? 0,
+        'reaction': reactionByUser[id],
       };
     }).toList();
+    final totalSeconds = viewers.fold<int>(
+      0, (sum, viewer) => sum + (viewer['duration_seconds'] as int),
+    );
+    final sortedReactions = reactionCounts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return {
+      'view_count': viewers.length,
+      'reaction_count': reactions.length,
+      'total_watch_seconds': totalSeconds,
+      'average_watch_seconds': viewers.isEmpty ? 0 : (totalSeconds / viewers.length).round(),
+      'reaction_counts': {for (final item in sortedReactions) item.key: item.value},
+      'viewers': viewers,
+    };
+  }
+
+  static Future<List<Map<String, dynamic>>> loadViewers(String storyId) async {
+    final analytics = await loadStoryAnalytics(storyId);
+    return (analytics['viewers'] as List)
+        .map((item) => Map<String, dynamic>.from(item as Map)).toList();
   }
 
   static Future<void> deleteStory(Map<String, dynamic> story) async {
