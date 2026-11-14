@@ -700,7 +700,12 @@ class _CloseFriendsManagerSheetState extends State<CloseFriendsManagerSheet> {
                           return ListTile(
                             contentPadding: EdgeInsets.zero,
                             leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
-                            title: Text(person['display_name']?.toString() ?? 'کاربر'),
+                            title: Row(mainAxisSize: MainAxisSize.min, children: [
+                              Flexible(child: Text(person['display_name']?.toString() ?? 'کاربر',
+                                maxLines: 1, overflow: TextOverflow.ellipsis)),
+                              const SizedBox(width: 4),
+                              HomaGramVerifiedBadge(userId: id, size: 13),
+                            ]),
                             subtitle: Text('@${person['username'] ?? 'user'}'),
                             trailing: _savingId == id
                               ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))
