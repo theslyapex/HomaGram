@@ -6,6 +6,9 @@ import '../../auth/data/auth_service.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../home/presentation/public_profile_screen.dart';
 import '../../messaging/presentation/chat_screen.dart';
+import '../../support/data/support_service.dart';
+import '../../support/presentation/support_chat_screen.dart';
+import '../../support/presentation/support_inbox_screen.dart';
 import '../data/notification_service.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -129,6 +132,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       case 'post_repost': return Icons.repeat_rounded;
       case 'story_reaction': return Icons.auto_awesome_rounded;
       case 'message_new': return Icons.mark_chat_unread_rounded;
+      case 'support_message':
+      case 'support_reply': return Icons.support_agent_rounded;
       default: return Icons.notifications_rounded;
     }
   }
@@ -155,7 +160,26 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (!mounted) return;
     final actor = item['actor'] as Map<String, dynamic>?;
     final actorId = actor?['id'] as String?;
-    if (item['type'] == 'message_new' && item['entity_id'] is String) {
+    final type = item['type'] as String? ?? '';
+    final entityId = item['entity_id'] as String?;
+    if ((type == 'support_reply' || type == 'support_message') && entityId != null) {
+      if (type == 'support_message' && SupportService.isSupportAdmin) {
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => SupportChatScreen(
+            conversationId: entityId,
+            title: 'درخواست پشتیبانی',
+            isAdmin: true,
+          ),
+        ));
+      } else if (type == 'support_reply') {
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => SupportChatScreen(
+            conversationId: entityId,
+            title: 'پشتیبانی هماگرام',
+          ),
+        ));
+      }
+    } else if (type == 'message_new' && entityId != null) {
       final displayName = (actor?['display_name'] as String?)?.trim();
       final username = actor?['username'] as String?;
       final title = displayName?.isNotEmpty == true
@@ -163,7 +187,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           : (username ?? 'گفت‌وگو');
       Navigator.of(context).push(MaterialPageRoute(
         builder: (_) => ChatScreen(
-          conversationId: item['entity_id'] as String,
+          conversationId: entityId,
           title: title,
         ),
       ));
