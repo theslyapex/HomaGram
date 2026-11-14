@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../app/theme/app_theme.dart';
 import '../../../app/presentation/homagram_branding.dart';
 import '../../auth/data/auth_service.dart';
 import '../../admin/data/admin_service.dart';
@@ -83,13 +82,15 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         titleSpacing: 20,
-        title: const Row(
+        title: const HomaGramEntrance(
+          delay: Duration(milliseconds: 100),
+          child: Row(
           children: [
             HomaGramLogo(size: 38),
             SizedBox(width: 8),
             Text('HomaGram', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -.4)),
           ],
-        ),
+        )),
         actions: [
           IconButton(
             tooltip: 'تنظیمات',
@@ -122,7 +123,10 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(width: 6),
         ],
       ),
-      body: IndexedStack(index: _tab, children: pages),
+      body: HomaGramEntrance(
+        delay: const Duration(milliseconds: 90),
+        child: IndexedStack(index: _tab, children: pages),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
         onDestinationSelected: (value) => setState(() => _tab = value),

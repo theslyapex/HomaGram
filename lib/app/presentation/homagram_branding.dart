@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 
@@ -169,6 +171,71 @@ class _HomaGramLaunchScreenState extends State<HomaGramLaunchScreen>
       ),
     );
   }
+}
+
+
+class HomaGramEntrance extends StatefulWidget {
+  const HomaGramEntrance({
+    required this.child,
+    this.delay = Duration.zero,
+    super.key,
+  });
+
+  final Widget child;
+  final Duration delay;
+
+  @override
+  State<HomaGramEntrance> createState() => _HomaGramEntranceState();
+}
+
+class _HomaGramEntranceState extends State<HomaGramEntrance>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  Timer? _delayTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 560),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (MediaQuery.disableAnimationsOf(context)) {
+        _controller.value = 1;
+      } else if (widget.delay == Duration.zero) {
+        _controller.forward();
+      } else {
+        _delayTimer = Timer(widget.delay, () {
+          if (mounted) _controller.forward();
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _delayTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: _controller,
+        child: widget.child,
+        builder: (context, child) {
+          final progress = Curves.easeOutCubic.transform(_controller.value);
+          return Opacity(
+            opacity: progress,
+            child: Transform.translate(
+              offset: Offset(0, 15 * (1 - progress)),
+              child: child,
+            ),
+          );
+        },
+      );
 }
 
 class HomaGramSpringPress extends StatefulWidget {

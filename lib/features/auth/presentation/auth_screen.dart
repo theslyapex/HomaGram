@@ -126,19 +126,30 @@ class _AuthScreenState extends State<AuthScreen> {
           padding: const EdgeInsets.all(22),
           child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 480),
             child: Column(children: [
-              const HomaGramLogo(size: 116),
+              const HomaGramEntrance(child: HomaGramLogo(size: 116)),
               const SizedBox(height: 12),
-              const Text('HomaGram', style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 6),
-              const Text('ارتباطی فراتر از مرزها', style: TextStyle(color: Color(0xFFD6E8F0), fontSize: 15)),
+              const HomaGramEntrance(
+                delay: Duration(milliseconds: 100),
+                child: Column(children: [
+                  Text('HomaGram', style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w800)),
+                  SizedBox(height: 6),
+                  Text('ارتباطی فراتر از مرزها', style: TextStyle(color: Color(0xFFD6E8F0), fontSize: 15)),
+                ]),
+              ),
               const SizedBox(height: 26),
-              Card(color: const Color(0xFFF9FBFF), child: Padding(
-                padding: const EdgeInsets.all(22),
-                child: _verificationSent ? _verificationPanel() : _formPanel(),
-              )),
+              HomaGramEntrance(
+                delay: const Duration(milliseconds: 220),
+                child: Card(color: const Color(0xFFF9FBFF), child: Padding(
+                  padding: const EdgeInsets.all(22),
+                  child: _verificationSent ? _verificationPanel() : _formPanel(),
+                )),
+              ),
               const SizedBox(height: 18),
-              const Text('با ادامه، موافقت با قوانین و سیاست حریم خصوصی هماگرام لازم است.',
-                textAlign: TextAlign.center, style: TextStyle(color: Color(0xFFCAD5E3), fontSize: 11, height: 1.7)),
+              const HomaGramEntrance(
+                delay: Duration(milliseconds: 360),
+                child: Text('با ادامه، موافقت با قوانین و سیاست حریم خصوصی هماگرام لازم است.',
+                  textAlign: TextAlign.center, style: TextStyle(color: Color(0xFFCAD5E3), fontSize: 11, height: 1.7)),
+              ),
             ]),
           ),
         ))),
