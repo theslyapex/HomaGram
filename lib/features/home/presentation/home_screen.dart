@@ -6,7 +6,6 @@ import '../../auth/data/auth_service.dart';
 import '../../admin/data/admin_service.dart';
 import '../../admin/presentation/admin_dashboard_screen.dart';
 import 'feed_screen.dart';
-import 'reels_screen.dart';
 import 'explore_screen.dart';
 import 'public_profile_screen.dart';
 import '../../messaging/presentation/messaging_screen.dart';
@@ -73,10 +72,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final pages = [
       const FeedScreen(),
-      ReelsScreen(isVisible: _tab == 1),
       const ExploreScreen(),
       const MessagingScreen(),
-      const NotificationsScreen(),
       PublicProfileScreen(userId: AuthService.client.auth.currentUser!.id),
     ];
 
@@ -92,6 +89,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: 'اعلان‌ها',
+            icon: Badge(
+              isLabelVisible: _unreadNotifications > 0,
+              label: Text(_unreadNotifications > 99 ? '99+' : '$_unreadNotifications'),
+              child: const Icon(Icons.notifications_none_rounded),
+            ),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()),
+            ),
+          ),
           if (_isAdmin)
             IconButton(
               tooltip: 'پنل مدیریت',
@@ -111,22 +119,8 @@ class _HomeScreenState extends State<HomeScreen> {
         onDestinationSelected: (value) => setState(() => _tab = value),
         destinations: [
           NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded), label: 'خانه'),
-          NavigationDestination(icon: Icon(Icons.video_collection_outlined), selectedIcon: Icon(Icons.video_collection_rounded), label: 'ریلز'),
-          NavigationDestination(icon: Icon(Icons.search_rounded), label: 'جست‌وجو'),
+          NavigationDestination(icon: Icon(Icons.search_rounded), selectedIcon: Icon(Icons.explore_rounded), label: 'کشف'),
           NavigationDestination(icon: Icon(Icons.chat_bubble_outline_rounded), selectedIcon: Icon(Icons.chat_rounded), label: 'پیام‌ها'),
-          NavigationDestination(
-            icon: Badge(
-              isLabelVisible: _unreadNotifications > 0,
-              label: Text(_unreadNotifications > 99 ? '99+' : '$_unreadNotifications'),
-              child: const Icon(Icons.notifications_none_rounded),
-            ),
-            selectedIcon: Badge(
-              isLabelVisible: _unreadNotifications > 0,
-              label: Text(_unreadNotifications > 99 ? '99+' : '$_unreadNotifications'),
-              child: const Icon(Icons.notifications_rounded),
-            ),
-            label: 'اعلان‌ها',
-          ),
           NavigationDestination(icon: Icon(Icons.person_outline_rounded), selectedIcon: Icon(Icons.person_rounded), label: 'پروفایل'),
         ],
       ),
