@@ -473,19 +473,53 @@ class _PostCardState extends State<PostCard> {
       'inappropriate': 'محتوای نامناسب',
       'other': 'سایر موارد',
     };
-    final reason = await showModalBottomSheet<String>(context: context, showDragHandle: true,
-      builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const ListTile(title: Text('دلیل گزارش این پست را انتخاب کنید')),
-        ...reasons.entries.map((e) => ListTile(title: Text(e.value),
-          onTap: () => Navigator.pop(ctx, e.key))),
-      ])));
-    if (reason == null) return;
+    final detailsController = TextEditingController();
+    String? selectedReason;
+    final report = await showModalBottomSheet<Map<String, String>>(
+      context: context, isScrollControlled: true, showDragHandle: true,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setSheetState) => Padding(
+        padding: EdgeInsets.fromLTRB(18, 8, 18, 18 + MediaQuery.viewInsetsOf(ctx).bottom),
+        child: SafeArea(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          const Text('گزارش این پست', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 8),
+          const Text('علت گزارش را انتخاب کنید و در صورت نیاز توضیح بیشتری بنویسید.'),
+          const SizedBox(height: 12),
+          ...reasons.entries.map((e) => RadioListTile<String>(
+            value: e.key, groupValue: selectedReason, dense: true,
+            title: Text(e.value),
+            onChanged: (value) => setSheetState(() => selectedReason = value),
+          )),
+          const SizedBox(height: 8),
+          TextField(
+            controller: detailsController, maxLength: 1000, minLines: 2, maxLines: 4,
+            decoration: const InputDecoration(
+              labelText: 'توضیحات تکمیلی (اختیاری)',
+              hintText: 'شرح کوتاهی از دلیل گزارش بنویسید',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 10),
+          FilledButton(
+            onPressed: selectedReason == null ? null : () => Navigator.pop(ctx, {
+              'reason': selectedReason!,
+              'details': detailsController.text.trim(),
+            }),
+            child: const Text('ارسال گزارش'),
+          ),
+        ])),
+      )),
+    );
+    detailsController.dispose();
+    if (report == null) return;
     try {
       await AuthService.client.from('post_reports').insert({
-        'post_id': _postId, 'reporter_id': _userId, 'reason': reason,
+        'post_id': _postId,
+        'reporter_id': _userId,
+        'reason': report['reason'],
+        'details': (report['details'] ?? '').isEmpty ? null : report['details'],
       });
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('گزارش شما ثبت شد.')));
+        const SnackBar(content: Text('گزارش شما ثبت شد و برای بررسی مدیران ارسال شد.')));
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('این پست قبلاً گزارش شده یا ثبت گزارش ممکن نیست.')));
@@ -600,7 +634,6 @@ class _PostCardState extends State<PostCard> {
             label: Text('دیدگاه $_comments'))),
           const Spacer(),
           HomaGramSpringPress(child: IconButton(tooltip: 'ارسال', onPressed: _share, icon: const Icon(Icons.send_outlined))),
-          HomaGramSpringPress(child: IconButton(tooltip: 'گزینه‌ها', onPressed: _menu, icon: const Icon(Icons.more_vert))),
         ])),
       ]),
     );
