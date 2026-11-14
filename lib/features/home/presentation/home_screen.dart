@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
 import 'feed_screen.dart';
+import 'explore_screen.dart';
 import 'public_profile_screen.dart';
 import '../../messaging/presentation/messaging_screen.dart';
 import '../../notifications/presentation/notifications_screen.dart';
@@ -58,11 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final pages = [
       const FeedScreen(),
-      const _ComingSoonPage(
-        icon: Icons.explore_outlined,
-        title: 'کشف HomaGram',
-        description: 'جست‌وجوی افراد، موضوعات و محتوای موردعلاقه در مرحله بعد فعال می‌شود.',
-      ),
+      const ExploreScreen(),
       const MessagingScreen(),
       const NotificationsScreen(),
       PublicProfileScreen(userId: AuthService.client.auth.currentUser!.id),
