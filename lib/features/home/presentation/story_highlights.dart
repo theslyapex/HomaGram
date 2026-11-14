@@ -425,7 +425,6 @@ class _StoryHighlightsStripState extends State<StoryHighlightsStrip> {
 
 class _HighlightAvatar extends StatelessWidget {
   const _HighlightAvatar({
-    super.key,
     required this.title,
     required this.onTap,
     this.imageUrl,
