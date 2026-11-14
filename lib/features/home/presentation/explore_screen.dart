@@ -4,6 +4,7 @@ import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
 import 'public_profile_screen.dart';
 import 'shared_post_screen.dart';
+import 'reels_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key, this.initialQuery});
@@ -237,7 +238,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
     final caption = (post['caption'] as String? ?? '').trim();
     return GestureDetector(
       onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-        builder: (_) => SharedPostScreen(postId: post['id'] as String))),
+        builder: (_) => post['media_type'] == 'video'
+            ? ReelsScreen(initialReelId: post['id'] as String)
+            : SharedPostScreen(postId: post['id'] as String))),
       child: Stack(fit: StackFit.expand, children: [
         if (mediaUrl != null)
           Image.network(mediaUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _textTile(caption))
