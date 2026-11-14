@@ -13,8 +13,9 @@ class StoryHighlightService {
   static Future<List<Map<String, dynamic>>> loadHighlights(String ownerId) async {
     final highlights = await _client
         .from('story_highlights')
-        .select('id,title,created_at')
+        .select('id,title,cover_story_id,position,created_at')
         .eq('owner_id', ownerId)
+        .order('position')
         .order('created_at')
         .limit(30);
     if (highlights.isEmpty) return [];
@@ -97,16 +98,20 @@ class StoryHighlightService {
     }).where((h) => (h['stories'] as List).isNotEmpty).toList();
   }
 
-  static Future<void> createHighlight(String title, List<String> storyIds) async {
+  static Future<void> createHighlight(String title, List<String> storyIds, {String? coverStoryId}) async {
     final cleanTitle = title.trim();
     final uniqueIds = storyIds.toSet().toList();
     if (cleanTitle.isEmpty || cleanTitle.length > 30 || uniqueIds.isEmpty || uniqueIds.length > 100) {
       throw ArgumentError('عنوان باید ۱ تا ۳۰ نویسه و تعداد استوری‌ها ۱ تا ۱۰۰ باشد.');
     }
     final ownerId = _client.auth.currentUser!.id;
+    final last = await _client.from('story_highlights')
+        .select('position').eq('owner_id', ownerId)
+        .order('position', ascending: false).limit(1).maybeSingle();
     final created = await _client
         .from('story_highlights')
-        .insert({'owner_id': ownerId, 'title': cleanTitle})
+        .insert({'owner_id': ownerId, 'title': cleanTitle,
+          'position': ((last?['position'] as int?) ?? -1) + 1})
         .select('id')
         .single();
     final highlightId = created['id'] as String;
@@ -115,6 +120,11 @@ class StoryHighlightService {
         for (var i = 0; i < uniqueIds.length; i++)
           {'highlight_id': highlightId, 'story_id': uniqueIds[i], 'position': i}
       ]);
+      final selectedCover = coverStoryId != null && uniqueIds.contains(coverStoryId)
+          ? coverStoryId : uniqueIds.first;
+      await _client.from('story_highlights')
+          .update({'cover_story_id': selectedCover})
+          .eq('id', highlightId).eq('owner_id', ownerId);
     } catch (_) {
       try {
         await _client.from('story_highlights').delete().eq('id', highlightId);
@@ -128,6 +138,7 @@ class StoryHighlightService {
     required String oldTitle,
     required String title,
     required List<String> storyIds,
+    String? coverStoryId,
   }) async {
     final cleanTitle = title.trim();
     final uniqueIds = storyIds.toSet().toList();
@@ -164,8 +175,10 @@ class StoryHighlightService {
     }
 
     try {
+      final selectedCover = coverStoryId != null && selectedIds.contains(coverStoryId)
+          ? coverStoryId : uniqueIds.first;
       await _client.from('story_highlights')
-          .update({'title': cleanTitle})
+          .update({'title': cleanTitle, 'cover_story_id': selectedCover})
           .eq('id', highlightId)
           .eq('owner_id', ownerId);
 
@@ -194,6 +207,12 @@ class StoryHighlightService {
       } catch (_) {}
       rethrow;
     }
+  }
+
+  static Future<void> reorderHighlights(List<String> orderedIds) async {
+    await _client.rpc('reorder_story_highlights', params: {
+      'p_highlight_ids': orderedIds,
+    });
   }
 
   static Future<void> deleteHighlight(String highlightId) async {
@@ -325,32 +344,62 @@ class _StoryHighlightsStripState extends State<StoryHighlightsStrip> {
       }
       return SizedBox(
         height: 112,
-        child: ListView(
+        child: ReorderableListView.builder(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 4),
-          children: [
-            if (widget.isOwner)
-              _HighlightAvatar(
-                title: 'جدید',
-                add: true,
-                onTap: _create,
-              ),
-            ...highlights.map((highlight) {
-              final stories = (highlight['stories'] as List).cast<Map<String, dynamic>>();
-              final first = stories.first;
-              return _HighlightAvatar(
+          buildDefaultDragHandles: false,
+          itemCount: highlights.length + (widget.isOwner ? 1 : 0),
+          onReorder: (oldIndex, newIndex) async {
+            if (!widget.isOwner) return;
+            if (oldIndex == 0 || newIndex == 0) return;
+            final from = oldIndex - 1;
+            var to = newIndex - 1;
+            if (to > from) to--;
+            if (from < 0 || from >= highlights.length || to < 0 || to >= highlights.length) return;
+            final reordered = List<Map<String, dynamic>>.from(highlights);
+            final moved = reordered.removeAt(from);
+            reordered.insert(to, moved);
+            try {
+              await StoryHighlightService.reorderHighlights(
+                reordered.map((item) => item['id'] as String).toList(),
+              );
+              if (mounted) await _reload();
+            } catch (_) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('مرتب‌سازی هایلایت‌ها انجام نشد.')),
+                );
+              }
+            }
+          },
+          itemBuilder: (context, index) {
+            if (widget.isOwner && index == 0) {
+              return SizedBox(
+                key: const ValueKey('new-story-highlight'),
+                width: 78,
+                child: _HighlightAvatar(title: 'جدید', add: true, onTap: _create),
+              );
+            }
+            final highlight = highlights[index - (widget.isOwner ? 1 : 0)];
+            final stories = (highlight['stories'] as List).cast<Map<String, dynamic>>();
+            final coverId = highlight['cover_story_id'] as String?;
+            final cover = stories.firstWhere(
+              (story) => story['id'] == coverId,
+              orElse: () => stories.first,
+            );
+            final dataIndex = index - (widget.isOwner ? 1 : 0);
+            return ReorderableDelayedDragStartListener(
+              key: ValueKey(highlight['id'] as String),
+              index: index,
+              child: _HighlightAvatar(
                 title: highlight['title'] as String,
-                imageUrl: first['media_url'] as String?,
+                imageUrl: cover['media_url'] as String?,
                 onTap: () => _open(highlight),
                 onLongPress: widget.isOwner ? () => _manage(highlight) : null,
-                video: first['media_type'] == 'video',
-              );
-            }),
-            if (snapshot.connectionState == ConnectionState.waiting && highlights.isEmpty)
-              const SizedBox(width: 54, child: Center(child: SizedBox(
-                width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2),
-              ))),
-          ],
+                video: cover['media_type'] == 'video',
+              ),
+            );
+          },
         ),
       );
     },
@@ -359,6 +408,7 @@ class _StoryHighlightsStripState extends State<StoryHighlightsStrip> {
 
 class _HighlightAvatar extends StatelessWidget {
   const _HighlightAvatar({
+    super.key,
     required this.title,
     required this.onTap,
     this.imageUrl,
@@ -441,6 +491,7 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
   final _title = TextEditingController();
   late Future<List<Map<String, dynamic>>> _availableStories;
   final Set<String> _selected = {};
+  String? _coverStoryId;
   bool _saving = false;
 
   @override
@@ -452,6 +503,8 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
       final stories = (existing['stories'] as List? ?? const [])
           .whereType<Map<String, dynamic>>();
       _selected.addAll(stories.map((story) => story['id'] as String));
+      _coverStoryId = existing['cover_story_id'] as String? ??
+          (stories.isEmpty ? null : stories.first['id'] as String);
     }
     _availableStories = _loadAvailableStories();
   }
@@ -492,13 +545,16 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
     try {
       final existing = widget.highlight;
       if (existing == null) {
-        await StoryHighlightService.createHighlight(_title.text, _selected.toList());
+        await StoryHighlightService.createHighlight(
+          _title.text, _selected.toList(), coverStoryId: _coverStoryId,
+        );
       } else {
         await StoryHighlightService.updateHighlight(
           highlightId: existing['id'] as String,
           oldTitle: existing['title'] as String? ?? '',
           title: _title.text,
           storyIds: _selected.toList(),
+          coverStoryId: _coverStoryId,
         );
       }
       if (mounted) Navigator.of(context).pop(true);
@@ -567,7 +623,7 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: Align(
                 alignment: Alignment.centerRight,
-                child: Text('استوری‌های فعال و آرشیوشده • ${_selected.length}',
+                child: Text('استوری‌های فعال و آرشیوشده • ${_selected.length}  |  ★ انتخاب کاور',
                   style: const TextStyle(fontWeight: FontWeight.w700)),
               ),
             ),
@@ -588,8 +644,12 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
                     onTap: () => setState(() {
                       if (selected) {
                         _selected.remove(id);
+                        if (_coverStoryId == id) {
+                          _coverStoryId = _selected.isEmpty ? null : _selected.first;
+                        }
                       } else if (_selected.length < 100) {
                         _selected.add(id);
+                        _coverStoryId ??= id;
                       }
                     }),
                     child: ClipRRect(
@@ -611,6 +671,28 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
                             textAlign: TextAlign.center,
                             style: const TextStyle(color: Colors.white, fontSize: 9,
                               shadows: [Shadow(blurRadius: 5, color: Colors.black)]),
+                          ),
+                        ),
+                        Positioned(
+                          top: 6, left: 6,
+                          child: Material(
+                            color: Colors.black54,
+                            shape: const CircleBorder(),
+                            child: InkWell(
+                              customBorder: const CircleBorder(),
+                              onTap: () => setState(() {
+                                _selected.add(id);
+                                _coverStoryId = id;
+                              }),
+                              child: Padding(
+                                padding: const EdgeInsets.all(5),
+                                child: Icon(
+                                  _coverStoryId == id ? Icons.star_rounded : Icons.star_border_rounded,
+                                  color: _coverStoryId == id ? Colors.amber : Colors.white,
+                                  size: 18,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                         if (selected)
