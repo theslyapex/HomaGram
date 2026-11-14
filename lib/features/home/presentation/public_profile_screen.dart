@@ -248,7 +248,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 Row(children: [
                   Expanded(child: _sectionButton(0, Icons.grid_on_rounded, 'پست‌ها')),
                   Expanded(child: _sectionButton(1, Icons.play_circle_outline_rounded, 'ریلز')),
-                  Expanded(child: _sectionButton(2, Icons.repeat_rounded, 'بازنشرها')),
+                  Expanded(child: _sectionButton(2, Icons.repeat_rounded, 'بازنشرها ($_reposts)')),
                 ]),
                 const SizedBox(height: 14),
                 if (visiblePosts.isEmpty)
