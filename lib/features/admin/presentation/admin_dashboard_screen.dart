@@ -21,9 +21,9 @@ class AdminDashboardScreen extends StatelessWidget {
           Tab(icon: Icon(Icons.history_rounded), text: 'سوابق مدیران'),
         ]),
       ),
-      body: const TabBarView(children: [
+      body: const HomaGramEntrance(child: TabBarView(children: [
         _OverviewTab(), _UsersTab(), _ReportsTab(), _MessageReportsTab(), _AuditLogsTab(),
-      ]),
+      ])),
     ),
   );
 }
