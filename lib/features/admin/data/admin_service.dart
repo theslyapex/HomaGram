@@ -118,6 +118,19 @@ class AdminService {
       Map<String, dynamic>.from(row as Map))).toList();
   }
 
+  static Future<void> deleteUser(String userId) async {
+    final response = await _client.functions.invoke(
+      'admin-delete-user',
+      body: {'user_id': userId},
+    );
+    if (response.status < 200 || response.status >= 300) {
+      throw StateError('User deletion failed');
+    }
+    final data = response.data;
+    if (data is Map && data['success'] == true) return;
+    throw StateError('User deletion was not confirmed by the server');
+  }
+
   static Future<void> reviewMessageReport(String id, String status) async {
     await _client.rpc('admin_review_message_report', params: {
       'p_report_id': id, 'p_status': status, 'p_review_note': null,
