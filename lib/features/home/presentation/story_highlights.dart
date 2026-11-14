@@ -123,6 +123,79 @@ class StoryHighlightService {
     }
   }
 
+  static Future<void> updateHighlight({
+    required String highlightId,
+    required String oldTitle,
+    required String title,
+    required List<String> storyIds,
+  }) async {
+    final cleanTitle = title.trim();
+    final uniqueIds = storyIds.toSet().toList();
+    if (cleanTitle.isEmpty || cleanTitle.length > 30 ||
+        uniqueIds.isEmpty || uniqueIds.length > 100) {
+      throw ArgumentError('عنوان باید ۱ تا ۳۰ نویسه و تعداد استوری‌ها ۱ تا ۱۰۰ باشد.');
+    }
+
+    final ownerId = _client.auth.currentUser!.id;
+    final currentRows = await _client
+        .from('story_highlight_items')
+        .select('story_id,position')
+        .eq('highlight_id', highlightId);
+    final currentIds = currentRows.map((row) => row['story_id'] as String).toSet();
+    final selectedIds = uniqueIds.toSet();
+    final additions = uniqueIds.where((id) => !currentIds.contains(id)).toList();
+    final removals = currentIds.where((id) => !selectedIds.contains(id)).toList();
+
+    if (additions.isNotEmpty) {
+      final maxPosition = currentRows.fold<int>(
+        -1,
+        (value, row) => (row['position'] as int) > value
+            ? row['position'] as int
+            : value,
+      );
+      await _client.from('story_highlight_items').insert([
+        for (var i = 0; i < additions.length; i++)
+          {
+            'highlight_id': highlightId,
+            'story_id': additions[i],
+            'position': maxPosition + i + 1,
+          }
+      ]);
+    }
+
+    try {
+      await _client.from('story_highlights')
+          .update({'title': cleanTitle})
+          .eq('id', highlightId)
+          .eq('owner_id', ownerId);
+
+      if (removals.isNotEmpty) {
+        await _client.from('story_highlight_items')
+            .delete()
+            .eq('highlight_id', highlightId)
+            .inFilter('story_id', removals);
+      }
+    } catch (_) {
+      // Best-effort compensation prevents newly added items from being left
+      // behind when a later edit step fails.
+      if (additions.isNotEmpty) {
+        try {
+          await _client.from('story_highlight_items')
+              .delete()
+              .eq('highlight_id', highlightId)
+              .inFilter('story_id', additions);
+        } catch (_) {}
+      }
+      try {
+        await _client.from('story_highlights')
+            .update({'title': oldTitle})
+            .eq('id', highlightId)
+            .eq('owner_id', ownerId);
+      } catch (_) {}
+      rethrow;
+    }
+  }
+
   static Future<void> deleteHighlight(String highlightId) async {
     await _client.from('story_highlights').delete().eq('id', highlightId);
   }
@@ -179,7 +252,45 @@ class _StoryHighlightsStripState extends State<StoryHighlightsStrip> {
     );
   }
 
-  Future<void> _delete(Map<String, dynamic> highlight) async {
+  Future<void> _manage(Map<String, dynamic> highlight) async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text(highlight['title'] as String,
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
+              subtitle: const Text('مدیریت مجموعه هایلایت'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: const Text('ویرایش عنوان و استوری‌ها'),
+              onTap: () => Navigator.pop(sheetContext, 'edit'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+              title: const Text('حذف هایلایت', style: TextStyle(color: Colors.red)),
+              onTap: () => Navigator.pop(sheetContext, 'delete'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (!mounted || action == null) return;
+    if (action == 'edit') {
+      final updated = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => StoryHighlightEditorScreen(highlight: highlight),
+        ),
+      );
+      if (updated == true && mounted) await _reload();
+      return;
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -231,7 +342,7 @@ class _StoryHighlightsStripState extends State<StoryHighlightsStrip> {
                 title: highlight['title'] as String,
                 imageUrl: first['media_url'] as String?,
                 onTap: () => _open(highlight),
-                onLongPress: widget.isOwner ? () => _delete(highlight) : null,
+                onLongPress: widget.isOwner ? () => _manage(highlight) : null,
                 video: first['media_type'] == 'video',
               );
             }),
@@ -318,7 +429,9 @@ class _HighlightAvatar extends StatelessWidget {
 }
 
 class StoryHighlightEditorScreen extends StatefulWidget {
-  const StoryHighlightEditorScreen({super.key});
+  const StoryHighlightEditorScreen({this.highlight, super.key});
+
+  final Map<String, dynamic>? highlight;
 
   @override
   State<StoryHighlightEditorScreen> createState() => _StoryHighlightEditorScreenState();
@@ -333,6 +446,13 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
   @override
   void initState() {
     super.initState();
+    final existing = widget.highlight;
+    if (existing != null) {
+      _title.text = existing['title'] as String? ?? '';
+      final stories = (existing['stories'] as List? ?? const [])
+          .whereType<Map<String, dynamic>>();
+      _selected.addAll(stories.map((story) => story['id'] as String));
+    }
     _archive = StoryService.loadArchive();
   }
 
@@ -354,7 +474,17 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
     }
     setState(() => _saving = true);
     try {
-      await StoryHighlightService.createHighlight(_title.text, _selected.toList());
+      final existing = widget.highlight;
+      if (existing == null) {
+        await StoryHighlightService.createHighlight(_title.text, _selected.toList());
+      } else {
+        await StoryHighlightService.updateHighlight(
+          highlightId: existing['id'] as String,
+          oldTitle: existing['title'] as String? ?? '',
+          title: _title.text,
+          storyIds: _selected.toList(),
+        );
+      }
       if (mounted) Navigator.of(context).pop(true);
     } catch (_) {
       _message('ساخت هایلایت انجام نشد. دوباره تلاش کنید.');
@@ -371,11 +501,11 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('ساخت هایلایت'),
+      title: Text(widget.highlight == null ? 'ساخت هایلایت' : 'ویرایش هایلایت'),
       actions: [
         TextButton(
           onPressed: _saving ? null : _save,
-          child: Text(_saving ? '...' : 'ذخیره'),
+          child: Text(_saving ? '...' : (widget.highlight == null ? 'ذخیره' : 'ذخیره تغییرات')),
         ),
       ],
     ),
@@ -388,7 +518,18 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
         if (snapshot.hasError) {
           return const Center(child: Text('آرشیو استوری‌ها بارگذاری نشد.'));
         }
-        final items = snapshot.data ?? [];
+        final itemsById = <String, Map<String, dynamic>>{};
+        for (final story in snapshot.data ?? <Map<String, dynamic>>[]) {
+          itemsById[story['id'] as String] = story;
+        }
+        final existingStories = (widget.highlight?['stories'] as List? ?? const [])
+            .whereType<Map<String, dynamic>>();
+        for (final story in existingStories) {
+          itemsById[story['id'] as String] = story;
+        }
+        final items = itemsById.values.toList()
+          ..sort((a, b) => (b['created_at'] as String)
+              .compareTo(a['created_at'] as String));
         if (items.isEmpty) {
           return const Center(child: Text('برای ساخت هایلایت، ابتدا باید استوری‌ای در آرشیو داشته باشید.'));
         }
@@ -471,7 +612,8 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: _saving ? null : _save,
-                  child: Text(_saving ? 'در حال ذخیره...' : 'ساخت هایلایت (${_selected.length})'),
+                  child: Text(_saving ? 'در حال ذخیره...' :
+                      (widget.highlight == null ? 'ساخت هایلایت (${_selected.length})' : 'ذخیره تغییرات (${_selected.length})')),
                 ),
               ),
             ),
