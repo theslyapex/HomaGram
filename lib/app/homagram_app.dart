@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:app_links/app_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -36,6 +37,9 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
   Timer? _presenceHeartbeat;
   bool? _lastPresenceState;
   String? _lastPresenceUserId;
+  String? _activitySessionId;
+  String? _activityUserId;
+  bool _activitySessionEnded = true;
 
   @override
   void initState() {
@@ -84,6 +88,9 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
       _presenceHeartbeat = null;
       _lastPresenceState = null;
       _lastPresenceUserId = null;
+      _activityUserId = null;
+      _activitySessionId = null;
+      _activitySessionEnded = true;
       return;
     }
     _setPresence(AuthService.client.auth.currentSession != null);
@@ -96,15 +103,48 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
       _lastPresenceUserId = user.id;
       _lastPresenceState = null;
     }
+    if (_activityUserId != user.id) {
+      _activityUserId = user.id;
+      _activitySessionId = _newActivitySessionId();
+      _activitySessionEnded = true;
+    }
     if (_lastPresenceState == online) return;
     _lastPresenceState = online;
     _presenceHeartbeat?.cancel();
     MessagingService.updatePresence(online).catchError((_) {});
+    _trackActivity(online);
     if (online) {
       _presenceHeartbeat = Timer.periodic(const Duration(seconds: 60), (_) {
         MessagingService.updatePresence(true).catchError((_) {});
+        _trackActivity(true);
       });
     }
+  }
+
+  String _newActivitySessionId() {
+    final random = math.Random.secure();
+    final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
+  }
+
+  void _trackActivity(bool active) {
+    if (!widget.supabaseConfigured || AuthService.client.auth.currentUser == null) return;
+    if (active && _activitySessionEnded) {
+      _activitySessionId = _newActivitySessionId();
+      _activitySessionEnded = false;
+    }
+    final id = _activitySessionId;
+    if (id == null) return;
+    AuthService.client.rpc('track_user_activity', params: {
+      'p_session_id': id,
+      'p_is_active': active,
+    }).catchError((error) {
+      debugPrint('Activity tracking unavailable: $error');
+    });
+    if (!active) _activitySessionEnded = true;
   }
 
   @override
