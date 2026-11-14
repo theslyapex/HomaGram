@@ -5,6 +5,7 @@ import '../../../app/theme/app_theme.dart';
 import '../../notifications/presentation/notifications_screen.dart';
 import '../../support/presentation/support_chat_screen.dart';
 import 'two_step_verification_screen.dart';
+import 'bug_report_settings_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -69,6 +70,8 @@ class SettingsScreen extends StatelessWidget {
         ])),
       _SettingEntry(Icons.shield_moon_outlined, 'تأیید دومرحله‌ای', 'افزودن کد امنیتی هنگام ورود به حساب',
         () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const TwoStepVerificationScreen()))),
+      _SettingEntry(Icons.vibration_rounded, 'گزارش سریع مشکل', 'گرفتن تصویر صفحه با تکان گوشی و ارسال پس از تأیید',
+        () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const ShakeBugReportSettingsScreen()))),
       _SettingEntry(Icons.notifications_active_outlined, 'اعلان‌ها', 'مدیریت اعلان‌های دریافتی',
         () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()))),
       _SettingEntry(Icons.lock_outline_rounded, 'حریم خصوصی و امنیت', 'اصول حفاظت از حساب و اطلاعات',
