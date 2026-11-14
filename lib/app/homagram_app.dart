@@ -50,7 +50,6 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
       } catch (error) {
         debugPrint('Push-open routing unavailable: $error');
       }
-
     }
   }
 
@@ -102,48 +101,7 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
     final type = data['type']?.toString() ?? '';
     final id = data['entity_id']?.toString() ?? '';
     if ((type != 'support_message' && type != 'support_reply') ||
-        !RegExp(r'^[0-9a-fA-F-]{36}
-    if (uri == null || uri.scheme != 'homagram' || uri.host != 'post') return;
-    final id = uri.pathSegments.isEmpty ? '' : uri.pathSegments.first;
-    if (!RegExp(r'^[0-9a-fA-F-]{36}$').hasMatch(id)) return;
-    if (AuthService.client.auth.currentSession == null) return;
-    homagramNavigatorKey.currentState?.push(MaterialPageRoute<void>(
-      builder: (_) => SharedPostScreen(postId: id),
-    ));
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _linkSubscription?.cancel();
-    _authSubscription?.cancel();
-    _pushOpenSubscription?.cancel();
-    _presenceHeartbeat?.cancel();
-    if (widget.supabaseConfigured && AuthService.client.auth.currentUser != null) {
-      MessagingService.updatePresence(false).catchError((_) {});
-    }
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => MaterialApp(
-    navigatorKey: homagramNavigatorKey,
-    title: 'HomaGram',
-    debugShowCheckedModeBanner: false,
-    locale: const Locale('fa'),
-    supportedLocales: const [Locale('fa'), Locale('en')],
-    localizationsDelegates: const [
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-      GlobalCupertinoLocalizations.delegate,
-    ],
-    theme: HomaGramTheme.light,
-    darkTheme: HomaGramTheme.dark,
-    themeMode: ThemeMode.system,
-    home: widget.supabaseConfigured ? const AuthGate() : const BootstrapScreen(supabaseConfigured: false),
-  );
-}
-).hasMatch(id)) return;
+        !RegExp(r'^[0-9a-fA-F-]{36}$').hasMatch(id)) return;
 
     final isAdmin = SupportService.isSupportAdmin;
     if (type == 'support_message' && !isAdmin) return;
@@ -157,7 +115,6 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
       ),
     ));
   }
-
   void _handleUri(Uri? uri) {
     if (uri == null || uri.scheme != 'homagram' || uri.host != 'post') return;
     final id = uri.pathSegments.isEmpty ? '' : uri.pathSegments.first;
@@ -173,6 +130,7 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _linkSubscription?.cancel();
     _authSubscription?.cancel();
+    _pushOpenSubscription?.cancel();
     _presenceHeartbeat?.cancel();
     if (widget.supabaseConfigured && AuthService.client.auth.currentUser != null) {
       MessagingService.updatePresence(false).catchError((_) {});
