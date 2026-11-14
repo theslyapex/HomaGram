@@ -1147,6 +1147,232 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     setState(() => _countdownTarget = target);
   }
 
+
+  Future<void> _saveDraft() async {
+    if (_busy) return;
+    if (_textMode && _caption.text.trim().isEmpty) {
+      _notice('برای ذخیره پیش‌نویس، ابتدا متن استوری را وارد کنید.', true);
+      return;
+    }
+    if (!_textMode && _file == null) {
+      _notice('ابتدا یک تصویر یا ویدئو انتخاب کنید.', true);
+      return;
+    }
+    setState(() => _busy = true);
+    try {
+      final file = _file;
+      final mime = file == null ? null : (file.mimeType ??
+          (_type == 'video'
+            ? (file.name.toLowerCase().endsWith('.mov') ? 'video/quicktime' : 'video/mp4')
+            : _imageMime(file.name)));
+      final data = <String, dynamic>{
+        'text_mode': _textMode,
+        'media_type': _type,
+        'media_name': file?.name,
+        'media_mime': mime,
+        'caption': _caption.text,
+        'overlay_text': _overlayText.text,
+        'overlay_x': _overlayX,
+        'overlay_y': _overlayY,
+        'overlay_scale': _overlayScale,
+        'overlay_color': _overlayColor,
+        'overlay_font': _overlayFont,
+        'drawing_data': _drawingStrokes,
+        'audience': _audience,
+        'background_key': _backgroundKey,
+        'music_name': _musicFileName,
+        'music_mime': _musicMimeType,
+        'music_start_ms': _musicStartMs,
+        'music_volume': _musicVolume,
+        'poll_enabled': _pollEnabled,
+        'poll_question': _pollQuestion.text,
+        'poll_options': _pollOptions.map((item) => item.text).toList(),
+        'question_box_enabled': _questionBoxEnabled,
+        'question_box_prompt': _questionBoxPrompt.text,
+        'countdown_enabled': _countdownEnabled,
+        'countdown_title': _countdownTitle.text,
+        'countdown_target': _countdownTarget.toIso8601String(),
+        'drawing_mode': _drawingMode,
+        'eraser_mode': _eraserMode,
+        'drawing_color': _drawingColor,
+        'drawing_width': _drawingWidth,
+      };
+      await StoryService.saveDraft(
+        draftData: data,
+        mediaFile: file == null ? null : File(file.path),
+        mediaFileName: file?.name,
+        mediaMimeType: mime,
+        musicFile: _musicFile,
+        musicFileName: _musicFileName,
+        musicMimeType: _musicMimeType,
+        stickers: _stickers,
+      );
+      _notice('پیش‌نویس با موفقیت ذخیره شد.');
+    } catch (_) {
+      _notice('ذخیره پیش‌نویس انجام نشد. فضای ذخیره‌سازی یا اتصال را بررسی کنید.', true);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _openDrafts() async {
+    if (_busy) return;
+    List<Map<String, dynamic>> drafts;
+    try {
+      drafts = await StoryService.loadDrafts();
+    } catch (_) {
+      _notice('دریافت پیش‌نویس‌ها انجام نشد.', true);
+      return;
+    }
+    if (!mounted) return;
+    if (drafts.isEmpty) {
+      _notice('هنوز پیش‌نویسی ذخیره نکرده‌ای.');
+      return;
+    }
+    final selectedId = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, refresh) => SizedBox(
+          height: MediaQuery.of(context).size.height * .65,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(children: [
+                  const Expanded(child: Text('پیش‌نویس‌های من',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900))),
+                  Text('${drafts.length} مورد',
+                    style: const TextStyle(color: HomaGramTheme.turquoise)),
+                ]),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: drafts.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final draft = drafts[index];
+                      final data = Map<String, dynamic>.from(draft['draft_data'] as Map);
+                      final textMode = data['text_mode'] == true;
+                      final title = (data['caption'] as String? ?? '').trim();
+                      final type = data['media_type'] == 'video' ? 'ویدئو' :
+                        data['media_type'] == 'image' ? 'تصویر' : 'متنی';
+                      final date = DateTime.tryParse(draft['updated_at'] as String? ?? '');
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: HomaGramTheme.turquoise.withValues(alpha: .12),
+                          child: Icon(textMode ? Icons.text_fields_rounded :
+                            (data['media_type'] == 'video' ? Icons.videocam_outlined : Icons.image_outlined),
+                            color: HomaGramTheme.turquoise),
+                        ),
+                        title: Text(title.isEmpty ? 'پیش‌نویس $type' : title,
+                          maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: Text(date == null ? type :
+                          '$type • ${date.year}/${date.month.toString().padLeft(2,'0')}/${date.day.toString().padLeft(2,'0')}'),
+                        onTap: () => Navigator.pop(sheetContext, draft['id'] as String),
+                        trailing: IconButton(
+                          tooltip: 'حذف پیش‌نویس',
+                          icon: const Icon(Icons.delete_outline_rounded),
+                          onPressed: () async {
+                            try {
+                              await StoryService.deleteDraft(draft['id'] as String);
+                              refresh(() => drafts.removeAt(index));
+                              if (drafts.isEmpty && sheetContext.mounted) {
+                                Navigator.pop(sheetContext);
+                              }
+                            } catch (_) {
+                              if (sheetContext.mounted) {
+                                ScaffoldMessenger.of(sheetContext).showSnackBar(
+                                  const SnackBar(content: Text('حذف پیش‌نویس انجام نشد.')),
+                                );
+                              }
+                            }
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (selectedId != null && mounted) await _restoreDraft(selectedId);
+  }
+
+  Future<void> _restoreDraft(String draftId) async {
+    setState(() => _busy = true);
+    try {
+      final data = await StoryService.loadDraft(draftId);
+      if (data == null) throw StateError('Draft not found');
+      final value = (String key, [String fallback = '']) => data[key]?.toString() ?? fallback;
+      _caption.text = value('caption');
+      _overlayText.text = value('overlay_text');
+      _overlayX = (data['overlay_x'] as num?)?.toDouble() ?? .5;
+      _overlayY = (data['overlay_y'] as num?)?.toDouble() ?? .5;
+      _overlayScale = (data['overlay_scale'] as num?)?.toDouble() ?? 1;
+      _overlayColor = value('overlay_color', '#FFFFFF');
+      _overlayFont = value('overlay_font', 'estedad');
+      _audience = value('audience', 'everyone');
+      _backgroundKey = value('background_key', 'aurora');
+      _textMode = data['text_mode'] == true;
+      _type = data['media_type'] as String?;
+      final mediaPath = data['_media_file_path'] as String?;
+      _file = mediaPath == null ? null : XFile(mediaPath, name: value('media_name', 'story_media'));
+      _drawingStrokes
+        ..clear()
+        ..addAll((data['drawing_data'] as List? ?? []).map((e) => Map<String, dynamic>.from(e as Map)));
+      _stickers
+        ..clear()
+        ..addAll((data['stickers'] as List? ?? []).map((e) => Map<String, dynamic>.from(e as Map)));
+      _pollEnabled = data['poll_enabled'] == true;
+      _pollQuestion.text = value('poll_question');
+      final options = (data['poll_options'] as List? ?? []).map((e) => e.toString()).toList();
+      for (final item in _pollOptions) { item.dispose(); }
+      _pollOptions
+        ..clear()
+        ..addAll((options.isEmpty ? ['', ''] : options).map((e) => TextEditingController(text: e)));
+      _questionBoxEnabled = data['question_box_enabled'] == true;
+      _questionBoxPrompt.text = value('question_box_prompt');
+      _countdownEnabled = data['countdown_enabled'] == true;
+      _countdownTitle.text = value('countdown_title');
+      _countdownTarget = DateTime.tryParse(value('countdown_target')) ??
+        DateTime.now().add(const Duration(days: 1));
+      _drawingMode = data['drawing_mode'] == true;
+      _eraserMode = data['eraser_mode'] == true;
+      _drawingColor = value('drawing_color', '#FFFFFF');
+      _drawingWidth = (data['drawing_width'] as num?)?.toDouble() ?? 5;
+      _musicFileName = data['music_name'] as String?;
+      _musicMimeType = data['music_mime'] as String?;
+      _musicStartMs = (data['music_start_ms'] as num?)?.toInt() ?? 0;
+      _musicVolume = (data['music_volume'] as num?)?.toDouble() ?? .75;
+      final musicPath = data['_music_file_path'] as String?;
+      await _musicPreview?.dispose();
+      _musicPreview = null;
+      _musicFile = musicPath == null ? null : File(musicPath);
+      _musicDuration = Duration.zero;
+      if (musicPath != null) {
+        final preview = VideoPlayerController.file(File(musicPath));
+        await preview.initialize().timeout(const Duration(seconds: 20));
+        await preview.setVolume(_musicVolume);
+        _musicDuration = preview.value.duration;
+        _musicPreview = preview;
+      }
+      if (mounted) {
+        setState(() {});
+        _notice('پیش‌نویس بازیابی شد؛ می‌توانی ویرایش را ادامه بدهی.');
+      }
+    } catch (_) {
+      _notice('بازیابی پیش‌نویس انجام نشد.', true);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _publish() async {
     final file = _file;
     final type = _type;
@@ -1761,6 +1987,26 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         const Text('استوری پس از ۲۴ ساعت از نمایش عمومی خارج می‌شود و در آرشیو شخصی شما باقی می‌ماند.',
           textAlign: TextAlign.center, style: TextStyle(fontSize: 11, height: 1.8, color: Color(0xFF8490A4))),
         const SizedBox(height: 18),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _busy ? null : _openDrafts,
+                icon: const Icon(Icons.drafts_outlined),
+                label: const Text('پیش‌نویس‌ها'),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _busy ? null : _saveDraft,
+                icon: const Icon(Icons.save_outlined),
+                label: const Text('ذخیره پیش‌نویس'),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
         FilledButton.icon(
           onPressed: _busy ? null : _publish,
           icon: _busy ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
