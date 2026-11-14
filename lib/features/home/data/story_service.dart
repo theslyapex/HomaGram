@@ -25,7 +25,7 @@ class StoryService {
   static Future<List<Map<String, dynamic>>> loadActiveStories() async {
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _client.from('stories')
-        .select('id,author_id,media_path,media_type,caption,created_at,expires_at')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,created_at,expires_at')
         .gt('expires_at', now)
         .order('created_at');
     return _hydrate(rows);
@@ -35,7 +35,7 @@ class StoryService {
   static Future<List<Map<String, dynamic>>> loadMyActiveStories() async {
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _client.from('stories')
-        .select('id,author_id,media_path,media_type,caption,created_at,expires_at')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,created_at,expires_at')
         .eq('author_id', _uid)
         .gt('expires_at', now)
         .order('created_at', ascending: false);
@@ -53,7 +53,7 @@ class StoryService {
     }
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _client.from('stories')
-        .select('id,author_id,media_path,media_type,caption,created_at,expires_at')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,created_at,expires_at')
         .eq('author_id', _uid)
         .lte('expires_at', now)
         .order('created_at', ascending: false)
@@ -178,6 +178,31 @@ class StoryService {
     }
   }
 
+  static const Set<String> textBackgroundKeys = {
+    'aurora', 'sunset', 'ocean', 'forest', 'midnight', 'rose',
+  };
+
+  static Future<void> publishText({
+    required String textContent,
+    required String backgroundKey,
+  }) async {
+    final content = textContent.trim();
+    if (content.isEmpty || content.length > 1000) {
+      throw ArgumentError('متن استوری باید بین ۱ تا ۱۰۰۰ نویسه باشد.');
+    }
+    if (!textBackgroundKeys.contains(backgroundKey)) {
+      throw ArgumentError('پس‌زمینه انتخاب‌شده معتبر نیست.');
+    }
+    await _client.from('stories').insert({
+      'author_id': _uid,
+      'media_path': null,
+      'media_type': 'text',
+      'text_content': content,
+      'background_key': backgroundKey,
+      'caption': '',
+    });
+  }
+
   static Future<void> recordView(String storyId) async {
     await _client.from('story_views').upsert({
       'story_id': storyId, 'viewer_id': _uid,
@@ -215,9 +240,12 @@ class StoryService {
 
   static Future<void> deleteStory(Map<String, dynamic> story) async {
     await _client.from('stories').delete().eq('id', story['id'] as String);
-    try {
-      await _client.storage.from('story-media').remove([story['media_path'] as String]);
-    } catch (_) {}
+    final mediaPath = story['media_path'] as String?;
+    if (mediaPath != null && mediaPath.isNotEmpty) {
+      try {
+        await _client.storage.from('story-media').remove([mediaPath]);
+      } catch (_) {}
+    }
   }
 
   static Future<void> replyToStory(String authorId, String text) async {
