@@ -63,7 +63,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         client.from('post_reposts').select('post_id')
             .eq('user_id', widget.userId),
         client.from('posts')
-            .select('id,author_id,author_username,author_display_name,caption,media_path,media_type,created_at')
+            .select('id,author_id,author_username,author_display_name,caption,media_path,media_type,cover_path,created_at')
             .eq('author_id', widget.userId)
             .order('created_at', ascending: false).limit(60),
       ]);
@@ -73,7 +73,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       final postRows = results[3] as List;
       final repostIds = reposts.map((r) => r['post_id'] as String).toList();
       final repostRows = repostIds.isEmpty ? <dynamic>[] : await client.from('posts')
-          .select('id,author_id,author_username,author_display_name,caption,media_path,media_type,created_at')
+          .select('id,author_id,author_username,author_display_name,caption,media_path,media_type,cover_path,created_at')
           .inFilter('id', repostIds).order('created_at', ascending: false);
       final myFollow = await client.from('user_follows').select('following_id')
           .eq('follower_id', _myId).eq('following_id', widget.userId).maybeSingle();
@@ -123,6 +123,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             post['media_url'] = await client.storage.from('post-media').createSignedUrl(path, 3600);
           } catch (_) {}
         }
+        final coverPath = post['cover_path'] as String?;
+        if (coverPath != null) {
+          try { post['cover_url'] = await client.storage.from('post-media').createSignedUrl(coverPath, 3600); } catch (_) {}
+        }
         posts.add(post);
       }
       for (final row in repostRows) {
@@ -130,6 +134,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         final path = post['media_path'] as String?;
         if (path != null) {
           try { post['media_url'] = await client.storage.from('post-media').createSignedUrl(path, 3600); } catch (_) {}
+        }
+        final coverPath = post['cover_path'] as String?;
+        if (coverPath != null) {
+          try { post['cover_url'] = await client.storage.from('post-media').createSignedUrl(coverPath, 3600); } catch (_) {}
         }
         repostPostList.add(post);
       }
@@ -260,9 +268,12 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                                   style: const TextStyle(fontSize: 11))))
                             : Stack(fit: StackFit.expand, children: [
                                 (post['media_type'] == 'video'
-                                      ? Container(color: const Color(0xFF171C2B),
-                                          child: const Center(child: Icon(Icons.play_circle_fill_rounded,
-                                            size: 38, color: Colors.white)))
+                                      ? (post['cover_url'] != null
+                                          ? Image.network(post['cover_url'] as String, fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) => const Icon(Icons.play_circle_fill_rounded))
+                                          : Container(color: const Color(0xFF171C2B),
+                                              child: const Center(child: Icon(Icons.play_circle_fill_rounded,
+                                                size: 38, color: Colors.white))))
                                       : Image.network(url, fit: BoxFit.cover,
                                           errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined))),
                                 if (post['media_type'] == 'video')
@@ -303,9 +314,12 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                                 ))
                               : Stack(fit: StackFit.expand, children: [
                                   (post['media_type'] == 'video'
-                                      ? Container(color: const Color(0xFF171C2B),
-                                          child: const Center(child: Icon(Icons.play_circle_fill_rounded,
-                                            size: 38, color: Colors.white)))
+                                      ? (post['cover_url'] != null
+                                          ? Image.network(post['cover_url'] as String, fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) => const Icon(Icons.play_circle_fill_rounded))
+                                          : Container(color: const Color(0xFF171C2B),
+                                              child: const Center(child: Icon(Icons.play_circle_fill_rounded,
+                                                size: 38, color: Colors.white))))
                                       : Image.network(url, fit: BoxFit.cover,
                                           errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined))),
                                   if (post['media_type'] == 'video')
