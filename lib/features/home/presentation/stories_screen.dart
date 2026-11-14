@@ -1520,7 +1520,7 @@ class _StoryMediaState extends State<_StoryMedia> {
       if (!mounted || !identical(_music, controller)) { await controller.dispose(); return; }
       await controller.setLooping(false);
       final startMs = (widget.story['music_start_ms'] as num?)?.toInt() ?? 0;
-      await controller.seekTo(Duration(milliseconds: startMs.clamp(0, controller.value.duration.inMilliseconds)));
+      await controller.seekTo(Duration(milliseconds: startMs.clamp(0, controller.value.duration.inMilliseconds).toInt()));
       final volume = ((widget.story['music_volume'] as num?)?.toDouble() ?? .75).clamp(0.0, 1.0).toDouble();
       await controller.setVolume(volume);
       if (widget.story['media_type'] == 'video' && _video?.value.isInitialized == true) await _video?.setVolume(0);
