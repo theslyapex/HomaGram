@@ -9,7 +9,8 @@ import 'feed_screen.dart';
 import 'public_profile_screen.dart';
 
 class ReelsScreen extends StatefulWidget {
-  const ReelsScreen({super.key});
+  const ReelsScreen({this.isVisible = true, super.key});
+  final bool isVisible;
 
   @override
   State<ReelsScreen> createState() => _ReelsScreenState();
@@ -99,7 +100,7 @@ class _ReelsScreenState extends State<ReelsScreen> {
           itemBuilder: (context, index) => _ReelCard(
             key: ValueKey(reels[index]['id']),
             reel: reels[index],
-            isActive: index == _activeIndex,
+            isActive: widget.isVisible && index == _activeIndex,
           ),
         ),
       );
