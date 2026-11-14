@@ -8,7 +8,7 @@ class AdminDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => DefaultTabController(
-    length: 4,
+    length: 5,
     child: Scaffold(
       appBar: AppBar(
         title: const Text('مدیریت هماگرام', style: TextStyle(fontWeight: FontWeight.w900)),
@@ -17,10 +17,11 @@ class AdminDashboardScreen extends StatelessWidget {
           Tab(icon: Icon(Icons.people_alt_outlined), text: 'کاربران'),
           Tab(icon: Icon(Icons.flag_outlined), text: 'گزارش پست‌ها'),
           Tab(icon: Icon(Icons.chat_bubble_outline), text: 'گزارش پیام‌ها'),
+          Tab(icon: Icon(Icons.history_rounded), text: 'سوابق مدیران'),
         ]),
       ),
       body: const TabBarView(children: [
-        _OverviewTab(), _UsersTab(), _ReportsTab(), _MessageReportsTab(),
+        _OverviewTab(), _UsersTab(), _ReportsTab(), _MessageReportsTab(), _AuditLogsTab(),
       ]),
     ),
   );
@@ -519,6 +520,107 @@ class _ReportStatus extends StatelessWidget {
       decoration: BoxDecoration(color: color.withValues(alpha: .12),
         borderRadius: BorderRadius.circular(20)),
       child: Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
+    );
+  }
+}
+
+
+class _AuditLogsTab extends StatefulWidget {
+  const _AuditLogsTab();
+  @override
+  State<_AuditLogsTab> createState() => _AuditLogsTabState();
+}
+
+class _AuditLogsTabState extends State<_AuditLogsTab> {
+  List<AdminAuditLog> _logs = [];
+  bool _loading = true;
+  String? _error;
+  @override
+  void initState() { super.initState(); _load(); }
+
+  Future<void> _load() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final result = await AdminService.loadAuditLogs();
+      if (!mounted) return;
+      setState(() { _logs = result; _loading = false; });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() { _loading = false; _error = 'دریافت سوابق مدیریتی انجام نشد.'; });
+    }
+  }
+
+  String _date(DateTime? value) {
+    if (value == null) return 'زمان نامشخص';
+    final d = value.toLocal();
+    return '${d.year}/${d.month.toString().padLeft(2, '0')}/${d.day.toString().padLeft(2, '0')}  '
+      '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+  }
+
+  String _label(String action) => switch (action) {
+    'post_report_reviewed' => 'بررسی گزارش پست',
+    'message_report_reviewed' => 'بررسی گزارش پیام',
+    'user_suspended' => 'محدودسازی حساب',
+    'user_unsuspended' => 'رفع محدودیت حساب',
+    _ => action.replaceAll('_', ' '),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) return _RetryView(message: _error!, onRetry: _load);
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: _logs.isEmpty
+        ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
+            SizedBox(height: 110), Icon(Icons.history_rounded, size: 46),
+            SizedBox(height: 12), Center(child: Text('هنوز سابقه مدیریتی ثبت نشده است.')),
+          ])
+        : ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(14),
+            itemCount: _logs.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final log = _logs[index];
+              final actor = log.actorDisplayName?.trim().isNotEmpty == true
+                ? log.actorDisplayName! : (log.actorUsername == null ? 'مدیر' : '@${log.actorUsername}');
+              final target = log.targetDisplayName?.trim().isNotEmpty == true
+                ? log.targetDisplayName! : (log.targetUsername == null ? null : '@${log.targetUsername}');
+              return Card(
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(children: [
+                      const Icon(Icons.admin_panel_settings_outlined, size: 19),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(_label(log.action),
+                        style: const TextStyle(fontWeight: FontWeight.w900))),
+                    ]),
+                    const SizedBox(height: 7),
+                    Text('مدیر اجراکننده: $actor', style: Theme.of(context).textTheme.bodySmall),
+                    if (target != null) Text('کاربر مرتبط: $target',
+                      style: Theme.of(context).textTheme.bodySmall),
+                    const SizedBox(height: 5),
+                    Text(_date(log.createdAt), style: Theme.of(context).textTheme.labelSmall),
+                    if (log.metadata.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text('جزئیات: ${log.metadata.entries.map((e) => '${e.key}: ${e.value}').join('  •  ')}',
+                        style: Theme.of(context).textTheme.labelSmall,
+                        maxLines: 3, overflow: TextOverflow.ellipsis),
+                    ],
+                    const SizedBox(height: 5),
+                    Text('شناسه مدیر: ${log.actorId}',
+                      textDirection: TextDirection.ltr, style: Theme.of(context).textTheme.labelSmall),
+                    if (log.targetUserId != null)
+                      Text('شناسه کاربر: ${log.targetUserId}',
+                        textDirection: TextDirection.ltr, style: Theme.of(context).textTheme.labelSmall),
+                  ]),
+                ),
+              );
+            },
+          ),
     );
   }
 }
