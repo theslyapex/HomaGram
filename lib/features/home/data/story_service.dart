@@ -22,10 +22,46 @@ class StoryService {
   static SupabaseClient get _client => AuthService.client;
   static String get _uid => _client.auth.currentUser!.id;
 
+  static Future<List<Map<String, dynamic>>> loadCloseFriends() async {
+    final rows = await _client.rpc('get_close_friends') as List;
+    if (rows.isEmpty) return [];
+    final ids = rows.map((row) => row['friend_id'] as String).toList();
+    final profiles = await _client.from('profiles')
+        .select('id,username,display_name,avatar_path')
+        .inFilter('id', ids);
+    final byId = {for (final profile in profiles) profile['id'] as String: profile};
+    return ids.where(byId.containsKey).map((id) =>
+      Map<String, dynamic>.from(byId[id]!)
+    ).toList();
+  }
+
+  static Future<List<Map<String, dynamic>>> loadCloseFriendCandidates() async {
+    final follows = await _client.from('user_follows')
+        .select('follower_id')
+        .eq('following_id', _uid)
+        .order('created_at', ascending: false)
+        .limit(500);
+    if (follows.isEmpty) return [];
+    final ids = follows.map((row) => row['follower_id'] as String).toSet().toList();
+    final profiles = await _client.from('profiles')
+        .select('id,username,display_name,avatar_path')
+        .inFilter('id', ids);
+    return profiles.map((row) => Map<String, dynamic>.from(row)).toList();
+  }
+
+  static Future<void> addCloseFriend(String friendId) async {
+    await _client.rpc('add_close_friend', params: {'p_friend_id': friendId});
+  }
+
+  static Future<void> removeCloseFriend(String friendId) async {
+    await _client.rpc('remove_close_friend', params: {'p_friend_id': friendId});
+  }
+
+
   static Future<List<Map<String, dynamic>>> loadActiveStories() async {
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _client.from('stories')
-        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,music_path,music_start_ms,music_volume,created_at,expires_at')
+        .select('id,author_id,audience,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,music_path,music_start_ms,music_volume,created_at,expires_at')
         .gt('expires_at', now)
         .order('created_at');
     return _hydrate(rows);
@@ -209,7 +245,11 @@ class StoryService {
     String? questionBoxPrompt,
     String? countdownTitle,
     DateTime? countdownTargetAt,
+    String audience = 'everyone',
   }) async {
+    if (!const {'everyone','followers','close_friends'}.contains(audience)) {
+      throw ArgumentError('مخاطبان استوری معتبر نیستند.');
+    }
     final cleanOverlay = overlayText?.trim();
     if (cleanOverlay != null && cleanOverlay.length > 180) {
       throw ArgumentError('متن روی رسانه حداکثر ۱۸۰ نویسه است.');
@@ -352,6 +392,7 @@ class StoryService {
       }
       final insertedStory = await _client.from('stories').insert({
         'author_id': _uid,
+        'audience': audience,
         'media_path': path,
         'media_type': mediaType,
         'caption': caption.trim(),
@@ -407,7 +448,11 @@ class StoryService {
   static Future<void> publishText({
     required String textContent,
     required String backgroundKey,
+    String audience = 'everyone',
   }) async {
+    if (!const {'everyone','followers','close_friends'}.contains(audience)) {
+      throw ArgumentError('مخاطبان استوری معتبر نیستند.');
+    }
     final content = textContent.trim();
     if (content.isEmpty || content.length > 1000) {
       throw ArgumentError('متن استوری باید بین ۱ تا ۱۰۰۰ نویسه باشد.');
@@ -417,6 +462,7 @@ class StoryService {
     }
     await _client.from('stories').insert({
       'author_id': _uid,
+      'audience': audience,
       'media_path': null,
       'media_type': 'text',
       'text_content': content,
