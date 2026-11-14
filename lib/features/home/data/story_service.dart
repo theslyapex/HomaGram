@@ -31,6 +31,17 @@ class StoryService {
     return _hydrate(rows);
   }
 
+  // Active stories owned by the signed-in user, for immediate highlight selection.
+  static Future<List<Map<String, dynamic>>> loadMyActiveStories() async {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final rows = await _client.from('stories')
+        .select('id,author_id,media_path,media_type,caption,created_at,expires_at')
+        .eq('author_id', _uid)
+        .gt('expires_at', now)
+        .order('created_at', ascending: false);
+    return _hydrate(rows);
+  }
+
   static const int archivePageSize = 30;
 
   static Future<List<Map<String, dynamic>>> loadArchivePage({
