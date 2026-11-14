@@ -32,6 +32,7 @@ class HomaGramPageTransitionsBuilder extends PageTransitionsBuilder {
 }
 
 abstract final class HomaGramTheme {
+  static final ValueNotifier<ThemeMode> mode = ValueNotifier<ThemeMode>(ThemeMode.system);
   static const Color navy = Color(0xFF101B35);
   static const Color turquoise = Color(0xFF20B8B0);
   static const Color royalPurple = Color(0xFF7356C8);
