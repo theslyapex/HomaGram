@@ -88,6 +88,16 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
                 _headerInfo('تاریخ عضویت', _date(d['created_at'])),
                 const SizedBox(height: 6),
                 _headerInfo('آخرین ورود ثبت‌شده', _date(d['last_sign_in_at'])),
+                if ((d['bio'] as String?)?.trim().isNotEmpty == true) ...[
+                  const SizedBox(height: 8),
+                  const Text('معرفی کاربر', style: TextStyle(color: Colors.white70, fontSize: 10)),
+                  const SizedBox(height: 3),
+                  Text(d['bio'] as String, style: const TextStyle(color: Colors.white, fontSize: 11, height: 1.6)),
+                ],
+                if ((d['website_url'] as String?)?.trim().isNotEmpty == true) ...[
+                  const SizedBox(height: 6),
+                  _headerInfo('وب‌سایت', d['website_url'] as String),
+                ],
               ]),
             ),
             const SizedBox(height: 14),
