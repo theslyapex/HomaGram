@@ -9,6 +9,7 @@ import '../features/home/presentation/shared_post_screen.dart';
 import '../features/auth/data/auth_service.dart';
 import '../features/messaging/data/messaging_service.dart';
 import '../features/notifications/data/push_notification_service.dart';
+import '../features/notifications/presentation/notifications_screen.dart';
 import '../features/support/data/support_service.dart';
 import '../features/support/presentation/support_chat_screen.dart';
 import 'theme/app_theme.dart';
@@ -27,6 +28,7 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
   StreamSubscription<Uri>? _linkSubscription;
   StreamSubscription<dynamic>? _authSubscription;
   StreamSubscription<RemoteMessage>? _pushOpenSubscription;
+  StreamSubscription<RemoteMessage>? _foregroundPushSubscription;
   Timer? _presenceHeartbeat;
   bool? _lastPresenceState;
   String? _lastPresenceUserId;
@@ -46,6 +48,7 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
       _appLinks.getInitialLink().then(_handleUri).catchError((_) {});
       try {
         _pushOpenSubscription = FirebaseMessaging.onMessageOpenedApp.listen(_handlePushOpen);
+        _foregroundPushSubscription = FirebaseMessaging.onMessage.listen(_showForegroundPush);
         FirebaseMessaging.instance.getInitialMessage().then(_handlePushOpen).catchError((_) {});
       } catch (error) {
         debugPrint('Push-open routing unavailable: $error');
@@ -95,25 +98,109 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
     _setPresence(state == AppLifecycleState.resumed);
   }
 
+  void _showForegroundPush(RemoteMessage message) {
+    if (AuthService.client.auth.currentSession == null) return;
+    final context = homagramNavigatorKey.currentContext;
+    if (context == null) return;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger == null) return;
+
+    final body = message.notification?.body?.trim();
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      content: Text(body == null || body.isEmpty ? 'اعلان تازه‌ای در HomaGram دارید.' : body),
+      duration: const Duration(seconds: 5),
+      action: SnackBarAction(
+        label: 'مشاهده',
+        onPressed: () => _handlePushOpen(message),
+      ),
+    ));
+  }
+
+  void _openNotificationsInbox() {
+    homagramNavigatorKey.currentState?.push(MaterialPageRoute<void>(
+      builder: (_) => Scaffold(
+        appBar: AppBar(title: const Text('اعلان‌های شما')),
+        body: const NotificationsScreen(),
+      ),
+    ));
+  }
+
   void _handlePushOpen(RemoteMessage? message) {
     if (message == null || AuthService.client.auth.currentSession == null) return;
     final data = message.data;
     final type = data['type']?.toString() ?? '';
     final id = data['entity_id']?.toString() ?? '';
-    if ((type != 'support_message' && type != 'support_reply') ||
-        !RegExp(r'^[0-9a-fA-F-]{36}$').hasMatch(id)) return;
 
-    final isAdmin = SupportService.isSupportAdmin;
-    if (type == 'support_message' && !isAdmin) return;
-    if (type == 'support_reply' && isAdmin) return;
-
+    if (type == 'support_message' || type == 'support_reply') {
+      if (!RegExp(r'^[0-9a-fA-F-]{36}
+  void _handleUri(Uri? uri) {
+    if (uri == null || uri.scheme != 'homagram' || uri.host != 'post') return;
+    final id = uri.pathSegments.isEmpty ? '' : uri.pathSegments.first;
+    if (!RegExp(r'^[0-9a-fA-F-]{36}$').hasMatch(id)) return;
+    if (AuthService.client.auth.currentSession == null) return;
     homagramNavigatorKey.currentState?.push(MaterialPageRoute<void>(
-      builder: (_) => SupportChatScreen(
-        conversationId: id,
-        title: isAdmin ? 'درخواست پشتیبانی' : 'پشتیبانی هماگرام',
-        isAdmin: isAdmin,
-      ),
+      builder: (_) => SharedPostScreen(postId: id),
     ));
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _linkSubscription?.cancel();
+    _authSubscription?.cancel();
+    _pushOpenSubscription?.cancel();
+    _foregroundPushSubscription?.cancel();
+    _presenceHeartbeat?.cancel();
+    if (widget.supabaseConfigured && AuthService.client.auth.currentUser != null) {
+      MessagingService.updatePresence(false).catchError((_) {});
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+    navigatorKey: homagramNavigatorKey,
+    title: 'HomaGram',
+    debugShowCheckedModeBanner: false,
+    locale: const Locale('fa'),
+    supportedLocales: const [Locale('fa'), Locale('en')],
+    localizationsDelegates: const [
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    theme: HomaGramTheme.light,
+    darkTheme: HomaGramTheme.dark,
+    themeMode: ThemeMode.system,
+    home: widget.supabaseConfigured ? const AuthGate() : const BootstrapScreen(supabaseConfigured: false),
+  );
+}
+).hasMatch(id)) return;
+      final isAdmin = SupportService.isSupportAdmin;
+      if (type == 'support_message' && !isAdmin) return;
+      if (type == 'support_reply' && isAdmin) return;
+
+      homagramNavigatorKey.currentState?.push(MaterialPageRoute<void>(
+        builder: (_) => SupportChatScreen(
+          conversationId: id,
+          title: isAdmin ? 'درخواست پشتیبانی' : 'پشتیبانی هماگرام',
+          isAdmin: isAdmin,
+        ),
+      ));
+      return;
+    }
+
+    const inboxTypes = {
+      'follow',
+      'post_like',
+      'post_comment',
+      'comment_reply',
+      'post_repost',
+      'story_reaction',
+      'message_new',
+    };
+    if (inboxTypes.contains(type)) _openNotificationsInbox();
   }
   void _handleUri(Uri? uri) {
     if (uri == null || uri.scheme != 'homagram' || uri.host != 'post') return;
