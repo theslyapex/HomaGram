@@ -118,7 +118,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         actions: [HomaGramSpringPress(child: IconButton(onPressed: () => _load(), tooltip: 'تازه‌سازی',
           icon: const Icon(Icons.refresh_rounded))), const SizedBox(width: 4)],
       ),
-      body: Column(children: [
+      body: HomaGramEntrance(child: Column(children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(14, 4, 14, 10),
           child: TextField(
@@ -230,7 +230,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               ]),
             ),
         ),
-      ]),
+      ])),
     );
   }
 
