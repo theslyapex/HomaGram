@@ -209,7 +209,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       ),
       body: _loading ? const Center(child: CircularProgressIndicator())
           : _error != null ? Center(child: Text(_error!, textAlign: TextAlign.center))
-          : RefreshIndicator(onRefresh: _load, child: ListView(
+          : HomaGramEntrance(child: RefreshIndicator(onRefresh: _load, child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),
               children: [
                 _header(),
@@ -333,7 +333,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                     },
                   ),
               ],
-            )),
+            ))),
     );
   }
 
