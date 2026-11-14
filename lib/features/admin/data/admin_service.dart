@@ -103,6 +103,18 @@ class AdminService {
       AdminPostReport.fromJson(Map<String, dynamic>.from(row as Map))).toList();
   }
 
+  static Future<List<Map<String, dynamic>>> loadMessageReports() async {
+    final result = await _client.rpc('admin_list_message_reports', params: {'p_limit': 100, 'p_offset': 0});
+    if (result is! List) return [];
+    return result.map((row) => Map<String, dynamic>.from(row as Map)).toList();
+  }
+
+  static Future<void> reviewMessageReport(String id, String status) async {
+    await _client.rpc('admin_review_message_report', params: {
+      'p_report_id': id, 'p_status': status, 'p_review_note': null,
+    });
+  }
+
   static Future<void> reviewReport(String id, String status) async {
     await _client.rpc('admin_review_post_report', params: {
       'p_report_id': id, 'p_status': status, 'p_review_note': null,
