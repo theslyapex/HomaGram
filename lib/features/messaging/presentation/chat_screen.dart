@@ -37,6 +37,7 @@ class _ChatScreenState extends State<ChatScreen> {
   String? _error;
   String? _replyToId;
   String? _replyToBody;
+  String? _peerUserId;
 
   String get _myId => Supabase.instance.client.auth.currentUser!.id;
 
@@ -44,6 +45,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _refresh();
+    _loadPeerIdentity();
     _channel = MessagingService.watchConversation(widget.conversationId, _refresh);
     _presenceChannel = MessagingService.watchPresence(_refreshPresence);
     _refreshPresence();
@@ -309,8 +311,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    Flexible(child: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800))),
+                    const SizedBox(width: 4),
+                    HomaGramVerifiedBadge(userId: _peerUserId, size: 15),
+                  ]),
                   if (_presenceLabel.isNotEmpty)
                     Text(_presenceLabel, style: TextStyle(
                       fontSize: 10,
