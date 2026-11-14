@@ -38,6 +38,8 @@ class _ChatScreenState extends State<ChatScreen> {
   String? _replyToId;
   String? _replyToBody;
   String? _peerUserId;
+  String _conversationKind = 'direct';
+  String? _conversationPhotoUrl;
 
   String get _myId => Supabase.instance.client.auth.currentUser!.id;
 
@@ -46,9 +48,34 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     _refresh();
     _loadPeerIdentity();
+    _loadConversationMetadata();
     _channel = MessagingService.watchConversation(widget.conversationId, _refresh);
     _presenceChannel = MessagingService.watchPresence(_refreshPresence);
     _refreshPresence();
+  }
+
+  Future<void> _loadConversationMetadata() async {
+    try {
+      final row = await Supabase.instance.client
+          .from('conversations')
+          .select('kind,photo_path')
+          .eq('id', widget.conversationId)
+          .maybeSingle();
+      if (row == null) return;
+      final path = row['photo_path'] as String?;
+      String? photoUrl;
+      if (path != null && path.isNotEmpty) {
+        photoUrl = await Supabase.instance.client.storage
+            .from('conversation-photos').createSignedUrl(path, 3600);
+      }
+      if (!mounted) return;
+      setState(() {
+        _conversationKind = row['kind'] as String? ?? 'direct';
+        _conversationPhotoUrl = photoUrl;
+      });
+    } catch (error) {
+      debugPrint('Conversation metadata unavailable: $error');
+    }
   }
 
   Future<void> _loadPeerIdentity() async {
@@ -356,7 +383,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 : _error != null
                     ? Center(child: Text(_error!))
                     : _messages.isEmpty
-                        ? const _EmptyChat()
+                        ? _EmptyChat(kind: _conversationKind)
                         : ListView.builder(
                             controller: _scrollController,
                             reverse: true,
@@ -894,9 +921,19 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _showConversationInfo() async {
     try {
+      // Fetch the conversation row separately from its optional channel row.
+      // A nested PostgREST relationship can fail for group/direct conversations.
       final info = await Supabase.instance.client.from('conversations')
-          .select('kind,title,channels(slug,description,is_public,members_can_post,members_can_send_media)')
+          .select('kind,title,photo_path')
           .eq('id', widget.conversationId).single();
+      final isGroup = info['kind'] == 'group';
+      final isChannel = info['kind'] == 'channel';
+      final channelData = isChannel
+          ? (await Supabase.instance.client.from('channels')
+              .select('slug,description,is_public,members_can_post,members_can_send_media')
+              .eq('conversation_id', widget.conversationId).maybeSingle() ??
+              <String, dynamic>{})
+          : <String, dynamic>{};
       var members = await MessagingService.loadConversationMembers(widget.conversationId);
       if (!mounted) return;
       String myRole = 'member';
@@ -906,12 +943,7 @@ class _ChatScreenState extends State<ChatScreen> {
           break;
         }
       }
-      final isGroup = info['kind'] == 'group';
-      final isChannel = info['kind'] == 'channel';
       final canManage = myRole == 'owner' || myRole == 'admin';
-      final channelData = info['channels'] is Map
-          ? Map<String, dynamic>.from(info['channels'] as Map)
-          : <String, dynamic>{};
 
       Future<void> manageMember(String targetId, String action) async {
         if (isChannel) {
@@ -931,10 +963,61 @@ class _ChatScreenState extends State<ChatScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                 child: Row(children: [
+                  CircleAvatar(
+                    radius: 23,
+                    backgroundColor: Theme.of(sheetContext).colorScheme.primaryContainer,
+                    backgroundImage: _conversationPhotoUrl == null ? null : NetworkImage(_conversationPhotoUrl!),
+                    child: _conversationPhotoUrl == null
+                        ? Icon(isChannel ? Icons.campaign_outlined : Icons.groups_rounded)
+                        : null,
+                  ),
+                  const SizedBox(width: 10),
                   Expanded(child: Text(
                     (info['title'] as String?) ?? (isChannel ? 'کانال' : isGroup ? 'گروه' : widget.title),
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
                   )),
+                  if ((isGroup || isChannel) && canManage)
+                    IconButton(
+                      tooltip: isChannel ? 'تغییر تصویر کانال' : 'تغییر تصویر گروه',
+                      icon: const Icon(Icons.camera_alt_outlined),
+                      onPressed: () async {
+                        try {
+                          final picked = await _picker.pickImage(
+                            source: ImageSource.gallery,
+                            imageQuality: 88,
+                            maxWidth: 1440,
+                            maxHeight: 1440,
+                          );
+                          if (picked == null) return;
+                          final extension = picked.name.split('.').last.toLowerCase();
+                          final mimeType = switch (extension) {
+                            'png' => 'image/png',
+                            'webp' => 'image/webp',
+                            _ => 'image/jpeg',
+                          };
+                          final url = await MessagingService.uploadConversationPhoto(
+                            conversationId: widget.conversationId,
+                            bytes: await picked.readAsBytes(),
+                            extension: const ['jpg', 'jpeg', 'png', 'webp'].contains(extension)
+                                ? extension : 'jpg',
+                            mimeType: mimeType,
+                          );
+                          if (!mounted) return;
+                          setState(() => _conversationPhotoUrl = url);
+                          if (sheetContext.mounted) setSheetState(() {});
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(isChannel
+                                ? 'تصویر کانال تغییر کرد.'
+                                : 'تصویر گروه تغییر کرد.')),
+                          );
+                        } catch (error) {
+                          debugPrint('Conversation photo update failed: $error');
+                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('تغییر تصویر انجام نشد. دسترسی مدیر را بررسی کنید.')),
+                          );
+                        }
+                      },
+                    ),
                   if ((isGroup || isChannel) && canManage)
                     IconButton(
                       tooltip: isChannel ? 'ویرایش اطلاعات کانال' : 'تغییر نام گروه',
@@ -1396,24 +1479,37 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 class _EmptyChat extends StatelessWidget {
-  const _EmptyChat();
+  const _EmptyChat({required this.kind});
+  final String kind;
 
   @override
-  Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.forum_outlined, size: 48, color: Theme.of(context).colorScheme.primary),
-              const SizedBox(height: 12),
-              const Text('گفتگو را شروع کنید', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
-              const SizedBox(height: 6),
-              const Text('اولین پیام این گفتگو را ارسال کنید.', textAlign: TextAlign.center),
-            ],
-          ),
+  Widget build(BuildContext context) {
+    final isChannel = kind == 'channel';
+    final isGroup = kind == 'group';
+    final title = isChannel
+        ? 'هنوز پستی در این کانال منتشر نشده است.'
+        : isGroup ? 'گروه هنوز پیامی ندارد.' : 'گفتگو را شروع کنید';
+    final subtitle = isChannel
+        ? 'با انتشار نخستین پست، مطالب کانال اینجا نمایش داده می‌شوند.'
+        : isGroup ? 'اولین پیام گروه را ارسال کنید.' : 'اولین پیام این گفتگو را ارسال کنید.';
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(isChannel ? Icons.campaign_outlined : isGroup ? Icons.groups_outlined : Icons.forum_outlined,
+                size: 48, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(height: 12),
+            Text(title, textAlign: TextAlign.center,
+                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+            const SizedBox(height: 6),
+            Text(subtitle, textAlign: TextAlign.center),
+          ],
         ),
-      );
+      ),
+    );
+  }
 }
 
 class _VideoMessagePreview extends StatefulWidget {
