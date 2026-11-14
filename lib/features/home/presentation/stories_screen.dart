@@ -245,6 +245,82 @@ class _StoryStickerView extends StatelessWidget {
   }
 }
 
+class _StoryCountdownCard extends StatefulWidget {
+  const _StoryCountdownCard({required this.countdown});
+  final Map<String, dynamic> countdown;
+
+  @override
+  State<_StoryCountdownCard> createState() => _StoryCountdownCardState();
+}
+
+class _StoryCountdownCardState extends State<_StoryCountdownCard> {
+  Timer? _ticker;
+  DateTime? _target;
+
+  @override
+  void initState() {
+    super.initState();
+    _target = DateTime.tryParse(widget.countdown['target_at']?.toString() ?? '')?.toLocal();
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  String _two(int value) => value.toString().padLeft(2, '0');
+
+  @override
+  Widget build(BuildContext context) {
+    final target = _target;
+    final remaining = target == null ? Duration.zero : target.difference(DateTime.now());
+    final completed = target == null || remaining <= Duration.zero;
+    final days = remaining.inDays;
+    final hours = remaining.inHours.remainder(24);
+    final minutes = remaining.inMinutes.remainder(60);
+    final seconds = remaining.inSeconds.remainder(60);
+    Widget unit(String value, String label) => Expanded(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Text(value, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 9)),
+      ]),
+    );
+
+    return Material(
+      color: const Color(0xE9161D2B),
+      borderRadius: BorderRadius.circular(18),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            const Icon(Icons.timer_rounded, color: Color(0xFF62E5D0), size: 18),
+            const SizedBox(width: 7),
+            Flexible(child: Text(
+              widget.countdown['title'] as String? ?? 'شمارش معکوس',
+              maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800),
+            )),
+          ]),
+          const SizedBox(height: 9),
+          if (completed)
+            const Text('زمانش فرا رسیده!', style: TextStyle(color: Color(0xFF62E5D0), fontWeight: FontWeight.w900))
+          else
+            Row(children: [
+              if (days > 0) unit('$days', 'روز'),
+              unit(_two(hours), 'ساعت'),
+              unit(_two(minutes), 'دقیقه'),
+              unit(_two(seconds), 'ثانیه'),
+            ]),
+        ]),
+      ),
+    );
+  }
+}
+
 class _StoryQuestionBoxCard extends StatelessWidget {
   const _StoryQuestionBoxCard({required this.question, required this.isOwner, this.onRespond, this.onViewResponses, this.busy = false});
   final Map<String, dynamic> question;
@@ -773,6 +849,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   bool _pollEnabled = false;
   final _questionBoxPrompt = TextEditingController();
   bool _questionBoxEnabled = false;
+  final _countdownTitle = TextEditingController();
+  bool _countdownEnabled = false;
+  DateTime _countdownTarget = DateTime.now().add(const Duration(days: 1));
   XFile? _file;
   String? _type;
   bool _textMode = false;
@@ -810,6 +889,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     _overlayText.dispose();
     _pollQuestion.dispose();
     _questionBoxPrompt.dispose();
+    _countdownTitle.dispose();
     for (final option in _pollOptions) { option.dispose(); }
     _musicPreview?.dispose();
     super.dispose();
@@ -1033,6 +1113,31 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     ));
   }
 
+  Future<void> _pickCountdownTarget() async {
+    final now = DateTime.now();
+    final initial = _countdownTarget.isAfter(now) ? _countdownTarget : now.add(const Duration(days: 1));
+    final date = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(now.year, now.month, now.day),
+      lastDate: now.add(const Duration(days: 365)),
+      helpText: 'تاریخ پایان شمارش معکوس',
+    );
+    if (date == null || !mounted) return;
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+      helpText: 'ساعت پایان',
+    );
+    if (time == null || !mounted) return;
+    final target = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    if (!target.isAfter(DateTime.now().add(const Duration(seconds: 10)))) {
+      _notice('زمان پایان باید در آینده باشد.', true);
+      return;
+    }
+    setState(() => _countdownTarget = target);
+  }
+
   Future<void> _publish() async {
     final file = _file;
     final type = _type;
@@ -1053,6 +1158,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       }
       if (_questionBoxEnabled && (_questionBoxPrompt.text.trim().isEmpty || _questionBoxPrompt.text.trim().length > 180)) {
         _notice('متن باکس پرسش را بین ۱ تا ۱۸۰ نویسه وارد کنید.', true);
+        return;
+      }
+      if (_countdownEnabled && (_countdownTitle.text.trim().isEmpty || _countdownTitle.text.trim().length > 100 ||
+          !_countdownTarget.isAfter(DateTime.now().add(const Duration(seconds: 10))))) {
+        _notice('عنوان و زمان شمارش معکوس را درست وارد کنید.', true);
         return;
       }
       if (_pollEnabled) {
@@ -1098,6 +1208,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           pollQuestion: _pollEnabled ? _pollQuestion.text : null,
           pollOptions: _pollEnabled ? _pollOptions.map((item) => item.text).toList() : null,
           questionBoxPrompt: _questionBoxEnabled ? _questionBoxPrompt.text : null,
+          countdownTitle: _countdownEnabled ? _countdownTitle.text : null,
+          countdownTargetAt: _countdownEnabled ? _countdownTarget : null,
         );
       }
       if (!mounted) return;
@@ -1174,6 +1286,15 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                         child: IgnorePointer(child: _StoryQuestionBoxCard(
                           question: {'prompt': _questionBoxPrompt.text.trim().isEmpty ? 'باکس پرسش' : _questionBoxPrompt.text.trim(), 'response_count': 0},
                           isOwner: true,
+                        ))),
+                    if (_countdownEnabled)
+                      Positioned(left: 12, right: 12,
+                        bottom: (_pollEnabled && _questionBoxEnabled) ? 310 : (_pollEnabled || _questionBoxEnabled ? 170 : 10),
+                        child: IgnorePointer(child: _StoryCountdownCard(
+                          countdown: {
+                            'title': _countdownTitle.text.trim().isEmpty ? 'شمارش معکوس' : _countdownTitle.text.trim(),
+                            'target_at': _countdownTarget.toIso8601String(),
+                          },
                         ))),
                     if (_stickers.isNotEmpty)
                       Positioned.fill(child: _StoryStickerLayer(
@@ -1432,6 +1553,33 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            value: _countdownEnabled,
+            onChanged: _busy ? null : (value) => setState(() => _countdownEnabled = value),
+            title: const Text('افزودن شمارش معکوس'),
+            subtitle: const Text('برای یک رویداد یا زمان مهم، شمارش معکوس نمایش دهید.'),
+            secondary: const Icon(Icons.timer_outlined),
+          ),
+          if (_countdownEnabled) ...[
+            TextField(
+              controller: _countdownTitle,
+              maxLength: 100,
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(
+                labelText: 'عنوان شمارش معکوس',
+                hintText: 'مثلاً شروع یک رویداد',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            OutlinedButton.icon(
+              onPressed: _busy ? null : _pickCountdownTarget,
+              icon: const Icon(Icons.calendar_month_outlined),
+              label: Text(
+                'تاریخ و ساعت: ${_countdownTarget.year}/${_countdownTarget.month.toString().padLeft(2, '0')}/${_countdownTarget.day.toString().padLeft(2, '0')}  •  ${_countdownTarget.hour.toString().padLeft(2, '0')}:${_countdownTarget.minute.toString().padLeft(2, '0')}',
+              ),
+            ),
+          ],
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             value: _drawingMode,
@@ -1964,9 +2112,13 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
             )),
           ]),
         ),
-        if (_story['poll_data'] is Map || _story['question_box_data'] is Map)
+        if (_story['poll_data'] is Map || _story['question_box_data'] is Map || _story['countdown_data'] is Map)
           Positioned(left: 22, right: 22, bottom: 142,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
+              if (_story['countdown_data'] is Map)
+                Padding(padding: const EdgeInsets.only(bottom: 8), child: _StoryCountdownCard(
+                  countdown: Map<String, dynamic>.from(_story['countdown_data'] as Map),
+                )),
               if (_story['question_box_data'] is Map)
                 Padding(padding: const EdgeInsets.only(bottom: 8), child: _StoryQuestionBoxCard(
                   question: Map<String, dynamic>.from(_story['question_box_data'] as Map),
