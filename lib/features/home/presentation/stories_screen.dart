@@ -723,11 +723,26 @@ class StoriesStrip extends StatefulWidget {
 
 class _StoriesStripState extends State<StoriesStrip> {
   late Future<List<Map<String, dynamic>>> _future;
+  String? _myAvatarUrl;
 
   @override
   void initState() {
     super.initState();
     _future = StoryService.loadActiveStories();
+    _loadMyAvatar();
+  }
+
+  Future<void> _loadMyAvatar() async {
+    try {
+      final client = AuthService.client;
+      final uid = client.auth.currentUser?.id;
+      if (uid == null) return;
+      final profile = await client.from('profiles').select('avatar_path').eq('id', uid).maybeSingle();
+      final path = profile?['avatar_path'] as String?;
+      if (path == null || path.isEmpty) return;
+      final url = await client.storage.from('avatars').createSignedUrl(path, 3600);
+      if (mounted) setState(() => _myAvatarUrl = url);
+    } catch (_) {}
   }
 
   Future<void> _refresh() async {
@@ -827,11 +842,12 @@ class _StoriesStripState extends State<StoriesStrip> {
                 children: [
                   _StoryAvatar(
                     title: own == null ? 'استوری شما' : 'استوری من',
-                    imageUrl: own?.last['avatar_url'] as String?,
+                    imageUrl: own?.last['avatar_url'] as String? ?? _myAvatarUrl,
                     imageCacheKey: own?.last['avatar_path'] as String?,
                     hasStory: own != null,
                     viewed: own != null && own.every((s) => s['is_viewed'] == true),
-                    add: own == null,
+                    add: true,
+                    onAdd: _create,
                     onTap: own == null ? _create : () => _open(own),
                   ),
                   ...ordered.map((entry) => _StoryAvatar(
@@ -867,6 +883,7 @@ class _StoryAvatar extends StatelessWidget {
     required this.viewed,
     required this.onTap,
     this.add = false,
+    this.onAdd,
   });
 
   final String title;
@@ -876,6 +893,7 @@ class _StoryAvatar extends StatelessWidget {
   final bool viewed;
   final bool add;
   final VoidCallback onTap;
+  final VoidCallback? onAdd;
 
   @override
   Widget build(BuildContext context) => SizedBox(
@@ -894,7 +912,8 @@ class _StoryAvatar extends StatelessWidget {
                   : null,
               border: hasStory && viewed ? Border.all(color: Colors.grey, width: 2) : null,
             ),
-            child: CircleAvatar(
+            child: Stack(clipBehavior: Clip.none, children: [
+              CircleAvatar(
               radius: 25,
               backgroundColor: HomaGramTheme.turquoise.withValues(alpha: .14),
               backgroundImage: imageUrl == null ? null : StoryImageProvider(imageUrl!, cacheKey: 'avatar:${imageCacheKey ?? imageUrl!}'),
@@ -902,6 +921,15 @@ class _StoryAvatar extends StatelessWidget {
                   ? const Icon(Icons.person_outline_rounded, color: HomaGramTheme.turquoise)
                   : null,
             ),
+              if (add && onAdd != null)
+                Positioned(left: -2, bottom: -1, child: GestureDetector(
+                  onTap: onAdd,
+                  child: Container(width: 21, height: 21,
+                    decoration: BoxDecoration(color: HomaGramTheme.turquoise, shape: BoxShape.circle,
+                      border: Border.all(color: Theme.of(context).scaffoldBackgroundColor, width: 2)),
+                    child: const Icon(Icons.add_rounded, size: 15, color: Colors.white)),
+                )),
+            ]),
           ),
           const SizedBox(height: 5),
           Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
