@@ -1,3 +1,4 @@
+import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/theme/app_theme.dart';
@@ -93,20 +94,20 @@ class SettingsScreen extends StatelessWidget {
             ),
           )),
         const SizedBox(height: 12),
-        OutlinedButton.icon(
+        HomaGramSpringPress(child: OutlinedButton.icon(
           onPressed: () async {
             final ok = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
               title: const Text('خروج از حساب'), content: const Text('از حساب هماگرام خارج شوید؟'),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
-                FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('خروج')),
+                HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف'))),
+                HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('خروج'))),
               ],
             ));
             if (ok == true) await Supabase.instance.client.auth.signOut();
           },
           icon: const Icon(Icons.logout_rounded),
           label: const Text('خروج از حساب', style: TextStyle(fontFamily: 'Estedad')),
-          style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+          style: OutlinedButton.styleFrom(foregrou)ndColor: Theme.of(context).colorScheme.error),
         ),
         const SizedBox(height: 14),
         const Text('این متن‌ها پیش‌نویس حقوقی محصول هستند؛ پیش از انتشار عمومی باید با قوانین کشور محل فعالیت و نظر مشاور حقوقی تطبیق داده شوند.',
