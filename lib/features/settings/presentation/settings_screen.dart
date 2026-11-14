@@ -6,6 +6,7 @@ import '../../notifications/presentation/notifications_screen.dart';
 import '../../support/presentation/support_chat_screen.dart';
 import 'two_step_verification_screen.dart';
 import 'bug_report_settings_screen.dart';
+import 'account_preferences_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -74,7 +75,9 @@ class SettingsScreen extends StatelessWidget {
         () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const ShakeBugReportSettingsScreen()))),
       _SettingEntry(Icons.notifications_active_outlined, 'اعلان‌ها', 'مدیریت اعلان‌های دریافتی',
         () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()))),
-      _SettingEntry(Icons.lock_outline_rounded, 'حریم خصوصی و امنیت', 'اصول حفاظت از حساب و اطلاعات',
+      _SettingEntry(Icons.tune_rounded, 'حریم خصوصی و نمایش حساب', 'پوسته، خصوصی‌بودن حساب و کاربران مسدودشده',
+        () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AccountPreferencesScreen()))),
+      _SettingEntry(Icons.lock_outline_rounded, 'سیاست حریم خصوصی', 'اصول حفاظت از حساب و اطلاعات',
         () => _open(context, 'حریم خصوصی و امنیت', _privacy)),
       _SettingEntry(Icons.gavel_rounded, 'قوانین و مقررات', 'شرایط استفاده از هماگرام',
         () => _open(context, 'قوانین و مقررات', _terms)),
