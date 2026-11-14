@@ -9,6 +9,7 @@ import '../../auth/presentation/profile_home_screen.dart';
 import '../../messaging/data/messaging_service.dart';
 import '../../messaging/presentation/chat_screen.dart';
 import 'story_highlights.dart';
+import 'feed_screen.dart' show PostCard;
 import 'reels_screen.dart';
 import '../../../core/utils/persian_date.dart';
 
@@ -545,36 +546,23 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   }
 
   void _showPost(Map<String, dynamic> post) {
-    if (post['media_type'] == 'video') {
+    if (post['media_type'] == 'video' || post['is_reel'] == true) {
       Navigator.of(context).push(MaterialPageRoute<void>(
         builder: (_) => ReelsScreen(initialReelId: post['id'] as String),
       ));
       return;
     }
-    final date = DateTime.tryParse(post['created_at'] as String? ?? '')?.toLocal();
-    showModalBottomSheet<void>(
-      context: context, isScrollControlled: true, showDragHandle: true,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 30),
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch,
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => Scaffold(
+        appBar: AppBar(title: const Text('نمایش پست')),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 28),
           children: [
-            Text(date == null ? '' : persianDate(date),
-                style: const TextStyle(color: Color(0xFF8490A4))),
-            const SizedBox(height: 10),
-            if ((post['caption'] as String? ?? '').isNotEmpty)
-              Text(post['caption'] as String, style: const TextStyle(height: 1.8)),
-            if (post['media_url'] != null) ...[
-              const SizedBox(height: 12),
-              ClipRRect(borderRadius: BorderRadius.circular(14),
-                child: post['media_type'] == 'video'
-                    ? _ProfileVideo(url: post['media_url'] as String)
-                    : Image.network(post['media_url'] as String, fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined, size: 40))),
-            ],
+            PostCard(post: post),
           ],
         ),
       ),
-    );
+    ));
   }
 }
 
