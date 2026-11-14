@@ -164,6 +164,18 @@ class MessagingService {
     return previews;
   }
 
+  static Future<String?> loadDirectPeerUserId(String conversationId) async {
+    final rows = await _client.from('conversation_members')
+        .select('user_id')
+        .eq('conversation_id', conversationId)
+        .isFilter('left_at', null);
+    for (final row in rows) {
+      final id = row['user_id'] as String?;
+      if (id != null && id != _userId) return id;
+    }
+    return null;
+  }
+
   static Future<List<Map<String, dynamic>>> searchUsers(String query) async {
     final term = query.trim().replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '');
     if (term.length < 2) return [];
