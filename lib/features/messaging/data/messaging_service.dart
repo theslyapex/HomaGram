@@ -624,6 +624,48 @@ class MessagingService {
     });
   }
 
+  static Future<List<Map<String, dynamic>>> loadChannelAuditLogs(
+    String conversationId,
+  ) async {
+    final rows = await _client
+        .from('channel_audit_logs')
+        .select('id,actor_id,target_user_id,action,metadata,created_at')
+        .eq('conversation_id', conversationId)
+        .order('created_at', ascending: false)
+        .limit(100);
+    final logs = rows.map((row) => Map<String, dynamic>.from(row)).toList();
+    final ids = <String>{
+      for (final row in logs)
+        if (row['actor_id'] is String) row['actor_id'] as String,
+      for (final row in logs)
+        if (row['target_user_id'] is String) row['target_user_id'] as String,
+    }.toList();
+    if (ids.isEmpty) return logs;
+    final profiles = await _client
+        .from('profiles')
+        .select('id,username,display_name')
+        .inFilter('id', ids);
+    final byId = {
+      for (final profile in profiles)
+        profile['id'] as String: Map<String, dynamic>.from(profile),
+    };
+    for (final row in logs) {
+      final actor = byId[row['actor_id']];
+      final target = byId[row['target_user_id']];
+      row['actor_label'] = actor == null
+          ? 'مدیر سابق'
+          : (actor['display_name'] as String?)?.trim().isNotEmpty == true
+              ? actor['display_name']
+              : '@${actor['username']}';
+      row['target_label'] = target == null
+          ? null
+          : (target['display_name'] as String?)?.trim().isNotEmpty == true
+              ? target['display_name']
+              : '@${target['username']}';
+    }
+    return logs;
+  }
+
   static Future<String> loadChannelTitle(String conversationId) async {
     final row = await _client.from('conversations')
         .select('title').eq('id', conversationId).single();
