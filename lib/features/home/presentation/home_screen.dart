@@ -11,6 +11,7 @@ import 'public_profile_screen.dart';
 import '../../messaging/presentation/messaging_screen.dart';
 import '../../notifications/presentation/notifications_screen.dart';
 import '../../notifications/data/notification_service.dart';
+import '../../settings/presentation/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -89,6 +90,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: 'تنظیمات',
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
+            ),
+          ),
           IconButton(
             tooltip: 'اعلان‌ها',
             icon: Badge(
