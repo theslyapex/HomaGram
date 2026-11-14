@@ -116,7 +116,7 @@ Deno.serve(async (req: Request) => {
       .eq("user_id", row.recipient_id)
       .maybeSingle();
 
-    const isMessage = row.type === "message_new";
+    const isMessage = ["message_new", "support_message", "support_reply"].includes(String(row.type ?? ""));
     if (preference && (isMessage ? preference.messages_enabled === false : preference.social_enabled === false)) {
       return Response.json({ skipped: "notifications_disabled" }, { status: 200, headers: corsHeaders });
     }
