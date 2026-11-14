@@ -143,7 +143,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
         bytes = await image.readAsBytes();
         name = image.name;
         final ext = name.toLowerCase().split('.').last;
-        mime = ext == 'png' ? 'image/png' : ext == 'webp' ? 'image/webp' : 'image/jpeg';
+        mime = ext == 'png' ? 'image/png' : ext == 'webp' ? 'image/webp' : ext == 'gif' ? 'image/gif' : 'image/jpeg';
       } else {
         final result = await FilePicker.pickFiles(
           type: FileType.custom,
