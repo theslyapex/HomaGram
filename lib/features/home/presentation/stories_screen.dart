@@ -2460,17 +2460,15 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   String _storyTimestamp(dynamic rawValue) {
     final date = DateTime.tryParse(rawValue?.toString() ?? '')?.toLocal();
     if (date == null) return 'زمان انتشار نامشخص';
-    final value = '${date.year.toString().padLeft(4, '0')}/'
-        '${date.month.toString().padLeft(2, '0')}/'
-        '${date.day.toString().padLeft(2, '0')}  '
-        '${date.hour.toString().padLeft(2, '0')}:'
+    final time = '${date.hour.toString().padLeft(2, '0')}:'
         '${date.minute.toString().padLeft(2, '0')}';
     const latin = '0123456789';
     const persian = '۰۱۲۳۴۵۶۷۸۹';
-    return 'ارسال‌شده در ' + value.split('').map((char) {
+    final localizedTime = time.split('').map((char) {
       final index = latin.indexOf(char);
       return index < 0 ? char : persian[index];
     }).join();
+    return 'ارسال‌شده در ${persianDate(date)}  $localizedTime';
   }
 
   @override
