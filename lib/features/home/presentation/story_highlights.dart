@@ -439,7 +439,7 @@ class StoryHighlightEditorScreen extends StatefulWidget {
 
 class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen> {
   final _title = TextEditingController();
-  late Future<List<Map<String, dynamic>>> _archive;
+  late Future<List<Map<String, dynamic>>> _availableStories;
   final Set<String> _selected = {};
   bool _saving = false;
 
@@ -453,7 +453,23 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
           .whereType<Map<String, dynamic>>();
       _selected.addAll(stories.map((story) => story['id'] as String));
     }
-    _archive = StoryService.loadArchive();
+    _availableStories = _loadAvailableStories();
+  }
+
+  Future<List<Map<String, dynamic>>> _loadAvailableStories() async {
+    final results = await Future.wait([
+      StoryService.loadMyActiveStories(),
+      StoryService.loadArchive(),
+    ]);
+    final byId = <String, Map<String, dynamic>>{};
+    for (final page in results) {
+      for (final story in page) {
+        byId[story['id'] as String] = story;
+      }
+    }
+    return byId.values.toList()
+      ..sort((a, b) => (b['created_at'] as String)
+          .compareTo(a['created_at'] as String));
   }
 
   @override
@@ -469,7 +485,7 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
       return;
     }
     if (_selected.isEmpty) {
-      _message('حداقل یک استوری از آرشیو انتخاب کنید.');
+      _message('حداقل یک استوری انتخاب کنید.');
       return;
     }
     setState(() => _saving = true);
@@ -510,7 +526,7 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
       ],
     ),
     body: FutureBuilder<List<Map<String, dynamic>>>(
-      future: _archive,
+      future: _availableStories,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
@@ -531,7 +547,7 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
           ..sort((a, b) => (b['created_at'] as String)
               .compareTo(a['created_at'] as String));
         if (items.isEmpty) {
-          return const Center(child: Text('برای ساخت هایلایت، ابتدا باید استوری‌ای در آرشیو داشته باشید.'));
+          return const Center(child: Text('هنوز استوری فعالی یا آرشیوشده‌ای برای هایلایت ندارید.'));
         }
         return Column(
           children: [
@@ -551,7 +567,7 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: Align(
                 alignment: Alignment.centerRight,
-                child: Text('انتخاب استوری‌ها • ${_selected.length}',
+                child: Text('استوری‌های فعال و آرشیوشده • ${_selected.length}',
                   style: const TextStyle(fontWeight: FontWeight.w700)),
               ),
             ),
