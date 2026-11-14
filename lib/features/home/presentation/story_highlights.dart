@@ -387,17 +387,34 @@ class _StoryHighlightsStripState extends State<StoryHighlightsStrip> {
               (story) => story['id'] == coverId,
               orElse: () => stories.first,
             );
-            final dataIndex = index - (widget.isOwner ? 1 : 0);
-            return ReorderableDelayedDragStartListener(
+            return Stack(
               key: ValueKey(highlight['id'] as String),
-              index: index,
-              child: _HighlightAvatar(
-                title: highlight['title'] as String,
-                imageUrl: cover['media_url'] as String?,
-                onTap: () => _open(highlight),
-                onLongPress: widget.isOwner ? () => _manage(highlight) : null,
-                video: cover['media_type'] == 'video',
-              ),
+              children: [
+                _HighlightAvatar(
+                  title: highlight['title'] as String,
+                  imageUrl: cover['media_url'] as String?,
+                  onTap: () => _open(highlight),
+                  onLongPress: widget.isOwner ? () => _manage(highlight) : null,
+                  video: cover['media_type'] == 'video',
+                ),
+                if (widget.isOwner)
+                  Positioned(
+                    right: 1,
+                    bottom: 25,
+                    child: ReorderableDelayedDragStartListener(
+                      index: index,
+                      child: const Material(
+                        color: Colors.black54,
+                        shape: CircleBorder(),
+                        child: Padding(
+                          padding: EdgeInsets.all(3),
+                          child: Icon(Icons.drag_indicator_rounded,
+                            color: Colors.white, size: 15),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             );
           },
         ),
