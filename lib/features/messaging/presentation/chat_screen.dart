@@ -1043,7 +1043,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         if (!mounted) return;
                         final selected = await showModalBottomSheet<Map<String, dynamic>>(
                           context: context, showDragHandle: true,
-                          builder: (ctx) => ListView(
+                          builder: (ctx) => HomaGramEntrance(child: ListView(
                             shrinkWrap: true,
                             children: users.map((user) => ListTile(
                               leading: const CircleAvatar(child: Icon(Icons.person_outline)),
@@ -1051,7 +1051,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               subtitle: Text('@${user['username']}'),
                               onTap: () => Navigator.pop(ctx, user),
                             )).toList(),
-                          ),
+                          )),
                         );
                         if (selected == null) return;
                         await manageMember(selected['id'] as String, 'add');
