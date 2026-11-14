@@ -510,4 +510,34 @@ class MessagingService {
   static Future<void> removeChannel(RealtimeChannel channel) async {
     await _client.removeChannel(channel);
   }
+
+  static Future<List<Map<String, dynamic>>> loadPublicChannels() async {
+    final rows = await _client.from('channels')
+        .select('conversation_id,slug,description,is_public,created_at,conversations(title)')
+        .eq('is_public', true)
+        .order('created_at', ascending: false)
+        .limit(100);
+    return rows.map((row) => Map<String, dynamic>.from(row)).toList();
+  }
+
+  static Future<String> createChannel({
+    required String title,
+    required String slug,
+    required String description,
+  }) async {
+    final result = await _client.rpc('create_channel', params: {
+      'p_title': title.trim(),
+      'p_slug': slug.trim().toLowerCase(),
+      'p_description': description.trim(),
+      'p_is_public': true,
+    });
+    return result as String;
+  }
+
+  static Future<void> joinPublicChannel(String conversationId) async {
+    await _client.rpc('join_public_channel', params: {
+      'p_conversation_id': conversationId,
+    });
+  }
+
 }
