@@ -2039,6 +2039,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   bool _routeVisible = true;
   double _horizontalDragDistance = 0;
   final Stopwatch _storyWatch = Stopwatch();
+  bool _viewRecorded = false;
 
   Map<String, dynamic> get _story => widget.stories[_index];
   bool get _isMine => _story['author_id'] == AuthService.client.auth.currentUser?.id;
@@ -2171,7 +2172,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
       _progress.stop();
       if (_storyWatch.isRunning) _storyWatch.stop();
     } else {
-      if (!_isMine && _storyWatch.elapsed > Duration.zero) _storyWatch.start();
+      if (_viewRecorded && !_isMine) _storyWatch.start();
       if (_story['media_type'] != 'video') _progress.forward();
     }
   }
@@ -2182,9 +2183,12 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     _storyWatch
       ..stop()
       ..reset();
+    _viewRecorded = false;
     try {
       await StoryService.recordView(storyId);
-      if (mounted && _story['id'] == storyId && !_paused) _storyWatch.start();
+      if (!mounted || _story['id'] != storyId) return;
+      _viewRecorded = true;
+      if (!_paused) _storyWatch.start();
     } catch (_) {}
   }
 
@@ -2194,6 +2198,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     final storyId = _story['id'] as String;
     final seconds = _storyWatch.elapsed.inSeconds;
     _storyWatch.reset();
+    _viewRecorded = false;
     if (seconds > 0) {
       unawaited(StoryService.recordViewDuration(storyId, seconds).catchError((_) => 0));
     }
