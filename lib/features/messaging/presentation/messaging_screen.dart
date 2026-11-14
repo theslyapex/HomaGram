@@ -143,7 +143,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: Column(
+      body: HomaGramEntrance(child: Column(
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
@@ -277,7 +277,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
             ),
           ),
         ],
-      ),
+      )),
     );
   }
 
