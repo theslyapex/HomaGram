@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../data/auth_service.dart';
+import '../../home/data/story_service.dart';
 
 class ProfileHomeScreen extends StatefulWidget {
   const ProfileHomeScreen({this.onCompleted, super.key});
@@ -368,6 +369,22 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                       ),
                       const SizedBox(height: 12),
                       Card(
+                        child: ListTile(
+                          leading: const Icon(Icons.people_alt_outlined),
+                          title: const Text('دوستان نزدیک',
+                              style: TextStyle(fontWeight: FontWeight.w800)),
+                          subtitle: const Text('فهرست خصوصی دوستان نزدیکت را مدیریت کن؛ فقط خودت آن را می‌بینی.'),
+                          trailing: const Icon(Icons.chevron_right_rounded),
+                          onTap: () => showModalBottomSheet<void>(
+                            context: context,
+                            isScrollControlled: true,
+                            useSafeArea: true,
+                            builder: (_) => const CloseFriendsManagerSheet(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Card(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 6),
                           child: Column(
@@ -551,4 +568,153 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
           ),
         ),
       );
+}
+
+
+class CloseFriendsManagerSheet extends StatefulWidget {
+  const CloseFriendsManagerSheet({super.key});
+
+  @override
+  State<CloseFriendsManagerSheet> createState() => _CloseFriendsManagerSheetState();
+}
+
+class _CloseFriendsManagerSheetState extends State<CloseFriendsManagerSheet> {
+  final _search = TextEditingController();
+  List<Map<String, dynamic>> _candidates = [];
+  Set<String> _selected = {};
+  bool _loading = true;
+  String? _savingId;
+  String _query = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+    _search.addListener(() {
+      if (mounted) setState(() => _query = _search.text.trim().toLowerCase());
+    });
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    try {
+      final values = await Future.wait([
+        StoryService.loadCloseFriendCandidates(),
+        StoryService.loadCloseFriends(),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _candidates = values[0];
+        _selected = values[1].map((row) => row['id'] as String).toSet();
+        _loading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _toggle(Map<String, dynamic> person) async {
+    final id = person['id'] as String;
+    if (_savingId != null) return;
+    final adding = !_selected.contains(id);
+    setState(() => _savingId = id);
+    try {
+      if (adding) {
+        await StoryService.addCloseFriend(id);
+      } else {
+        await StoryService.removeCloseFriend(id);
+      }
+      if (!mounted) return;
+      setState(() {
+        if (adding) {
+          _selected.add(id);
+        } else {
+          _selected.remove(id);
+        }
+        _savingId = null;
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() => _savingId = null);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('به‌روزرسانی فهرست دوستان نزدیک انجام نشد.')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final visible = _candidates.where((person) {
+      final username = (person['username'] ?? '').toString().toLowerCase();
+      final name = (person['display_name'] ?? '').toString().toLowerCase();
+      return _query.isEmpty || username.contains(_query) || name.contains(_query);
+    }).toList();
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(18, 18, 18, 18 + MediaQuery.of(context).viewInsets.bottom),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * .72,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(children: [
+              const Expanded(child: Text('مدیریت دوستان نزدیک',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900))),
+              Text('${_selected.length} نفر',
+                style: const TextStyle(color: Color(0xFF20B8B0), fontWeight: FontWeight.w800)),
+            ]),
+            const SizedBox(height: 6),
+            const Text('افرادی را انتخاب کن که بتوانند استوری‌های مخصوص دوستان نزدیک را ببینند.',
+              style: TextStyle(height: 1.6, color: Color(0xFF7A879B), fontSize: 12)),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _search,
+              decoration: const InputDecoration(
+                hintText: 'جست‌وجو میان دنبال‌کنندگان',
+                prefixIcon: Icon(Icons.search_rounded),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _candidates.isEmpty
+                  ? const Center(child: Text('هنوز دنبال‌کننده‌ای برای افزودن وجود ندارد.'))
+                  : visible.isEmpty
+                    ? const Center(child: Text('نتیجه‌ای پیدا نشد.'))
+                    : ListView.separated(
+                        itemCount: visible.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final person = visible[index];
+                          final id = person['id'] as String;
+                          final selected = _selected.contains(id);
+                          return ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
+                            title: Text(person['display_name']?.toString() ?? 'کاربر'),
+                            subtitle: Text('@${person['username'] ?? 'user'}'),
+                            trailing: _savingId == id
+                              ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))
+                              : Switch(
+                                  value: selected,
+                                  onChanged: (_) => _toggle(person),
+                                ),
+                            onTap: _savingId == null ? () => _toggle(person) : null,
+                          );
+                        },
+                      ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
