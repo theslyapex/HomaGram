@@ -281,6 +281,66 @@ class _PostCardState extends State<PostCard> {
   @override
   void dispose() { _heartTimer?.cancel(); super.dispose(); }
 
+  Future<void> _showLikes() async {
+    try {
+      final rows = await AuthService.client.from('post_likes')
+          .select('user_id,created_at').eq('post_id', _postId)
+          .order('created_at', ascending: false).limit(200);
+      final ids = rows.map((r) => r['user_id'] as String).toSet().toList();
+      final profiles = ids.isEmpty ? <dynamic>[] : await AuthService.client
+          .from('profiles').select('id,username,display_name,avatar_path').inFilter('id', ids);
+      final byId = {for (final p in profiles) p['id'] as String: Map<String,dynamic>.from(p)};
+      final avatarUrls = <String,String>{};
+      for (final p in profiles) {
+        final path = p['avatar_path'] as String?;
+        if (path != null && path.isNotEmpty) {
+          try { avatarUrls[p['id'] as String] = await AuthService.client.storage.from('avatars').createSignedUrl(path, 1800); } catch (_) {}
+        }
+      }
+      if (!mounted) return;
+      await showModalBottomSheet<void>(
+        context: context, isScrollControlled: true, useSafeArea: true, showDragHandle: true,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        builder: (ctx) => SizedBox(
+          height: MediaQuery.sizeOf(ctx).height * .62,
+          child: Column(children: [
+            Padding(padding: const EdgeInsets.fromLTRB(20, 4, 20, 14),
+              child: Row(children: [
+                const Icon(Icons.favorite_rounded, color: Colors.pinkAccent),
+                const SizedBox(width: 9),
+                Text('پسندهای این پست', style: Theme.of(ctx).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                const Spacer(),
+                Text('${rows.length}', style: const TextStyle(fontWeight: FontWeight.w800)),
+              ])),
+            Expanded(child: rows.isEmpty
+              ? const Center(child: Text('هنوز کسی این پست را نپسندیده است.'))
+              : ListView.separated(
+                  itemCount: rows.length, separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (ctx, i) {
+                    final id = rows[i]['user_id'] as String;
+                    final p = byId[id];
+                    final name = (p?['display_name'] as String?)?.trim();
+                    final username = p?['username'] as String?;
+                    final label = name?.isNotEmpty == true ? name! : (username ?? 'کاربر');
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundImage: avatarUrls[id] == null ? null : NetworkImage(avatarUrls[id]!),
+                        child: avatarUrls[id] == null ? Text(label.characters.first) : null,
+                      ),
+                      title: Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
+                      subtitle: username == null ? null : Text('@$username'),
+                    );
+                  },
+                )),
+          ]),
+        ),
+      );
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('فهرست پسندها دریافت نشد.')));
+    }
+  }
+
   Future<void> _like() => _toggle('post_likes', _liked, (v) {
     setState(() { _liked = v; _likes += v ? 1 : -1; });
   });
@@ -522,10 +582,13 @@ class _PostCardState extends State<PostCard> {
             ]),
           ),
         Padding(padding: const EdgeInsets.fromLTRB(8, 4, 8, 8), child: Row(children: [
-          TextButton.icon(onPressed: _busy ? null : _like,
-            icon: Icon(_liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-              color: _liked ? Colors.redAccent : const Color(0xFF8792A5), size: 20),
-            label: Text('پسندیدن $_likes')),
+          GestureDetector(
+            onLongPress: _showLikes,
+            child: TextButton.icon(onPressed: _busy ? null : _like,
+              icon: Icon(_liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                color: _liked ? Colors.redAccent : const Color(0xFF8792A5), size: 20),
+              label: Text('پسندیدن $_likes')),
+          ),
           TextButton.icon(onPressed: _commentsPage,
             icon: const Icon(Icons.mode_comment_outlined, size: 19),
             label: Text('دیدگاه $_comments')),
