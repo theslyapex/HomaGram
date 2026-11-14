@@ -939,7 +939,6 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   double _overlayX = 0.5;
   double _overlayY = 0.5;
   double _overlayScale = 1.0;
-  double _overlayStartScale = 1.0;
   String _overlayColor = '#FFFFFF';
   String _overlayFont = 'estedad';
   final List<Map<String, dynamic>> _drawingStrokes = [];
