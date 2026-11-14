@@ -2196,7 +2196,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     if (_isMine) return;
     if (_storyWatch.isRunning) _storyWatch.stop();
     final storyId = _story['id'] as String;
-    final seconds = _storyWatch.elapsed.inSeconds;
+    final elapsedSeconds = _storyWatch.elapsed.inSeconds;
+    final seconds = elapsedSeconds > 600 ? 600 : elapsedSeconds;
     _storyWatch.reset();
     _viewRecorded = false;
     if (seconds > 0) {
