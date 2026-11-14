@@ -395,7 +395,7 @@ class MessagingService {
         !const ['image/jpeg', 'image/png', 'image/webp'].contains(mimeType)) {
       throw ArgumentError('فرمت تصویر پشتیبانی نمی‌شود.');
     }
-    final path = '$conversationId/$_userId/cover.$extension';
+    final path = '$conversationId/$_userId/cover-${DateTime.now().microsecondsSinceEpoch}.$extension';
     await _client.storage.from('conversation-photos').uploadBinary(
       path,
       bytes,
