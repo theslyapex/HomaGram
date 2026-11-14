@@ -30,7 +30,7 @@ class _ReelsScreenState extends State<ReelsScreen> {
     final client = AuthService.client;
     final uid = client.auth.currentUser!.id;
     final rows = await client.from('posts')
-        .select('id,author_id,author_username,author_display_name,caption,media_path,media_type,created_at,is_public')
+        .select('id,author_id,author_username,author_display_name,caption,media_path,media_type,cover_path,created_at,is_public')
         .eq('is_reel', true)
         .order('created_at', ascending: false)
         .limit(60);
@@ -47,6 +47,12 @@ class _ReelsScreenState extends State<ReelsScreen> {
         item['media_url'] = await client.storage.from('post-media').createSignedUrl(path, 3600);
       } catch (_) {
         continue;
+      }
+      final coverPath = item['cover_path'] as String?;
+      if (coverPath != null) {
+        try {
+          item['cover_url'] = await client.storage.from('post-media').createSignedUrl(coverPath, 3600);
+        } catch (_) {}
       }
       final avatarPath = avatarById[item['author_id'] as String];
       if (avatarPath != null) {
@@ -291,7 +297,11 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
           ),
         )
       else if (_loading)
-        const Center(child: CircularProgressIndicator(color: HomaGramTheme.turquoise))
+        Stack(fit: StackFit.expand, children: [
+          if (widget.reel['cover_url'] != null)
+            Image.network(widget.reel['cover_url'] as String, fit: BoxFit.cover),
+          const Center(child: CircularProgressIndicator(color: HomaGramTheme.turquoise)),
+        ])
       else
         const Center(child: Icon(Icons.video_file_outlined, color: Colors.white54, size: 54)),
       Positioned.fill(child: IgnorePointer(child: DecoratedBox(
