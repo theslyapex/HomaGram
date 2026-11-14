@@ -26,6 +26,24 @@ class HomaGramLogo extends StatelessWidget {
       );
 }
 
+const String homagramOfficialAccountId = '2459f67f-2b81-4b89-ab25-0916bd688a5e';
+
+class HomaGramVerifiedBadge extends StatelessWidget {
+  const HomaGramVerifiedBadge({required this.userId, this.size = 15, super.key});
+
+  final String? userId;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    if (userId != homagramOfficialAccountId) return const SizedBox.shrink();
+    return Tooltip(
+      message: 'حساب تأییدشده هماگرام',
+      child: Icon(Icons.verified_rounded, color: const Color(0xFF3195F5), size: size),
+    );
+  }
+}
+
 class HomaGramLaunchScreen extends StatefulWidget {
   const HomaGramLaunchScreen({required this.child, super.key});
 
