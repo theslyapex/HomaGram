@@ -187,6 +187,15 @@ class SupportService {
     }
   }
 
+  static Future<Map<String, dynamic>> loadConversationInfo(String conversationId) async {
+    final row = await _client
+        .from('support_conversations')
+        .select('id,user_id,status')
+        .eq('id', conversationId)
+        .single();
+    return Map<String, dynamic>.from(row);
+  }
+
   static Future<void> updateStatus(String conversationId, String status) async {
     if (!isSupportAdmin) throw StateError('Support administrator access required');
     if (status != 'open' && status != 'closed') {
