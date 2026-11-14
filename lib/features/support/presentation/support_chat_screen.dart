@@ -12,12 +12,14 @@ import '../data/support_service.dart';
 class SupportChatScreen extends StatefulWidget {
   const SupportChatScreen({
     this.conversationId,
+    this.initialMessage,
     this.title = 'پشتیبانی هماگرام',
     this.isAdmin = false,
     super.key,
   });
 
   final String? conversationId;
+  final String? initialMessage;
   final String title;
   final bool isAdmin;
 
@@ -35,6 +37,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
   RealtimeChannel? _channel;
   bool _loading = true;
   bool _sending = false;
+  bool _initialMessageSent = false;
   String? _error;
 
   String get _myId => Supabase.instance.client.auth.currentUser!.id;
@@ -57,6 +60,18 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
       });
       _channel = SupportService.watchMessages(id, _loadMessages);
       await _loadMessages();
+      final initial = widget.initialMessage?.trim();
+      if (!_initialMessageSent && initial != null && initial.isNotEmpty && !widget.isAdmin) {
+        _initialMessageSent = true;
+        try {
+          await SupportService.sendText(id, initial);
+          await _loadMessages();
+        } catch (_) {
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('ارسال درخواست انجام نشد؛ متن را در کادر پیام می‌توانید دوباره ارسال کنید.')),
+          );
+        }
+      }
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -113,6 +128,31 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
       }
     } finally {
       if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  Future<void> _sendAccountDeletionRequest() async {
+    if (widget.isAdmin || _conversationId == null || _sending) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('ثبت درخواست حذف حساب'),
+        content: const Text('پیام درخواست حذف حساب برای پشتیبانی ارسال شود؟ این کار حساب را فوراً حذف نمی‌کند و فقط درخواست بررسی را ثبت می‌کند.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('ارسال درخواست')),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    const request = 'درخواست رسمی حذف حساب کاربری هماگرام: لطفاً مالکیت حساب را بررسی کنید، مراحل حذف و پیامدهای آن را توضیح دهید و پس از احراز هویت، درخواست حذف اطلاعات قابل حذف را مطابق قوانین لازم‌الاجرا پیگیری کنید.';
+    try {
+      await SupportService.sendText(_conversationId!, request);
+      await _loadMessages();
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ثبت درخواست حذف حساب انجام نشد. دوباره تلاش کنید.')),
+      );
     }
   }
 
@@ -284,11 +324,22 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: colors.primary.withValues(alpha: .12)),
             ),
-            child: const Row(children: [
-              Icon(Icons.verified_user_outlined, size: 19),
-              SizedBox(width: 9),
-              Expanded(child: Text('پیام شما مستقیماً به تیم پشتیبانی هماگرام ارسال می‌شود.',
-                  style: TextStyle(fontSize: 12, height: 1.6))),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Row(children: [
+                Icon(Icons.verified_user_outlined, size: 19),
+                SizedBox(width: 9),
+                Expanded(child: Text('پیام شما مستقیماً به تیم پشتیبانی هماگرام ارسال می‌شود.',
+                    style: TextStyle(fontSize: 12, height: 1.6))),
+              ]),
+              const SizedBox(height: 5),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: _sendAccountDeletionRequest,
+                  icon: const Icon(Icons.person_remove_alt_1_rounded, size: 17),
+                  label: const Text('درخواست حذف حساب کاربری'),
+                ),
+              ),
             ]),
           ),
         Expanded(
