@@ -209,33 +209,37 @@ class _MessagingScreenState extends State<MessagingScreen> {
                 ),
             ]),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 2, 14, 8),
-            child: Row(children: [
-              Expanded(child: ChoiceChip(
-                selected: !_showArchived,
-                label: const Text('گفت‌وگوها'),
-                avatar: const Icon(Icons.forum_outlined, size: 17),
-                onSelected: (_) {
-                  if (_showArchived) setState(() => _showArchived = false);
-                  _load();
-                },
-              )),
-              const SizedBox(width: 8),
-              Expanded(child: ChoiceChip(
-                selected: _showArchived,
-                label: const Text('بایگانی‌شده‌ها'),
-                avatar: const Icon(Icons.archive_outlined, size: 17),
-                onSelected: (_) {
-                  if (!_showArchived) setState(() => _showArchived = true);
-                  _load();
-                },
-              )),
-            ]),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 240),
+            child: _showArchived
+                ? Padding(
+                    key: const ValueKey('archived-mode'),
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+                    child: Row(children: [
+                      const Icon(Icons.archive_rounded, size: 19),
+                      const SizedBox(width: 8),
+                      const Expanded(child: Text('گفت‌وگوهای بایگانی‌شده',
+                        style: TextStyle(fontWeight: FontWeight.w800))),
+                      TextButton.icon(
+                        onPressed: () {
+                          setState(() => _showArchived = false);
+                          _load();
+                        },
+                        icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                        label: const Text('بازگشت'),
+                      ),
+                    ]),
+                  )
+                : const SizedBox(key: ValueKey('active-inbox'), height: 2),
           ),
           Expanded(
             child: RefreshIndicator(
-              onRefresh: _load,
+              onRefresh: () async {
+                if (!_showArchived) {
+                  setState(() => _showArchived = true);
+                }
+                await _load();
+              },
               child: _loading
                   ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
                       SizedBox(height: 125),
