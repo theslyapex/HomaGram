@@ -1,6 +1,7 @@
 import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
 import 'public_profile_screen.dart';
@@ -20,7 +21,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   List<Map<String, dynamic>> _posts = [];
   List<Map<String, dynamic>> _users = [];
   List<String> _hashtags = [];
-  bool _loading = true, _searching = false, _popular = false, _reelsOnly = false;
+  bool _loading = true, _searching = false, _popular = false;
   String? _error;
 
   @override
@@ -46,7 +47,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
       var postQuery = client.from('posts').select(
         'id,author_id,author_username,author_display_name,caption,media_path,media_type,cover_path,created_at,is_reel'
       ).eq('is_public', true);
-      if (_reelsOnly) postQuery = postQuery.eq('is_reel', true);
       if (query.isNotEmpty) {
         final hashtag = query.startsWith('#') ? query.substring(1) : query;
         postQuery = postQuery.ilike('caption', query.startsWith('#') ? '%#$hashtag%' : '%$query%');
@@ -147,12 +147,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
               const SizedBox(width: 8),
               ChoiceChip(label: const Text('محبوب‌ترین'), selected: _popular,
                 onSelected: (_) { setState(() => _popular = true); _load(); }),
-              const SizedBox(width: 8),
-              ChoiceChip(label: const Text('همه محتوا'), selected: !_reelsOnly,
-                onSelected: (_) { setState(() => _reelsOnly = false); _load(); }),
-              const SizedBox(width: 8),
-              ChoiceChip(label: const Text('ریلز'), selected: _reelsOnly,
-                onSelected: (_) { setState(() => _reelsOnly = true); _load(); }),
             ],
           ),
         ),
@@ -243,9 +237,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     final caption = (post['caption'] as String? ?? '').trim();
     return GestureDetector(
       onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-        builder: (_) => post['media_type'] == 'video'
-            ? ReelsScreen(initialReelId: post['id'] as String)
-            : SharedPostScreen(postId: post['id'] as String))),
+        builder: (_) => _ExplorePostViewer(posts: _posts, initialIndex: _posts.indexOf(post)))),
       child: Stack(fit: StackFit.expand, children: [
         if (mediaUrl != null)
           Image.network(mediaUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _textTile(caption))
@@ -274,4 +266,167 @@ class _ExploreScreenState extends State<ExploreScreen> {
       overflow: TextOverflow.ellipsis, textAlign: TextAlign.center,
       style: const TextStyle(color: Colors.white, fontSize: 10, height: 1.5)),
   );
+}
+
+
+class _ExplorePostViewer extends StatefulWidget {
+  const _ExplorePostViewer({required this.posts, required this.initialIndex});
+  final List<Map<String, dynamic>> posts;
+  final int initialIndex;
+
+  @override
+  State<_ExplorePostViewer> createState() => _ExplorePostViewerState();
+}
+
+class _ExplorePostViewerState extends State<_ExplorePostViewer> {
+  late final PageController _controller = PageController(initialPage: widget.initialIndex);
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: Colors.black,
+    body: Stack(children: [
+      PageView.builder(
+        controller: _controller,
+        scrollDirection: Axis.vertical,
+        itemCount: widget.posts.length,
+        itemBuilder: (context, index) => _ExplorePostPage(
+          key: ValueKey(widget.posts[index]['id']),
+          post: widget.posts[index],
+        ),
+      ),
+      SafeArea(
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: IconButton(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+              style: IconButton.styleFrom(backgroundColor: Colors.black45),
+            ),
+          ),
+        ),
+      ),
+      SafeArea(
+        child: Align(
+          alignment: Alignment.topRight,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 18, 16, 0),
+            child: Text('کشف', style: const TextStyle(
+              color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800,
+              shadows: [Shadow(color: Colors.black87, blurRadius: 8)],
+            )),
+          ),
+        ),
+      ),
+    ]),
+  );
+}
+
+class _ExplorePostPage extends StatefulWidget {
+  const _ExplorePostPage({super.key, required this.post});
+  final Map<String, dynamic> post;
+
+  @override
+  State<_ExplorePostPage> createState() => _ExplorePostPageState();
+}
+
+class _ExplorePostPageState extends State<_ExplorePostPage> {
+  VideoPlayerController? _video;
+  bool _videoReady = false;
+  bool _muted = true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.post['media_type'] == 'video' && widget.post['media_url'] is String) {
+      _video = VideoPlayerController.networkUrl(Uri.parse(widget.post['media_url'] as String))
+        ..setLooping(true)
+        ..setVolume(0)
+        ..initialize().then((_) {
+          if (!mounted) return;
+          setState(() => _videoReady = true);
+          _video?.play();
+        }).catchError((_) {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _video?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final post = widget.post;
+    final isVideo = post['media_type'] == 'video';
+    final mediaUrl = (post['media_url'] as String?) ?? (post['cover_url'] as String?);
+    final author = (post['author_display_name'] as String?)?.trim();
+    final username = post['author_username'] as String? ?? '';
+    final caption = post['caption'] as String? ?? '';
+    return Stack(fit: StackFit.expand, children: [
+      const ColoredBox(color: Colors.black),
+      if (isVideo && _videoReady && _video != null)
+        Center(child: AspectRatio(
+          aspectRatio: _video!.value.aspectRatio,
+          child: VideoPlayer(_video!),
+        ))
+      else if (mediaUrl != null)
+        Center(child: Image.network(mediaUrl, fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported_outlined,
+            color: Colors.white54, size: 54)))
+      else
+        Center(child: Padding(
+          padding: const EdgeInsets.all(30),
+          child: Text(caption.isEmpty ? 'HomaGram' : caption,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white, fontSize: 22)),
+        )),
+      if (isVideo)
+        Positioned(
+          right: 18, bottom: 170,
+          child: Column(children: [
+            IconButton(
+              onPressed: () {
+                if (_video == null || !_videoReady) return;
+                setState(() {
+                  _video!.value.isPlaying ? _video!.pause() : _video!.play();
+                });
+              },
+              icon: Icon((_video?.value.isPlaying ?? false)
+                ? Icons.pause_circle_filled_rounded : Icons.play_circle_fill_rounded,
+                color: Colors.white, size: 38),
+            ),
+            IconButton(
+              onPressed: () {
+                setState(() => _muted = !_muted);
+                _video?.setVolume(_muted ? 0 : 1);
+              },
+              icon: Icon(_muted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                color: Colors.white),
+            ),
+          ]),
+        ),
+      Positioned(
+        left: 18, right: 72, bottom: 34,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(author?.isNotEmpty == true ? author! : '@$username',
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16)),
+          if (caption.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(caption, maxLines: 5, overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.5)),
+          ],
+        ]),
+      ),
+      if (isVideo && !_videoReady)
+        const Center(child: CircularProgressIndicator(color: Colors.white)),
+    ]);
+  }
 }
