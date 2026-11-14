@@ -1,3 +1,4 @@
+import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
@@ -265,11 +266,11 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
         ]),
         actions: [
           if (widget.isAdmin)
-            IconButton(
+            HomaGramSpringPress(child: IconButton(
               tooltip: _status == 'open' ? 'بستن درخواست' : 'بازگشایی درخواست',
               onPressed: _toggleStatus,
               icon: Icon(_status == 'open' ? Icons.lock_outline_rounded : Icons.lock_open_rounded),
-            ),
+            )),
         ],
       ),
       body: Column(children: [
@@ -296,7 +297,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
               : _error != null
                   ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                       Text(_error!),
-                      TextButton(onPressed: _loadMessages, child: const Text('تلاش دوباره')),
+                      HomaGramSpringPress(child: TextButton(onPressed: _loadMessages, child: const Text('تلاش دوباره'))),
                     ]))
                   : _messages.isEmpty
                       ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
@@ -378,11 +379,11 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
               child: Row(children: [
-                IconButton(
+                HomaGramSpringPress(child: IconButton(
                   onPressed: _sending ? null : _pickAttachment,
                   icon: const Icon(Icons.add_circle_outline_rounded),
                   tooltip: 'افزودن فایل یا تصویر',
-                ),
+                )),
                 Expanded(
                   child: TextField(
                     controller: _controller,
@@ -401,12 +402,12 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                   ),
                 ),
                 const SizedBox(width: 6),
-                IconButton.filled(
+                HomaGramSpringPress(child: IconButton.filled(
                   onPressed: _sending ? null : _sendText,
                   icon: _sending
                       ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.send_rounded),
-                ),
+                )),
               ]),
             ),
           ),
