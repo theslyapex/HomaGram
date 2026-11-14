@@ -2038,6 +2038,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   bool _advancing = false;
   bool _routeVisible = true;
   double _horizontalDragDistance = 0;
+  final Stopwatch _storyWatch = Stopwatch();
 
   Map<String, dynamic> get _story => widget.stories[_index];
   bool get _isMine => _story['author_id'] == AuthService.client.auth.currentUser?.id;
@@ -2066,6 +2067,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
 
   @override
   void dispose() {
+    _flushStoryWatch();
     WidgetsBinding.instance.removeObserver(this);
     _progress.dispose();
     super.dispose();
@@ -2102,6 +2104,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   void _nextStory() {
     if (!mounted || _advancing) return;
     _advancing = true;
+    _flushStoryWatch();
     if (_index < widget.stories.length - 1) {
       _progress.stop();
       setState(() {
@@ -2119,6 +2122,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   void _previousStory() {
     if (!mounted) return;
     if (_index > 0) {
+      _flushStoryWatch();
       _progress.stop();
       setState(() {
         _index--;
@@ -2165,14 +2169,34 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     setState(() => _paused = shouldPause);
     if (shouldPause) {
       _progress.stop();
-    } else if (_story['media_type'] != 'video') {
-      _progress.forward();
+      if (_storyWatch.isRunning) _storyWatch.stop();
+    } else {
+      if (!_isMine && _storyWatch.elapsed > Duration.zero) _storyWatch.start();
+      if (_story['media_type'] != 'video') _progress.forward();
     }
   }
 
   Future<void> _markViewed() async {
     if (_isMine) return;
-    try { await StoryService.recordView(_story['id'] as String); } catch (_) {}
+    final storyId = _story['id'] as String;
+    _storyWatch
+      ..stop()
+      ..reset();
+    try {
+      await StoryService.recordView(storyId);
+      if (mounted && _story['id'] == storyId && !_paused) _storyWatch.start();
+    } catch (_) {}
+  }
+
+  void _flushStoryWatch() {
+    if (_isMine) return;
+    if (_storyWatch.isRunning) _storyWatch.stop();
+    final storyId = _story['id'] as String;
+    final seconds = _storyWatch.elapsed.inSeconds;
+    _storyWatch.reset();
+    if (seconds > 0) {
+      unawaited(StoryService.recordViewDuration(storyId, seconds).catchError((_) => 0));
+    }
   }
 
   Future<void> _votePoll(int optionIndex) async {
@@ -2294,33 +2318,103 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     }
   }
 
+  String _formatWatchTime(int seconds) {
+    if (seconds < 60) return '${seconds} ثانیه';
+    final minutes = seconds ~/ 60;
+    final remainder = seconds % 60;
+    return remainder == 0 ? '${minutes} دقیقه' : '${minutes} دقیقه و ${remainder} ثانیه';
+  }
+
   Future<void> _showViewers() async {
     try {
-      final viewers = await StoryService.loadViewers(_story['id'] as String);
+      final analytics = await StoryService.loadStoryAnalytics(_story['id'] as String);
       if (!mounted) return;
+      final viewers = (analytics['viewers'] as List)
+          .map((item) => Map<String, dynamic>.from(item as Map)).toList();
+      final reactionCounts = Map<String, int>.from(analytics['reaction_counts'] as Map);
       showModalBottomSheet<void>(
         context: context, showDragHandle: true, isScrollControlled: true,
         builder: (ctx) => SafeArea(
           child: SizedBox(
-            height: 360,
+            height: MediaQuery.of(ctx).size.height * .78,
             child: Column(children: [
-              Padding(padding: const EdgeInsets.all(16),
-                child: Text('بازدیدکنندگان • ${viewers.length}', style: const TextStyle(fontWeight: FontWeight.w800))),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                child: Column(children: [
+                  const Text('آمار و تحلیل استوری', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 12),
+                  Row(children: [
+                    _analyticsMetric('بازدید', '${analytics['view_count']}', Icons.visibility_outlined),
+                    const SizedBox(width: 8),
+                    _analyticsMetric('واکنش', '${analytics['reaction_count']}', Icons.favorite_border_rounded),
+                    const SizedBox(width: 8),
+                    _analyticsMetric('میانگین تماشا', _formatWatchTime(analytics['average_watch_seconds'] as int), Icons.timer_outlined),
+                  ]),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text('مجموع زمان تماشا: ${_formatWatchTime(analytics['total_watch_seconds'] as int)}',
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                  ),
+                  if (reactionCounts.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Wrap(spacing: 8, children: reactionCounts.entries.map((entry) =>
+                      Chip(visualDensity: VisualDensity.compact, label: Text('${entry.key}  ${entry.value}'))
+                    ).toList()),
+                  ],
+                  const Divider(height: 18),
+                  Align(alignment: Alignment.centerRight,
+                    child: Text('فهرست بازدیدکنندگان • ${viewers.length}',
+                      style: const TextStyle(fontWeight: FontWeight.w800))),
+                ]),
+              ),
               Expanded(child: viewers.isEmpty
                   ? const Center(child: Text('هنوز بازدیدی ثبت نشده است.'))
-                  : ListView.builder(itemCount: viewers.length, itemBuilder: (_, i) => ListTile(
-                      leading: const CircleAvatar(child: Icon(Icons.person_outline)),
-                      title: Text(viewers[i]['display_name'] as String),
-                      subtitle: Text('@${viewers[i]['username']}${viewers[i]['reaction'] == null ? '' : ' • واکنش ${viewers[i]['reaction']}'}'),
-                    ))),
+                  : ListView.separated(
+                      itemCount: viewers.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
+                      itemBuilder: (_, i) {
+                        final viewer = viewers[i];
+                        final viewedAt = DateTime.tryParse(viewer['viewed_at']?.toString() ?? '')?.toLocal();
+                        final time = viewedAt == null ? 'زمان نامشخص' :
+                          '${viewedAt.hour.toString().padLeft(2, '0')}:${viewedAt.minute.toString().padLeft(2, '0')}';
+                        final reaction = viewer['reaction'];
+                        final watch = (viewer['duration_seconds'] as num?)?.toInt() ?? 0;
+                        return ListTile(
+                          leading: const CircleAvatar(child: Icon(Icons.person_outline)),
+                          title: Text(viewer['display_name'] as String),
+                          subtitle: Text('@${viewer['username']} • ${time} • تماشا: ${_formatWatchTime(watch)}${reaction == null ? '' : ' • ${reaction}'}'),
+                          isThreeLine: true,
+                        );
+                      },
+                    )),
             ]),
           ),
         ),
       );
     } catch (_) {
-      if (mounted) _notice('فهرست بازدیدکنندگان بارگذاری نشد.', error: true);
+      if (mounted) _notice('آمار استوری بارگذاری نشد.', error: true);
     }
   }
+
+  Widget _analyticsMetric(String label, String value, IconData icon) => Expanded(
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 11),
+      decoration: BoxDecoration(
+        color: HomaGramTheme.turquoise.withValues(alpha: .09),
+        borderRadius: BorderRadius.circular(13),
+        border: Border.all(color: HomaGramTheme.turquoise.withValues(alpha: .2)),
+      ),
+      child: Column(children: [
+        Icon(icon, size: 17, color: HomaGramTheme.turquoise),
+        const SizedBox(height: 5),
+        Text(value, maxLines: 1, overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 2),
+        Text(label, maxLines: 1, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+      ]),
+    ),
+  );
 
   Future<void> _delete() async {
     final yes = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
