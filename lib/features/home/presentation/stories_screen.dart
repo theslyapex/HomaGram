@@ -58,11 +58,23 @@ class StoryTextStoryView extends StatelessWidget {
 
 
 
+String? _storyOverlayFont(String? value) {
+  switch (value) {
+    case 'serif': return 'serif';
+    case 'mono': return 'monospace';
+    default: return null;
+  }
+}
+
 Color storyOverlayColor(String? value) {
   const colors = {
     '#FFFFFF': Color(0xFFFFFFFF),
     '#111827': Color(0xFF111827),
     '#FFE082': Color(0xFFFFE082),
+    '#FF6B6B': Color(0xFFFF6B6B),
+    '#45D6C5': Color(0xFF45D6C5),
+    '#A78BFA': Color(0xFFA78BFA),
+    '#F9A8D4': Color(0xFFF9A8D4),
   };
   return colors[value] ?? Colors.white;
 }
@@ -101,6 +113,7 @@ class _StoryOverlayTextView extends StatelessWidget {
                 style: TextStyle(
                   color: storyOverlayColor(story['overlay_color'] as String?),
                   fontSize: 24,
+                  fontFamily: _storyOverlayFont(story['overlay_font'] as String?),
                   height: 1.35,
                   fontWeight: FontWeight.w800,
                   shadows: const [Shadow(color: Colors.black54, blurRadius: 8)],
@@ -334,6 +347,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   double _overlayScale = 1.0;
   double _overlayStartScale = 1.0;
   String _overlayColor = '#FFFFFF';
+  String _overlayFont = 'estedad';
   bool _busy = false;
 
   @override
@@ -419,6 +433,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           overlayY: _overlayY,
           overlayScale: _overlayScale,
           overlayColor: _overlayColor,
+          overlayFont: _overlayFont,
         );
       }
       if (!mounted) return;
@@ -512,6 +527,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                                 style: TextStyle(
                                   color: storyOverlayColor(_overlayColor),
                                   fontSize: 24,
+                                  fontFamily: _storyOverlayFont(_overlayFont),
                                   height: 1.35,
                                   fontWeight: FontWeight.w800,
                                   shadows: const [Shadow(color: Colors.black54, blurRadius: 8)],
@@ -606,6 +622,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               ('#FFFFFF', Color(0xFFFFFFFF)),
               ('#111827', Color(0xFF111827)),
               ('#FFE082', Color(0xFFFFE082)),
+              ('#FF6B6B', Color(0xFFFF6B6B)),
+              ('#45D6C5', Color(0xFF45D6C5)),
+              ('#A78BFA', Color(0xFFA78BFA)),
+              ('#F9A8D4', Color(0xFFF9A8D4)),
             ].map((entry) => InkWell(
               onTap: _busy ? null : () => setState(() => _overlayColor = entry.$1),
               borderRadius: BorderRadius.circular(30),
@@ -623,6 +643,18 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               ),
             )).toList(),
           ),
+          const SizedBox(height: 12),
+          Text('قلم متن', style: Theme.of(context).textTheme.labelMedium),
+          const SizedBox(height: 7),
+          Wrap(spacing: 8, children: [
+            ('estedad', 'پیش‌فرض'),
+            ('serif', 'کلاسیک'),
+            ('mono', 'فنی'),
+          ].map((item) => ChoiceChip(
+            label: Text(item.$2, style: TextStyle(fontFamily: _storyOverlayFont(item.$1))),
+            selected: _overlayFont == item.$1,
+            onSelected: _busy ? null : (_) => setState(() => _overlayFont = item.$1),
+          )).toList()),
           const SizedBox(height: 8),
           const Text('برای جابه‌جایی، متن را روی پیش‌نمایش بکشید؛ برای تغییر اندازه از دو انگشت استفاده کنید.',
             style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4))),
