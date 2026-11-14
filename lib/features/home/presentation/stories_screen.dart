@@ -250,13 +250,14 @@ class _StoryStickerView extends StatelessWidget {
 class _TransformableStoryElement extends StatefulWidget {
   const _TransformableStoryElement({
     required this.layout, required this.child, this.editing = false,
-    this.selected = false, this.onChanged,
+    this.selected = false, this.onChanged, this.onSelected,
   });
   final Map<String, double> layout;
   final Widget child;
   final bool editing;
   final bool selected;
   final ValueChanged<Map<String, double>>? onChanged;
+  final VoidCallback? onSelected;
   @override
   State<_TransformableStoryElement> createState() => _TransformableStoryElementState();
 }
@@ -286,6 +287,7 @@ class _TransformableStoryElementState extends State<_TransformableStoryElement> 
         if (widget.editing) {
           element = GestureDetector(
             behavior: HitTestBehavior.translucent,
+            onTap: widget.onSelected,
             onScaleStart: (_) { _startScale = scale; _startRotation = rotation; },
             onScaleUpdate: (details) => widget.onChanged?.call({
               'x': (x + details.focalPointDelta.dx / size.width).clamp(.03, .97).toDouble(),
@@ -631,11 +633,15 @@ class _StoryStickerLayer extends StatelessWidget {
   const _StoryStickerLayer({
     required this.stickers,
     this.onChanged,
+    this.onSelect,
+    this.selectedIndex,
     this.interactive = false,
   });
 
   final List<Map<String, dynamic>> stickers;
   final ValueChanged<List<Map<String, dynamic>>>? onChanged;
+  final ValueChanged<int>? onSelect;
+  final int? selectedIndex;
   final bool interactive;
 
   @override
@@ -686,6 +692,7 @@ class _StoryStickerLayer extends StatelessWidget {
     if (interactive && onChanged != null) {
       child = GestureDetector(
         behavior: HitTestBehavior.translucent,
+        onTap: () => onSelect?.call(index),
         onScaleStart: (_) {
           startScale = scale;
           startRotation = rotation;
@@ -704,6 +711,15 @@ class _StoryStickerLayer extends StatelessWidget {
           onChanged!(next);
         },
         child: child,
+      );
+    }
+    if (interactive && selectedIndex == index) {
+      child = DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border.all(color: const Color(0xFF62E5D0), width: 2),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Padding(padding: const EdgeInsets.all(4), child: child),
       );
     }
 
@@ -983,6 +999,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     'countdown': {'x': .5, 'y': .38, 'scale': 1, 'rotation': 0},
   };
   String? _selectedWidget;
+  int? _selectedStickerIndex;
   File? _musicFile;
   String? _musicFileName;
   String? _musicMimeType;
@@ -1265,6 +1282,59 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   void _updateWidgetTransform(String key, Map<String, double> value) {
     setState(() { _widgetLayout[key] = value; _selectedWidget = key; });
   }
+
+  void _adjustSelectedStoryElement({
+    double scaleDelta = 0,
+    double rotationDelta = 0,
+    bool reset = false,
+    bool delete = false,
+  }) {
+    final widgetKey = _selectedWidget;
+    final stickerIndex = _selectedStickerIndex;
+    if (widgetKey == null && stickerIndex == null) return;
+    setState(() {
+      if (widgetKey != null) {
+        final layout = _widgetTransform(widgetKey);
+        if (delete) {
+          switch (widgetKey) {
+            case 'text':
+              _overlayText.clear();
+            case 'poll':
+              _pollEnabled = false;
+            case 'question':
+              _questionBoxEnabled = false;
+            case 'countdown':
+              _countdownEnabled = false;
+          }
+          _selectedWidget = null;
+          return;
+        }
+        _widgetLayout[widgetKey] = reset
+            ? {'x': .5, 'y': .5, 'scale': 1, 'rotation': 0}
+            : {
+                ...layout,
+                'scale': (layout['scale']! + scaleDelta).clamp(.55, 2.2),
+                'rotation': (layout['rotation']! + rotationDelta).clamp(-3.14, 3.14),
+              };
+      } else if (stickerIndex != null && stickerIndex < _stickers.length) {
+        if (delete) {
+          _stickers.removeAt(stickerIndex);
+          _selectedStickerIndex = null;
+          return;
+        }
+        final sticker = _stickers[stickerIndex];
+        sticker['scale'] = reset ? 1.0 :
+            (((sticker['scale'] as num?)?.toDouble() ?? 1) + scaleDelta).clamp(.5, 3);
+        sticker['rotation'] = reset ? 0.0 :
+            (((sticker['rotation'] as num?)?.toDouble() ?? 0) + rotationDelta).clamp(-3.14, 3.14);
+        if (reset) {
+          sticker['x'] = .5;
+          sticker['y'] = .5;
+        }
+      }
+    });
+  }
+
 
   Future<void> _saveDraft() async {
     if (_busy) return;
@@ -1656,6 +1726,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                       _TransformableStoryElement(
                         layout: _widgetTransform('poll'), editing: true,
                         selected: _selectedWidget == 'poll',
+                        onSelected: () => setState(() {
+                          _selectedWidget = 'poll';
+                          _selectedStickerIndex = null;
+                        }),
                         onChanged: (value) => _updateWidgetTransform('poll', value),
                         child: _StoryPollCard(
                           poll: {
@@ -1669,6 +1743,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                       _TransformableStoryElement(
                         layout: _widgetTransform('question'), editing: true,
                         selected: _selectedWidget == 'question',
+                        onSelected: () => setState(() {
+                          _selectedWidget = 'question';
+                          _selectedStickerIndex = null;
+                        }),
                         onChanged: (value) => _updateWidgetTransform('question', value),
                         child: _StoryQuestionBoxCard(
                           question: {'prompt': _questionBoxPrompt.text.trim().isEmpty ? 'باکس پرسش' : _questionBoxPrompt.text.trim(), 'response_count': 0},
@@ -1679,6 +1757,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                       _TransformableStoryElement(
                         layout: _widgetTransform('countdown'), editing: true,
                         selected: _selectedWidget == 'countdown',
+                        onSelected: () => setState(() {
+                          _selectedWidget = 'countdown';
+                          _selectedStickerIndex = null;
+                        }),
                         onChanged: (value) => _updateWidgetTransform('countdown', value),
                         child: _StoryCountdownCard(
                           countdown: {
@@ -1691,6 +1773,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                       Positioned.fill(child: _StoryStickerLayer(
                         stickers: _stickers,
                         interactive: true,
+                        selectedIndex: _selectedStickerIndex,
+                        onSelect: (index) => setState(() {
+                          _selectedStickerIndex = index;
+                          _selectedWidget = null;
+                        }),
                         onChanged: (value) => setState(() { _stickers..clear()..addAll(value); }),
                       )),
                     if (_drawingStrokes.isNotEmpty)
@@ -1708,6 +1795,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                       _TransformableStoryElement(
                         layout: _widgetTransform('text'), editing: true,
                         selected: _selectedWidget == 'text',
+                        onSelected: () => setState(() {
+                          _selectedWidget = 'text';
+                          _selectedStickerIndex = null;
+                        }),
                         onChanged: (value) {
                           _updateWidgetTransform('text', value);
                           _overlayX = value['x']!;
@@ -1736,6 +1827,47 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                   ],
                 ),
               ),
+            ),
+          ),
+        if (_selectedWidget != null || _selectedStickerIndex != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                IconButton.filledTonal(
+                  tooltip: 'کوچک‌تر',
+                  onPressed: () => _adjustSelectedStoryElement(scaleDelta: -.1),
+                  icon: const Icon(Icons.remove),
+                ),
+                IconButton.filledTonal(
+                  tooltip: 'بزرگ‌تر',
+                  onPressed: () => _adjustSelectedStoryElement(scaleDelta: .1),
+                  icon: const Icon(Icons.add),
+                ),
+                IconButton.filledTonal(
+                  tooltip: 'چرخش به چپ',
+                  onPressed: () => _adjustSelectedStoryElement(rotationDelta: -.12),
+                  icon: const Icon(Icons.rotate_left_rounded),
+                ),
+                IconButton.filledTonal(
+                  tooltip: 'چرخش به راست',
+                  onPressed: () => _adjustSelectedStoryElement(rotationDelta: .12),
+                  icon: const Icon(Icons.rotate_right_rounded),
+                ),
+                IconButton.filledTonal(
+                  tooltip: 'بازنشانی جایگاه و اندازه',
+                  onPressed: () => _adjustSelectedStoryElement(reset: true),
+                  icon: const Icon(Icons.restart_alt_rounded),
+                ),
+                IconButton.filledTonal(
+                  tooltip: 'حذف عنصر انتخاب‌شده',
+                  onPressed: () => _adjustSelectedStoryElement(delete: true),
+                  icon: const Icon(Icons.delete_outline_rounded),
+                ),
+              ],
             ),
           ),
         const SizedBox(height: 14),
