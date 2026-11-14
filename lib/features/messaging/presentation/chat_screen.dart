@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
@@ -501,10 +502,239 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (_) {}
   }
 
+
+  Future<void> _manageChannelInvites(String conversationId) async {
+    var invites = <Map<String, dynamic>>[];
+    var loading = true;
+    String? loadError;
+
+    try {
+      invites = await MessagingService.loadChannelInvites(conversationId);
+      loading = false;
+    } catch (_) {
+      loading = false;
+      loadError = 'دریافت کدهای دعوت ممکن نشد.';
+    }
+    if (!mounted) return;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) {
+          Future<void> reload() async {
+            setSheetState(() { loading = true; loadError = null; });
+            try {
+              final rows = await MessagingService.loadChannelInvites(conversationId);
+              if (!sheetContext.mounted) return;
+              setSheetState(() { invites = rows; loading = false; });
+            } catch (_) {
+              if (!sheetContext.mounted) return;
+              setSheetState(() { loading = false; loadError = 'به‌روزرسانی فهرست ممکن نشد.'; });
+            }
+          }
+
+          Future<void> createInvite() async {
+            final expiryController = TextEditingController(text: '168');
+            final usesController = TextEditingController(text: '100');
+            final formKey = GlobalKey<FormState>();
+            final values = await showDialog<List<int>>(
+              context: sheetContext,
+              builder: (dialogContext) => AlertDialog(
+                title: const Text('ساخت کد دعوت جدید'),
+                content: Form(
+                  key: formKey,
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    TextFormField(
+                      controller: expiryController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'اعتبار به ساعت (۱ تا ۷۲۰)'),
+                      validator: (value) {
+                        final number = int.tryParse(value ?? '');
+                        return number == null || number < 1 || number > 720
+                            ? 'عدد باید بین ۱ تا ۷۲۰ باشد.' : null;
+                      },
+                    ),
+                    TextFormField(
+                      controller: usesController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'حداکثر دفعات استفاده (۱ تا ۵۰۰)'),
+                      validator: (value) {
+                        final number = int.tryParse(value ?? '');
+                        return number == null || number < 1 || number > 500
+                            ? 'عدد باید بین ۱ تا ۵۰۰ باشد.' : null;
+                      },
+                    ),
+                  ]),
+                ),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+                  FilledButton(
+                    onPressed: () {
+                      if (formKey.currentState!.validate()) {
+                        Navigator.pop(dialogContext, [
+                          int.parse(expiryController.text),
+                          int.parse(usesController.text),
+                        ]);
+                      }
+                    },
+                    child: const Text('ساخت کد'),
+                  ),
+                ],
+              ),
+            );
+            expiryController.dispose();
+            usesController.dispose();
+            if (values == null || !sheetContext.mounted) return;
+
+            try {
+              final token = await MessagingService.createChannelInvite(
+                conversationId,
+                expiresInHours: values[0],
+                maxUses: values[1],
+              );
+              if (!sheetContext.mounted) return;
+              await showDialog<void>(
+                context: sheetContext,
+                builder: (dialogContext) => AlertDialog(
+                  title: const Text('کد دعوت آماده است'),
+                  content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Text('این کد فقط همین بار نمایش داده می‌شود. آن را در جای امن نگه دارید و برای افراد موردنظر بفرستید.'),
+                    const SizedBox(height: 12),
+                    SelectableText(token, textDirection: TextDirection.ltr,
+                      style: const TextStyle(fontFamily: 'monospace', fontSize: 12, fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 12),
+                    SizedBox(width: double.infinity, child: OutlinedButton.icon(
+                      onPressed: () async {
+                        await Clipboard.setData(ClipboardData(text: token));
+                        if (dialogContext.mounted) {
+                          ScaffoldMessenger.of(dialogContext).showSnackBar(
+                            const SnackBar(content: Text('کد دعوت کپی شد.')),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.copy_rounded),
+                      label: const Text('کپی کد'),
+                    )),
+                  ]),
+                  actions: [
+                    FilledButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('بستن')),
+                  ],
+                ),
+              );
+              await reload();
+            } catch (_) {
+              if (sheetContext.mounted) {
+                ScaffoldMessenger.of(sheetContext).showSnackBar(
+                  const SnackBar(content: Text('ساخت کد دعوت انجام نشد.')),
+                );
+              }
+            }
+          }
+
+          Future<void> revokeInvite(String inviteId) async {
+            final confirmed = await showDialog<bool>(
+              context: sheetContext,
+              builder: (dialogContext) => AlertDialog(
+                title: const Text('غیرفعال‌سازی کد دعوت'),
+                content: const Text('با این کار، کد دیگر برای عضویت قابل استفاده نخواهد بود.'),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('انصراف')),
+                  FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('غیرفعال کن')),
+                ],
+              ),
+            );
+            if (confirmed != true || !sheetContext.mounted) return;
+            try {
+              await MessagingService.revokeChannelInvite(inviteId);
+              await reload();
+            } catch (_) {
+              if (sheetContext.mounted) {
+                ScaffoldMessenger.of(sheetContext).showSnackBar(
+                  const SnackBar(content: Text('غیرفعال‌سازی کد انجام نشد.')),
+                );
+              }
+            }
+          }
+
+          String statusLabel(String status) => switch (status) {
+            'active' => 'فعال',
+            'revoked' => 'غیرفعال‌شده',
+            'expired' => 'منقضی‌شده',
+            'exhausted' => 'ظرفیت تکمیل',
+            _ => 'نامشخص',
+          };
+
+          return SizedBox(
+            height: MediaQuery.sizeOf(sheetContext).height * .72,
+            child: Column(children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(18, 4, 18, 12),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Text('مدیریت کدهای دعوت', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: SizedBox(width: double.infinity, child: FilledButton.icon(
+                  onPressed: createInvite,
+                  icon: const Icon(Icons.add_link_rounded),
+                  label: const Text('ساخت یا تمدید کد دعوت'),
+                )),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : loadError != null
+                        ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                            Text(loadError!),
+                            TextButton(onPressed: reload, child: const Text('تلاش دوباره')),
+                          ]))
+                        : invites.isEmpty
+                            ? const Center(child: Text('هنوز کد دعوتی ساخته نشده است.'))
+                            : ListView.separated(
+                                itemCount: invites.length,
+                                separatorBuilder: (_, __) => const Divider(height: 1),
+                                itemBuilder: (ctx, index) {
+                                  final invite = invites[index];
+                                  final status = invite['invite_status'] as String? ?? '';
+                                  final expires = DateTime.tryParse(invite['expires_at'] as String? ?? '');
+                                  final expiryText = expires == null
+                                      ? 'زمان انقضا نامشخص'
+                                      : 'انقضا: ${expires.toLocal().toString().substring(0, 16)}';
+                                  return ListTile(
+                                    leading: Icon(
+                                      status == 'active' ? Icons.key_rounded : Icons.key_off_rounded,
+                                      color: status == 'active' ? Theme.of(ctx).colorScheme.primary : Theme.of(ctx).colorScheme.onSurfaceVariant,
+                                    ),
+                                    title: Text(statusLabel(status), style: const TextStyle(fontWeight: FontWeight.w800)),
+                                    subtitle: Text('${invite['use_count']} از ${invite['max_uses']} استفاده • $expiryText'),
+                                    trailing: status == 'active'
+                                        ? IconButton(
+                                            tooltip: 'غیرفعال‌سازی',
+                                            onPressed: () => revokeInvite(invite['id'] as String),
+                                            icon: const Icon(Icons.block_rounded),
+                                          )
+                                        : null,
+                                  );
+                                },
+                              ),
+              ),
+            ]),
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> _showConversationInfo() async {
     try {
       final info = await Supabase.instance.client.from('conversations')
-          .select('kind,title,channels(slug,description)')
+          .select('kind,title,channels(slug,description,is_public)')
           .eq('id', widget.conversationId).single();
       var members = await MessagingService.loadConversationMembers(widget.conversationId);
       if (!mounted) return;
@@ -595,6 +825,12 @@ class _ChatScreenState extends State<ChatScreen> {
                         if (mounted) setState(() {});
                         if (sheetContext.mounted) Navigator.pop(sheetContext);
                       },
+                    ),
+                  if (isChannel && canManage && channelData['is_public'] == false)
+                    IconButton(
+                      tooltip: 'مدیریت کدهای دعوت',
+                      icon: const Icon(Icons.key_rounded),
+                      onPressed: () => _manageChannelInvites(widget.conversationId),
                     ),
                   if ((isGroup || isChannel) && canManage)
                     IconButton(
