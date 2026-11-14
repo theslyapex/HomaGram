@@ -270,45 +270,49 @@ class _TransformableStoryElementState extends State<_TransformableStoryElement> 
     _startRotation = widget.layout['rotation'] ?? 0;
   }
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, box) {
-      final size = box.biggest;
-      final x = (widget.layout['x'] ?? .5).clamp(.03, .97).toDouble();
-      final y = (widget.layout['y'] ?? .5).clamp(.05, .95).toDouble();
-      final scale = (widget.layout['scale'] ?? 1).clamp(.55, 2.2).toDouble();
-      final rotation = (widget.layout['rotation'] ?? 0).clamp(-3.14, 3.14).toDouble();
-      Widget element = ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: size.width * .82, maxHeight: size.height * .58),
-        child: widget.child,
-      );
-      if (widget.editing) {
-        element = GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onScaleStart: (_) { _startScale = scale; _startRotation = rotation; },
-          onScaleUpdate: (details) => widget.onChanged?.call({
-            'x': (x + details.focalPointDelta.dx / size.width).clamp(.03, .97).toDouble(),
-            'y': (y + details.focalPointDelta.dy / size.height).clamp(.05, .95).toDouble(),
-            'scale': (_startScale * details.scale).clamp(.55, 2.2).toDouble(),
-            'rotation': (_startRotation + details.rotation).clamp(-3.14, 3.14).toDouble(),
-          }),
-          child: element,
+  Widget build(BuildContext context) => Positioned.fill(
+    child: LayoutBuilder(
+      builder: (context, box) {
+        final size = box.biggest;
+        final x = (widget.layout['x'] ?? .5).clamp(.03, .97).toDouble();
+        final y = (widget.layout['y'] ?? .5).clamp(.05, .95).toDouble();
+        final scale = (widget.layout['scale'] ?? 1).clamp(.55, 2.2).toDouble();
+        final rotation = (widget.layout['rotation'] ?? 0).clamp(-3.14, 3.14).toDouble();
+        Widget element = ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: size.width * .82, maxHeight: size.height * .58),
+          child: widget.child,
         );
-      }
-      if (widget.editing && widget.selected) {
-        element = DecoratedBox(
-          decoration: BoxDecoration(border: Border.all(color: const Color(0xFF62E5D0), width: 1.5), borderRadius: BorderRadius.circular(20)),
-          child: Padding(padding: const EdgeInsets.all(3), child: element),
-        );
-      }
-      return Positioned(
-        left: x * size.width, top: y * size.height,
-        child: FractionalTranslation(
-          translation: const Offset(-.5, -.5),
-          child: Transform.rotate(angle: rotation,
-            child: Transform.scale(scale: scale, alignment: Alignment.center, child: element)),
-        ),
-      );
-    },
+        if (widget.editing) {
+          element = GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onScaleStart: (_) { _startScale = scale; _startRotation = rotation; },
+            onScaleUpdate: (details) => widget.onChanged?.call({
+              'x': (x + details.focalPointDelta.dx / size.width).clamp(.03, .97).toDouble(),
+              'y': (y + details.focalPointDelta.dy / size.height).clamp(.05, .95).toDouble(),
+              'scale': (_startScale * details.scale).clamp(.55, 2.2).toDouble(),
+              'rotation': (_startRotation + details.rotation).clamp(-3.14, 3.14).toDouble(),
+            }),
+            child: element,
+          );
+        }
+        if (widget.editing && widget.selected) {
+          element = DecoratedBox(
+            decoration: BoxDecoration(border: Border.all(color: const Color(0xFF62E5D0), width: 1.5), borderRadius: BorderRadius.circular(20)),
+            child: Padding(padding: const EdgeInsets.all(3), child: element),
+          );
+        }
+        return Stack(clipBehavior: Clip.none, children: [
+          Positioned(
+            left: x * size.width, top: y * size.height,
+            child: FractionalTranslation(
+              translation: const Offset(-.5, -.5),
+              child: Transform.rotate(angle: rotation,
+                child: Transform.scale(scale: scale, alignment: Alignment.center, child: element)),
+            ),
+          ),
+        ]);
+      },
+    ),
   );
 }
 
