@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../notifications/presentation/notifications_screen.dart';
+import '../../support/presentation/support_chat_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -28,6 +29,26 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _requestAccountDeletion(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('درخواست حذف حساب'),
+        content: const Text('درخواست شما در گفت‌وگوی پشتیبانی ثبت می‌شود. حساب فوراً حذف نخواهد شد و پیش از اقدام، مالکیت حساب و موارد نگهداری قانونی بررسی می‌شود. ادامه می‌دهید؟'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('ادامه و ارسال')),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => const SupportChatScreen(
+        initialMessage: 'درخواست رسمی حذف حساب کاربری هماگرام: لطفاً مالکیت حساب را بررسی کنید، مراحل حذف و پیامدهای آن را توضیح دهید و پس از احراز هویت، درخواست حذف اطلاعات قابل حذف را مطابق قوانین لازم‌الاجرا پیگیری کنید.',
+      ),
+    ));
+  }
+
   void _open(BuildContext context, String title, List<_PolicySection> sections) {
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => _PolicyScreen(title: title, sections: sections)));
   }
@@ -36,6 +57,8 @@ class SettingsScreen extends StatelessWidget {
     final entries = <_SettingEntry>[
       _SettingEntry(Icons.password_rounded, 'بازیابی رمز عبور', 'ارسال لینک امن به ایمیل حساب',
         () => _sendPasswordReset(context)),
+      _SettingEntry(Icons.person_remove_alt_1_rounded, 'درخواست حذف حساب', 'ثبت درخواست رسمی از طریق پشتیبانی',
+        () => _requestAccountDeletion(context)),
       _SettingEntry(Icons.folder_shared_outlined, 'درخواست‌های اطلاعات و حساب', 'دریافت نسخه اطلاعات یا درخواست حذف حساب',
         () => _open(context, 'درخواست‌های اطلاعات و حساب', const [
           _PolicySection('دسترسی و دریافت نسخه', 'برای درخواست نسخه‌ای از اطلاعات مرتبط با حساب، از گفت‌وگوی پشتیبانی داخل برنامه پیام دهید. درخواست باید از همان حساب ثبت شود تا امکان بررسی مالکیت حساب فراهم باشد.'),
