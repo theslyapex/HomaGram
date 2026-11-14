@@ -1,3 +1,4 @@
+import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -122,23 +123,23 @@ class _MessagingScreenState extends State<MessagingScreen> {
         automaticallyImplyLeading: false,
         title: const Text('پیام‌ها', style: TextStyle(fontWeight: FontWeight.w900)),
         actions: [
-          IconButton(
+          HomaGramSpringPress(child: IconButton(
             tooltip: 'کانال‌ها',
             onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
               builder: (_) => const ChannelsScreen(),
             )),
             icon: const Icon(Icons.campaign_outlined),
-          ),
-          IconButton(
+          )),
+          HomaGramSpringPress(child: IconButton(
             tooltip: 'ساخت گروه',
             onPressed: _newGroup,
             icon: const Icon(Icons.group_add_outlined),
-          ),
-          IconButton(
+          )),
+          HomaGramSpringPress(child: IconButton(
             tooltip: 'گفت‌وگوی جدید',
             onPressed: _newChat,
             icon: const Icon(Icons.edit_outlined),
-          ),
+          )),
           const SizedBox(width: 8),
         ],
       ),
@@ -199,11 +200,11 @@ class _MessagingScreenState extends State<MessagingScreen> {
               if (SupportService.isSupportAdmin)
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
+                  child: HomaGramSpringPress(child: TextButton.icon(
                     onPressed: _openSupportInbox,
                     icon: const Icon(Icons.inbox_outlined, size: 18),
                     label: const Text('مدیریت درخواست‌های پشتیبانی'),
-                  ),
+                  )),
                 ),
             ]),
           ),
@@ -219,7 +220,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                       ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: [
                           const SizedBox(height: 120),
                           Center(child: Text(_error!)),
-                          Center(child: TextButton(onPressed: _load, child: const Text('تلاش دوباره'))),
+                          Center(child: HomaGramSpringPress(child: TextButton(onPressed: _load, child: const Text('تلاش دوباره')))),
                         ])
                       : _items.isEmpty
                           ? ListView(
@@ -237,11 +238,11 @@ class _MessagingScreenState extends State<MessagingScreen> {
                                     textAlign: TextAlign.center),
                                 ),
                                 const SizedBox(height: 18),
-                                Center(child: FilledButton.icon(
+                                Center(child: HomaGramSpringPress(child: FilledButton.icon(
                                   onPressed: _newChat,
                                   icon: const Icon(Icons.add_comment_outlined),
                                   label: const Text('شروع گفت‌وگوی جدید', style: TextStyle(fontFamily: 'Estedad')),
-                                )),
+                                ))),
                               ],
                             )
                           : ListView.separated(
@@ -515,13 +516,13 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
-            child: FilledButton.icon(
+            child: HomaGramSpringPress(child: FilledButton.icon(
               onPressed: _creating ? null : _create,
               icon: _creating
                   ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.group_add_rounded),
               label: const Text('ایجاد گروه'),
-            ),
+            )),
           ),
         ],
       ),
