@@ -88,6 +88,12 @@ class AdminService {
       AdminUserSummary.fromJson(Map<String, dynamic>.from(row as Map))).toList();
   }
 
+  static Future<Map<String, dynamic>> loadUserDetail(String userId) async {
+    final result = await _client.rpc('admin_user_detail', params: {'p_user_id': userId});
+    if (result is! Map) throw const FormatException('Invalid admin user detail');
+    return Map<String, dynamic>.from(result);
+  }
+
   static Future<List<AdminPostReport>> loadReports() async {
     final result = await _client.rpc('admin_list_post_reports', params: {
       'p_limit': 50, 'p_offset': 0,
