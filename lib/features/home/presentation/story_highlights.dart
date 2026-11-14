@@ -36,7 +36,7 @@ class StoryHighlightService {
 
     final storyRows = await _client
         .from('stories')
-        .select('id,author_id,media_path,media_type,caption,text_content,background_key,created_at,expires_at')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,music_path,music_start_ms,music_volume,created_at,expires_at')
         .inFilter('id', storyIds)
         .order('created_at');
     final profile = await _client
@@ -74,6 +74,27 @@ class StoryHighlightService {
       }
     }
 
+    final musicPaths = storyRows
+        .map((s) => s['music_path'] as String?)
+        .whereType<String>()
+        .where((path) => path.isNotEmpty)
+        .toSet()
+        .toList();
+    final musicUrls = <String, String>{};
+    for (var i = 0; i < musicPaths.length; i += batchSize) {
+      final batch = musicPaths.skip(i).take(batchSize);
+      final results = await Future.wait(batch.map((path) async {
+        try {
+          return MapEntry(path, await _client.storage.from('story-audio').createSignedUrl(path, 3600));
+        } catch (_) {
+          return null;
+        }
+      }));
+      for (final result in results) {
+        if (result != null) musicUrls[result.key] = result.value;
+      }
+    }
+
     final storiesById = <String, Map<String, dynamic>>{};
     for (final row in storyRows) {
       final story = Map<String, dynamic>.from(row);
@@ -82,6 +103,7 @@ class StoryHighlightService {
       story['avatar_path'] = avatarPath;
       story['avatar_url'] = avatarUrl;
       story['media_url'] = story['media_path'] == null ? null : mediaUrls[story['media_path']];
+      story['music_url'] = story['music_path'] == null ? null : musicUrls[story['music_path']];
       story['is_viewed'] = false;
       storiesById[story['id'] as String] = story;
     }
