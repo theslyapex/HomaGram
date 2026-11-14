@@ -176,7 +176,7 @@ with check (
   and split_part(name, '/', 1) ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
   and exists (
     select 1 from public.support_conversations sc
-    where sc.id = split_part(name, '/', 1)::uuid
+    where sc.id::text = split_part(name, '/', 1)
       and (
         private.is_homagram_support_admin()
         or (sc.user_id = (select auth.uid()) and sc.status = 'open')
