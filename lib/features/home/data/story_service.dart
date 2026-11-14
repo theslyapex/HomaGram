@@ -25,7 +25,7 @@ class StoryService {
   static Future<List<Map<String, dynamic>>> loadActiveStories() async {
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _client.from('stories')
-        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,created_at,expires_at')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,music_path,music_start_ms,music_volume,created_at,expires_at')
         .gt('expires_at', now)
         .order('created_at');
     return _hydrate(rows);
@@ -35,7 +35,7 @@ class StoryService {
   static Future<List<Map<String, dynamic>>> loadMyActiveStories() async {
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _client.from('stories')
-        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,created_at,expires_at')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,music_path,music_start_ms,music_volume,created_at,expires_at')
         .eq('author_id', _uid)
         .gt('expires_at', now)
         .order('created_at', ascending: false);
@@ -53,7 +53,7 @@ class StoryService {
     }
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _client.from('stories')
-        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,created_at,expires_at')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,music_path,music_start_ms,music_volume,created_at,expires_at')
         .eq('author_id', _uid)
         .lte('expires_at', now)
         .order('created_at', ascending: false)
@@ -136,10 +136,12 @@ class StoryService {
       _signPaths('avatars', avatarPaths),
       _signPaths('story-media', mediaPaths),
       _signPaths('story-stickers', stickerPaths),
+      _signPaths('story-audio', rows.map((row) => row['music_path'] as String?).whereType<String>()),
     ]);
     final avatarUrls = signedResults[0];
     final mediaUrls = signedResults[1];
     final stickerUrls = signedResults[2];
+    final musicUrls = signedResults[3];
 
     return rows.map((row) {
       final story = Map<String, dynamic>.from(row);
@@ -149,6 +151,7 @@ class StoryService {
       story['avatar_path'] = profile['avatar_path'];
       story['avatar_url'] = avatarUrls[profile['avatar_path']];
       story['media_url'] = mediaUrls[story['media_path']];
+      story['music_url'] = musicUrls[story['music_path']];
       final stickerData = story['sticker_data'];
       if (stickerData is List) {
         story['sticker_data'] = stickerData.map((raw) {
@@ -178,6 +181,11 @@ class StoryService {
     String overlayFont = 'estedad',
     List<Map<String, dynamic>> drawingData = const [],
     List<Map<String, dynamic>> stickerData = const [],
+    File? musicFile,
+    String? musicFileName,
+    String? musicMimeType,
+    int musicStartMs = 0,
+    double musicVolume = 0.75,
   }) async {
     final cleanOverlay = overlayText?.trim();
     if (cleanOverlay != null && cleanOverlay.length > 180) {
@@ -194,6 +202,13 @@ class StoryService {
     if (stickerData.length > 20) throw ArgumentError('تعداد استیکرها بیش از حد مجاز است.');
     if (!isSupportedStoryMedia(mediaType: mediaType, mimeType: mimeType)) {
       throw ArgumentError('نوع رسانه یا فرمت فایل استوری پشتیبانی نمی‌شود.');
+    }
+    if (musicStartMs < 0 || musicStartMs > 600000 || musicVolume < 0 || musicVolume > 1) {
+      throw ArgumentError('تنظیمات موسیقی معتبر نیست.');
+    }
+    if (musicFile != null && (musicFileName == null || musicMimeType == null ||
+        !const {'audio/mpeg','audio/mp4','audio/aac','audio/wav','audio/x-wav'}.contains(musicMimeType))) {
+      throw ArgumentError('فرمت فایل موسیقی پشتیبانی نمی‌شود.');
     }
     if (caption.trim().length > 500) {
       throw ArgumentError('متن استوری حداکثر ۵۰۰ نویسه است.');
@@ -256,6 +271,13 @@ class StoryService {
       rethrow;
     }
 
+    final musicBytes = musicFile == null ? null : await musicFile.readAsBytes();
+    if (musicBytes != null && (musicBytes.isEmpty || musicBytes.length > 15 * 1024 * 1024)) {
+      if (uploadedStickerPaths.isNotEmpty) {
+        try { await _client.storage.from('story-stickers').remove(uploadedStickerPaths); } catch (_) {}
+      }
+      throw ArgumentError('حجم موسیقی باید حداکثر ۱۵ مگابایت باشد.');
+    }
     final bytes = await file.readAsBytes();
     if (bytes.isEmpty || bytes.length > 52428800) {
       throw ArgumentError('حجم رسانه باید بیشتر از صفر و حداکثر ۵۰ مگابایت باشد.');
@@ -266,7 +288,19 @@ class StoryService {
     await _client.storage.from('story-media').uploadBinary(
       path, bytes, fileOptions: FileOptions(contentType: mimeType, upsert: false),
     );
+    String? uploadedMusicPath;
     try {
+      if (musicBytes != null) {
+        final musicExt = musicFileName!.split('.').last.toLowerCase();
+        if (!const {'mp3','m4a','aac','wav'}.contains(musicExt)) {
+          throw ArgumentError('پسوند فایل موسیقی پشتیبانی نمی‌شود.');
+        }
+        uploadedMusicPath = '$_uid/${DateTime.now().microsecondsSinceEpoch}.$musicExt';
+        await _client.storage.from('story-audio').uploadBinary(
+          uploadedMusicPath, musicBytes,
+          fileOptions: FileOptions(contentType: musicMimeType!, upsert: false),
+        );
+      }
       await _client.from('stories').insert({
         'author_id': _uid,
         'media_path': path,
@@ -280,9 +314,15 @@ class StoryService {
         'overlay_font': overlayFont,
         'drawing_data': drawingData,
         'sticker_data': persistedStickers,
+        'music_path': uploadedMusicPath,
+        'music_start_ms': musicStartMs,
+        'music_volume': musicVolume,
       });
     } catch (_) {
       try { await _client.storage.from('story-media').remove([path]); } catch (_) {}
+      if (uploadedMusicPath != null) {
+        try { await _client.storage.from('story-audio').remove([uploadedMusicPath]); } catch (_) {}
+      }
       if (uploadedStickerPaths.isNotEmpty) {
         try { await _client.storage.from('story-stickers').remove(uploadedStickerPaths); } catch (_) {}
       }
@@ -367,6 +407,10 @@ class StoryService {
     }
     if (stickerPaths.isNotEmpty) {
       try { await _client.storage.from('story-stickers').remove(stickerPaths); } catch (_) {}
+    }
+    final musicPath = story['music_path'] as String?;
+    if (musicPath != null && musicPath.isNotEmpty) {
+      try { await _client.storage.from('story-audio').remove([musicPath]); } catch (_) {}
     }
   }
 
