@@ -475,6 +475,12 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   }
 
   void _showPost(Map<String, dynamic> post) {
+    if (post['media_type'] == 'video') {
+      Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => ReelsScreen(initialReelId: post['id'] as String),
+      ));
+      return;
+    }
     final date = DateTime.tryParse(post['created_at'] as String? ?? '')?.toLocal();
     showModalBottomSheet<void>(
       context: context, isScrollControlled: true, showDragHandle: true,
