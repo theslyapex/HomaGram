@@ -154,7 +154,7 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _initialize();
+    if (widget.isActive) _initialize();
     _loadInteractions();
   }
 
@@ -178,8 +178,11 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.isActive != widget.isActive) {
       final controller = _video;
-      if (controller != null && controller.value.isInitialized) {
-        if (widget.isActive) { controller.play(); } else { controller.pause(); }
+      if (widget.isActive) {
+        if (controller == null) { _initialize(); }
+        else if (controller.value.isInitialized) { controller.play(); }
+      } else if (controller != null && controller.value.isInitialized) {
+        controller.pause();
       }
     }
   }
