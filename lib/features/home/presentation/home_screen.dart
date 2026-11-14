@@ -60,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final pages = [
       const FeedScreen(),
-      const ReelsScreen(),
+      ReelsScreen(isVisible: _tab == 1),
       const ExploreScreen(),
       const MessagingScreen(),
       const NotificationsScreen(),
