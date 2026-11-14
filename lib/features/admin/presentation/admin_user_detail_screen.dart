@@ -56,7 +56,9 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
           ('دنبال‌شونده‌ها', '${_n(d,'following')}', Icons.person_add_alt_rounded),
           ('پیام‌های ارسال‌شده', '${_n(d,'messages_sent')}', Icons.chat_bubble_outline_rounded),
           ('گزارش‌های ثبت‌شده', '${_n(d,'reports_made')}', Icons.outbox_outlined),
-          ('گزارش‌های دریافتی', '${_n(d,'reports_received')}', Icons.flag_outlined),
+          ('گزارش‌های دریافتی پست', '${_n(d,'reports_received')}', Icons.flag_outlined),
+          ('گزارش پیام ثبت‌شده', '${_n(d,'message_reports_made')}', Icons.outbox_outlined),
+          ('گزارش پیام دریافتی', '${_n(d,'message_reports_received')}', Icons.report_gmailerrorred_outlined),
         ];
         return RefreshIndicator(
           onRefresh: _refresh,
@@ -169,9 +171,12 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
                 const SizedBox(height: 7),
                 Text(report['details'] as String, style: const TextStyle(fontSize: 11, height: 1.6)),
               ],
-              if ((report['post_caption'] as String?)?.isNotEmpty == true) ...[
+              final content = (report['post_caption'] as String?)?.isNotEmpty == true
+                  ? report['post_caption'] as String?
+                  : report['message_body'] as String?;
+              if (content?.isNotEmpty == true) ...[
                 const SizedBox(height: 5),
-                Text('محتوای گزارش‌شده: ${report['post_caption']}',
+                Text('محتوای گزارش‌شده: $content',
                   maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, color: Color(0xFF8490A4))),
               ],
               const SizedBox(height: 5),
