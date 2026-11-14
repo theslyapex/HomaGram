@@ -344,7 +344,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     return Scaffold(
       appBar: AppBar(title: Text((widget.initialReel || _isReel) ? 'ساخت ریلز' : 'ایجاد پست',
         style: const TextStyle(fontWeight: FontWeight.w900))),
-      body: ListView(padding: const EdgeInsets.fromLTRB(18, 10, 18, 28), children: [
+      body: HomaGramEntrance(child: ListView(padding: const EdgeInsets.fromLTRB(18, 10, 18, 28), children: [
         Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(
           gradient: LinearGradient(colors: [HomaGramTheme.navy, HomaGramTheme.royalPurple.withValues(alpha: .94)],
             begin: Alignment.topRight, end: Alignment.bottomLeft), borderRadius: BorderRadius.circular(24)),
@@ -410,7 +410,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           style: FilledButton.styleFrom(backgroundColor: _isReel ? HomaGramTheme.royalPurple : HomaGramTheme.turquoise,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17))),
         ))),
-      ]),
+      ])),
     );
   }
 }
