@@ -503,6 +503,123 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
 
+  Future<void> _showChannelAuditLogs(String conversationId) async {
+    var loading = true;
+    String? error;
+    var logs = <Map<String, dynamic>>[];
+    try {
+      logs = await MessagingService.loadChannelAuditLogs(conversationId);
+      loading = false;
+    } catch (_) {
+      loading = false;
+      error = 'دریافت تاریخچه فعالیت‌ها ممکن نشد.';
+    }
+    if (!mounted) return;
+
+    String actionTitle(String action) {
+      switch (action) {
+        case 'channel_created': return 'ایجاد کانال';
+        case 'member_added': return 'افزودن عضو';
+        case 'member_removed': return 'حذف عضو';
+        case 'member_role_changed': return 'تغییر نقش عضو';
+        case 'channel_permissions_changed': return 'تغییر دسترسی اعضا';
+        case 'channel_details_changed': return 'ویرایش اطلاعات کانال';
+        case 'ownership_transferred': return 'انتقال مالکیت';
+        case 'invite_created': return 'ساخت کد دعوت';
+        case 'invite_revoked': return 'لغو کد دعوت';
+        default: return 'فعالیت مدیریتی';
+      }
+    }
+
+    String actionDetail(Map<String, dynamic> row) {
+      final metadata = row['metadata'] is Map
+          ? Map<String, dynamic>.from(row['metadata'] as Map)
+          : <String, dynamic>{};
+      final target = row['target_label'] as String?;
+      switch (row['action']) {
+        case 'member_added': return target == null ? 'عضو جدید به کانال اضافه شد.' : '$target به کانال اضافه شد.';
+        case 'member_removed': return target == null ? 'یک عضو از کانال حذف شد.' : '$target از کانال حذف شد.';
+        case 'member_role_changed':
+          return '${metadata['old_role'] ?? '—'} ← ${metadata['new_role'] ?? '—'}';
+        case 'ownership_transferred': return target == null ? 'مالکیت کانال منتقل شد.' : 'مالک جدید: $target';
+        case 'channel_permissions_changed':
+          return 'ارسال متن: ${metadata['members_can_post'] == true ? 'فعال' : 'غیرفعال'} • رسانه: ${metadata['members_can_send_media'] == true ? 'فعال' : 'غیرفعال'}';
+        case 'invite_created': return 'اعتبار: ${metadata['expires_at'] ?? '—'} • سقف استفاده: ${metadata['max_uses'] ?? '—'}';
+        case 'invite_revoked': return 'یک کد دعوت غیرفعال شد.';
+        case 'channel_details_changed':
+          return metadata['title'] is String ? 'نام کانال: ${metadata['title']}' : 'اطلاعات کانال به‌روزرسانی شد.';
+        case 'channel_created': return 'کانال ایجاد شد.';
+        default: return '';
+      }
+    }
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => SizedBox(
+          height: MediaQuery.sizeOf(sheetContext).height * .78,
+          child: Column(
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(18, 8, 18, 14),
+                child: Row(children: [
+                  Icon(Icons.history_rounded),
+                  SizedBox(width: 9),
+                  Text('تاریخچه فعالیت‌های کانال',
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+                ]),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : error != null
+                        ? Center(child: Text(error!))
+                        : logs.isEmpty
+                            ? const Center(child: Text('هنوز فعالیت مدیریتی ثبت نشده است.'))
+                            : ListView.separated(
+                                padding: const EdgeInsets.all(12),
+                                itemCount: logs.length,
+                                separatorBuilder: (_, __) => const SizedBox(height: 7),
+                                itemBuilder: (ctx, index) {
+                                  final row = logs[index];
+                                  final date = DateTime.tryParse(row['created_at'] as String? ?? '')?.toLocal();
+                                  final dateLabel = date == null
+                                      ? ''
+                                      : '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}  ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+                                  return Card(
+                                    margin: EdgeInsets.zero,
+                                    child: ListTile(
+                                      leading: const CircleAvatar(
+                                        child: Icon(Icons.manage_history_rounded),
+                                      ),
+                                      title: Text(actionTitle(row['action'] as String? ?? ''),
+                                        style: const TextStyle(fontWeight: FontWeight.w800)),
+                                      subtitle: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(actionDetail(row)),
+                                          const SizedBox(height: 4),
+                                          Text('${row['actor_label'] ?? 'مدیر سیستم'} • $dateLabel',
+                                            style: Theme.of(ctx).textTheme.bodySmall),
+                                        ],
+                                      ),
+                                      isThreeLine: true,
+                                    ),
+                                  );
+                                },
+                              ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _manageChannelInvites(String conversationId) async {
     var invites = <Map<String, dynamic>>[];
     var loading = true;
@@ -884,6 +1001,12 @@ class _ChatScreenState extends State<ChatScreen> {
                           );
                         }
                       },
+                    ),
+                  if (isChannel && canManage)
+                    IconButton(
+                      tooltip: 'تاریخچه فعالیت‌های کانال',
+                      icon: const Icon(Icons.history_rounded),
+                      onPressed: () => _showChannelAuditLogs(widget.conversationId),
                     ),
                   if (isChannel && canManage && channelData['is_public'] == false)
                     IconButton(
