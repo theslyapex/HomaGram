@@ -426,12 +426,7 @@ class StoryService {
 
   static Future<List<Map<String, dynamic>>> searchMentionUsers(String query) async {
     final clean = query.trim().toLowerCase();
-    if (clean.isEmpty || !RegExp(r'^[a-z0-9_]{1,24}
-    final conversationId = await MessagingService.createDirectConversation(authorId);
-    await MessagingService.sendTextMessage(conversationId, text);
-  }
-}
-).hasMatch(clean)) return [];
+    if (clean.isEmpty || !RegExp(r'^[a-z0-9_]{1,24}$').hasMatch(clean)) return [];
     final currentId = _client.auth.currentUser?.id;
     final rows = await _client.from('profiles')
         .select('id,username,display_name')
@@ -444,12 +439,7 @@ class StoryService {
 
   static Future<Map<String, dynamic>?> findUserByUsername(String username) async {
     final clean = username.trim().replaceFirst(RegExp(r'^@'), '').toLowerCase();
-    if (!RegExp(r'^[a-z0-9_]{3,24}
-    final conversationId = await MessagingService.createDirectConversation(authorId);
-    await MessagingService.sendTextMessage(conversationId, text);
-  }
-}
-).hasMatch(clean)) return null;
+    if (!RegExp(r'^[a-z0-9_]{3,24}$').hasMatch(clean)) return null;
     return await _client.from('profiles')
         .select('id,username,display_name')
         .eq('username', clean)
