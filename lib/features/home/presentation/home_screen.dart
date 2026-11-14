@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/theme/app_theme.dart';
+import '../../../app/presentation/homagram_branding.dart';
 import '../../auth/data/auth_service.dart';
 import '../../admin/data/admin_service.dart';
 import '../../admin/presentation/admin_dashboard_screen.dart';
@@ -84,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
         titleSpacing: 20,
         title: const Row(
           children: [
-            Icon(Icons.bubble_chart_rounded, color: HomaGramTheme.turquoise, size: 29),
+            HomaGramLogo(size: 38),
             SizedBox(width: 8),
             Text('HomaGram', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -.4)),
           ],

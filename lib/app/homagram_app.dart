@@ -16,6 +16,7 @@ import '../features/notifications/presentation/notifications_screen.dart';
 import '../features/support/data/support_service.dart';
 import '../features/support/presentation/support_chat_screen.dart';
 import 'theme/app_theme.dart';
+import 'presentation/homagram_branding.dart';
 
 final GlobalKey<NavigatorState> homagramNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -268,8 +269,10 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
         theme: HomaGramTheme.light,
         darkTheme: HomaGramTheme.dark,
         themeMode: ThemeMode.system,
-        home: widget.supabaseConfigured
-            ? const AuthGate()
-            : const BootstrapScreen(supabaseConfigured: false),
+        home: HomaGramLaunchScreen(
+          child: widget.supabaseConfigured
+              ? const AuthGate()
+              : const BootstrapScreen(supabaseConfigured: false),
+        ),
       );
 }

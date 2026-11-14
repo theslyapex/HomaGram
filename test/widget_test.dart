@@ -6,7 +6,10 @@ void main() {
       (tester) async {
     await tester.pumpWidget(const HomaGramApp(supabaseConfigured: false));
 
-    expect(find.text('HomaGram'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pumpAndSettle();
+
+    expect(find.text('HomaGram'), findsWidgets);
     expect(find.text('ارتباطی فراتر از مرزها'), findsOneWidget);
     expect(find.text('اتصال Supabase هنوز پیکربندی نشده است'), findsOneWidget);
   });

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../app/presentation/homagram_branding.dart';
 import '../data/auth_service.dart';
 import '../domain/auth_constants.dart';
 
@@ -125,14 +126,8 @@ class _AuthScreenState extends State<AuthScreen> {
           padding: const EdgeInsets.all(22),
           child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 480),
             child: Column(children: [
-              Container(width: 72, height: 72,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  gradient: const LinearGradient(colors: [HomaGramTheme.turquoise, HomaGramTheme.royalPurple]),
-                ),
-                child: const Icon(Icons.flutter_dash_rounded, size: 40, color: Colors.white),
-              ),
-              const SizedBox(height: 18),
+              const HomaGramLogo(size: 116),
+              const SizedBox(height: 12),
               const Text('HomaGram', style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w800)),
               const SizedBox(height: 6),
               const Text('ارتباطی فراتر از مرزها', style: TextStyle(color: Color(0xFFD6E8F0), fontSize: 15)),
@@ -230,8 +225,13 @@ class _AuthScreenState extends State<AuthScreen> {
         style: TextStyle(fontSize: 11, color: Color(0xFF64718A), height: 1.6)),
     ],
     const SizedBox(height: 18),
-    FilledButton(onPressed: _busy ? null : _submit, style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-      child: Text(_busy ? 'لطفاً صبر کنید...' : (_registering ? 'ساخت حساب' : 'ورود'))),
+    HomaGramSpringPress(
+      child: FilledButton(
+        onPressed: _busy ? null : _submit,
+        style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+        child: Text(_busy ? 'لطفاً صبر کنید...' : (_registering ? 'ساخت حساب' : 'ورود')),
+      ),
+    ),
     const SizedBox(height: 10),
     TextButton(onPressed: _busy ? null : () => setState(() {
       _mode = _registering ? _Mode.signIn : _Mode.signUp;
