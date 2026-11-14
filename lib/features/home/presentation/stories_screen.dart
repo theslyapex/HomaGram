@@ -352,7 +352,7 @@ class _StoryPollCard extends StatelessWidget {
                     alignment: direction == TextDirection.rtl
                         ? Alignment.centerRight : Alignment.centerLeft,
                     child: FractionallySizedBox(
-                      widthFactor: (percent / 100).clamp(0.0, 1.0),
+                      widthFactor: (percent / 100).clamp(0.0, 1.0).toDouble(),
                       child: Container(color: const Color(0xFF21B8A6).withValues(alpha: .42)),
                     ),
                   ),
@@ -1332,7 +1332,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                       maxLength: 60,
                       onChanged: (_) => setState(() {}),
                       decoration: InputDecoration(
-                        labelText: 'گزینه \${i + 1}',
+                        labelText: 'گزینه ${i + 1}',
                         counterText: '',
                         border: const OutlineInputBorder(),
                       ),
@@ -1818,14 +1818,6 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
           _StoryDrawingView(story: _story),
           _StoryStickerView(story: _story),
           _StoryOverlayTextView(story: _story),
-          if (_story['poll_data'] is Map)
-            Positioned(left: 22, right: 22, bottom: 142,
-              child: _StoryPollCard(
-                poll: Map<String, dynamic>.from(_story['poll_data'] as Map),
-                isOwner: _isMine,
-                onVote: _isMine ? null : _votePoll,
-                busy: _busy,
-              )),
         ],
         Positioned.fill(
           child: Row(children: [
@@ -1843,6 +1835,14 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
             )),
           ]),
         ),
+        if (_story['poll_data'] is Map)
+          Positioned(left: 22, right: 22, bottom: 142,
+            child: _StoryPollCard(
+              poll: Map<String, dynamic>.from(_story['poll_data'] as Map),
+              isOwner: _isMine,
+              onVote: _isMine ? null : _votePoll,
+              busy: _busy,
+            )),
         Positioned(
           top: 10, left: 12, right: 12,
           child: Column(children: [
