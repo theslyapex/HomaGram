@@ -12,6 +12,7 @@ import 'story_image.dart';
 import 'explore_screen.dart';
 import 'public_profile_screen.dart';
 import '../../../core/cache/story_video_cache.dart';
+import '../../../core/utils/persian_date.dart';
 
 const Map<String, List<Color>> storyTextGradients = {
   'aurora': [Color(0xFF173A70), Color(0xFF8056B8), Color(0xFFDA6F9D)],
@@ -3002,7 +3003,7 @@ class _StoryArchiveScreenState extends State<StoryArchiveScreen> {
             child: Text(
               createdAt == null
                   ? 'تاریخ نامشخص'
-                  : '${createdAt.year}/${createdAt.month.toString().padLeft(2, '0')}/${createdAt.day.toString().padLeft(2, '0')}',
+                  : persianDate(createdAt),
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: Colors.white, fontSize: 9,
