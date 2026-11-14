@@ -137,12 +137,7 @@ class _MetricCard extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return Card(
       margin: EdgeInsets.zero,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-          builder: (_) => AdminUserDetailScreen(userId: user.id),
-        )),
-        child: Padding(
+      child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Icon(item.icon, color: colors.primary, size: 22),
@@ -245,7 +240,12 @@ class _UserCard extends StatelessWidget {
       : (user.username?.trim().isNotEmpty == true ? '@${user.username}' : 'کاربر هماگرام');
     return Card(
       margin: EdgeInsets.zero,
-      child: Padding(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+          builder: (_) => AdminUserDetailScreen(userId: user.id),
+        )),
+        child: Padding(
         padding: const EdgeInsets.all(14),
         child: Row(children: [
           CircleAvatar(
