@@ -108,7 +108,7 @@ class SettingsScreen extends StatelessWidget {
           icon: const Icon(Icons.logout_rounded),
           label: const Text('خروج از حساب', style: TextStyle(fontFamily: 'Estedad')),
           style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-        ),
+        )),
         const SizedBox(height: 14),
         const Text('این متن‌ها پیش‌نویس حقوقی محصول هستند؛ پیش از انتشار عمومی باید با قوانین کشور محل فعالیت و نظر مشاور حقوقی تطبیق داده شوند.',
           textAlign: TextAlign.center, style: TextStyle(fontSize: 10, height: 1.7, color: Color(0xFF8490A4))),
