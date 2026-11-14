@@ -61,9 +61,11 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
     _authSubscription = AuthService.client.auth.onAuthStateChange.listen((_) {
       _syncPresence();
       _syncPushRegistration();
+      _syncTheme();
     });
     _syncPresence();
     _syncPushRegistration();
+    _syncTheme();
     _linkSubscription = _appLinks.uriLinkStream.listen(_handleUri);
     _appLinks.getInitialLink().then(_handleUri).catchError((_) {});
 
@@ -169,6 +171,25 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
       controller.dispose();
       _bugReportDialogOpen = false;
     }
+  }
+
+  Future<void> _syncTheme() async {
+    final user = AuthService.client.auth.currentUser;
+    if (user == null) {
+      HomaGramTheme.mode.value = ThemeMode.system;
+      return;
+    }
+    try {
+      final row = await AuthService.client.from('account_settings')
+          .select('theme').eq('user_id', user.id).maybeSingle();
+      if (!mounted) return;
+      final theme = row?['theme'] as String? ?? 'system';
+      HomaGramTheme.mode.value = switch (theme) {
+        'light' => ThemeMode.light,
+        'dark' => ThemeMode.dark,
+        _ => ThemeMode.system,
+      };
+    } catch (_) {}
   }
 
   void _syncPushRegistration() {
@@ -356,9 +377,11 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
   }
 
   @override
-  Widget build(BuildContext context) => RepaintBoundary(
-      key: homagramScreenCaptureKey,
-      child: MaterialApp(
+  Widget build(BuildContext context) => ValueListenableBuilder<ThemeMode>(
+      valueListenable: HomaGramTheme.mode,
+      builder: (context, themeMode, _) => RepaintBoundary(
+        key: homagramScreenCaptureKey,
+        child: MaterialApp(
         navigatorKey: homagramNavigatorKey,
         title: 'HomaGram',
         debugShowCheckedModeBanner: false,
@@ -371,7 +394,7 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
         ],
         theme: HomaGramTheme.light,
         darkTheme: HomaGramTheme.dark,
-        themeMode: ThemeMode.system,
+        themeMode: themeMode,
         home: HomaGramLaunchScreen(
           child: widget.supabaseConfigured
               ? const AuthGate()
