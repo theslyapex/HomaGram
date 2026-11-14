@@ -333,7 +333,7 @@ class _StoryPollCard extends StatelessWidget {
   ) {
     final percent = total == 0 ? 0 : ((count / total) * 100).round();
     final direction = Directionality.of(context);
-    final canVote = !showResults && !isOwner && onVote != null && !busy;
+    final canVote = !isOwner && onVote != null && !busy;
 
     return Material(
       color: Colors.white.withValues(alpha: .09),
@@ -1364,7 +1364,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                 ),
               ),
             const Text(
-              'هر نظرسنجی بین ۲ تا ۴ گزینه دارد. هر کاربر یک رأی ثبت می‌کند و می‌تواند رأی خود را تغییر دهد.',
+              'هر نظرسنجی بین ۲ تا ۴ گزینه دارد. هر کاربر یک رأی ثبت می‌کند و پس از رأی دادن نیز می‌تواند انتخابش را تغییر دهد.',
               style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4)),
             ),
           ],
