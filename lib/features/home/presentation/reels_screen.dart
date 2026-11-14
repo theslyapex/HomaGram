@@ -8,6 +8,7 @@ import '../../auth/data/auth_service.dart';
 import 'create_post_screen.dart';
 import 'feed_screen.dart';
 import 'public_profile_screen.dart';
+import '../../../core/utils/persian_date.dart';
 
 class ReelsScreen extends StatefulWidget {
   const ReelsScreen({this.isVisible = true, this.initialReelId, super.key});
@@ -299,6 +300,7 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
     final author = (widget.reel['author_display_name'] as String?)?.trim();
     final username = widget.reel['author_username'] as String? ?? '';
     final caption = (widget.reel['caption'] as String? ?? '').trim();
+    final createdAt = DateTime.tryParse(widget.reel['created_at'] as String? ?? '')?.toLocal();
     return Stack(fit: StackFit.expand, children: [
       const ColoredBox(color: Colors.black),
       if (controller != null && controller.value.isInitialized)
@@ -348,6 +350,7 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
                 maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
               )),
+              HomaGramVerifiedBadge(userId: widget.reel['author_id'] as String?, size: 17),
               if (widget.reel['is_mine'] != true)
                 HomaGramSpringPress(child: OutlinedButton(
                   onPressed: _openProfile,
@@ -367,7 +370,10 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
               style: const TextStyle(color: Colors.white, height: 1.5, fontSize: 13)),
           ],
           const SizedBox(height: 8),
-          const Text('HomaGram • Reels', style: TextStyle(color: Colors.white70, fontSize: 10)),
+          Text(
+            createdAt == null ? 'HomaGram • Reels' : 'HomaGram • Reels  •  ${persianDateTime(createdAt)}',
+            style: const TextStyle(color: Colors.white70, fontSize: 10),
+          ),
         ]),
       ),
       Positioned(
