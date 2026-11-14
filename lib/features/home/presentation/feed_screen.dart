@@ -45,7 +45,7 @@ class _FeedScreenState extends State<FeedScreen> {
   Future<List<Map<String, dynamic>>> _loadPosts() async {
     final rows = await AuthService.client
         .from('posts')
-        .select('id,author_id,author_username,author_display_name,caption,media_path,media_type,created_at')
+        .select('id,author_id,author_username,author_display_name,caption,media_path,media_type,cover_path,created_at')
         .order('created_at', ascending: false)
         .limit(50);
     final authorIds = rows.map((row) => row['author_id'] as String).toSet().toList();
@@ -78,6 +78,13 @@ class _FeedScreenState extends State<FeedScreen> {
         } catch (_) {
           post['media_unavailable'] = true;
         }
+      }
+      final coverPath = post['cover_path'] as String?;
+      if (coverPath != null) {
+        try {
+          post['cover_url'] = await AuthService.client.storage
+              .from('post-media').createSignedUrl(coverPath, 3600);
+        } catch (_) {}
       }
       result.add(post);
     }
@@ -494,7 +501,7 @@ class _PostCardState extends State<PostCard> {
               Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 if (caption.isNotEmpty) Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
                   child: Text(caption, style: const TextStyle(height: 1.85, fontSize: 13))),
-                if (mediaUrl != null) mediaType == 'video' ? _FeedVideo(url: mediaUrl)
+                if (mediaUrl != null) mediaType == 'video' ? _FeedVideo(url: mediaUrl, coverUrl: post['cover_url'] as String?)
                   : Image.network(mediaUrl, fit: BoxFit.cover,
                     loadingBuilder: (context, child, progress) => progress == null ? child
                       : const AspectRatio(aspectRatio: 1, child: Center(child: CircularProgressIndicator())),
@@ -822,8 +829,9 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
 }
 
 class _FeedVideo extends StatefulWidget {
-  const _FeedVideo({required this.url});
+  const _FeedVideo({required this.url, this.coverUrl});
   final String url;
+  final String? coverUrl;
 
   @override
   State<_FeedVideo> createState() => _FeedVideoState();
@@ -852,7 +860,13 @@ class _FeedVideoState extends State<_FeedVideo> {
     builder: (context, snapshot) {
       if (snapshot.hasError) return const _MediaError();
       if (snapshot.connectionState != ConnectionState.done) {
-        return const AspectRatio(aspectRatio: 16 / 9, child: Center(child: CircularProgressIndicator()));
+        return AspectRatio(
+          aspectRatio: 9 / 16,
+          child: Stack(fit: StackFit.expand, children: [
+            if (widget.coverUrl != null) Image.network(widget.coverUrl!, fit: BoxFit.cover),
+            const Center(child: CircularProgressIndicator()),
+          ]),
+        );
       }
       return GestureDetector(
         onTap: () => setState(() {
