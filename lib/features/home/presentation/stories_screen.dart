@@ -192,8 +192,7 @@ class _StoryOverlayTextView extends StatelessWidget {
     final y = ((story['overlay_y'] as num?)?.toDouble() ?? 0.5).clamp(0.0, 1.0);
     final scale = ((story['overlay_scale'] as num?)?.toDouble() ?? 1.0).clamp(0.6, 2.5);
     return Positioned.fill(
-      child: IgnorePointer(
-        child: Align(
+      child: Align(
           alignment: Alignment(x * 2 - 1, y * 2 - 1),
           child: Transform.scale(
             scale: scale,
@@ -221,7 +220,6 @@ class _StoryOverlayTextView extends StatelessWidget {
               ),
             ),
           ),
-        ),
       ),
     );
   }
