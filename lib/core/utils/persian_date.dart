@@ -38,3 +38,15 @@ int _jalaliToJdn(int jy, int jm, int jd) {
       (epbase ~/ 2820) * 1029983 +
       1948320;
 }
+
+
+String persianTime(DateTime date) {
+  final value = '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  const digits = '۰۱۲۳۴۵۶۷۸۹';
+  return value.replaceAllMapped(
+    RegExp(r'[0-9]'),
+    (match) => digits[int.parse(match.group(0)!)],
+  );
+}
+
+String persianDateTime(DateTime date) => '${persianDate(date)} • ${persianTime(date)}';
