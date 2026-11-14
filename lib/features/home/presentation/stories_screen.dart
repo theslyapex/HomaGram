@@ -610,6 +610,22 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     ));
   }
 
+  String _storyTimestamp(dynamic rawValue) {
+    final date = DateTime.tryParse(rawValue?.toString() ?? '')?.toLocal();
+    if (date == null) return 'زمان انتشار نامشخص';
+    final value = '${date.year.toString().padLeft(4, '0')}/'
+        '${date.month.toString().padLeft(2, '0')}/'
+        '${date.day.toString().padLeft(2, '0')}  '
+        '${date.hour.toString().padLeft(2, '0')}:'
+        '${date.minute.toString().padLeft(2, '0')}';
+    const latin = '0123456789';
+    const persian = '۰۱۲۳۴۵۶۷۸۹';
+    return 'ارسال‌شده در ' + value.split('').map((char) {
+      final index = latin.indexOf(char);
+      return index < 0 ? char : persian[index];
+    }).join();
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: Colors.black,
@@ -677,8 +693,17 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                 child: _story['avatar_url'] == null ? const Icon(Icons.person_outline) : null,
               ),
               const SizedBox(width: 9),
-              Expanded(child: Text(_story['display_name'] as String,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800))),
+              Expanded(child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_story['display_name'] as String,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 2),
+                  Text(_storyTimestamp(_story['created_at']),
+                    style: const TextStyle(color: Colors.white70, fontSize: 10)),
+                ],
+              )),
               if (_isMine)
                 IconButton(onPressed: _showViewers, icon: const Icon(Icons.visibility_outlined, color: Colors.white)),
               if (_isMine)
