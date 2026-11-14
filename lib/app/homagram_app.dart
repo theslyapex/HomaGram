@@ -178,10 +178,7 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
   void _openNotificationsInbox() {
     homagramNavigatorKey.currentState?.push(
       MaterialPageRoute<void>(
-        builder: (_) => Scaffold(
-          appBar: AppBar(title: const Text('اعلان‌های شما')),
-          body: const NotificationsScreen(),
-        ),
+        builder: (_) => const NotificationsScreen(),
       ),
     );
   }
