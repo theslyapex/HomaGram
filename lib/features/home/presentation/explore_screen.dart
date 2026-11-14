@@ -5,8 +5,6 @@ import 'package:video_player/video_player.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
 import 'public_profile_screen.dart';
-import 'shared_post_screen.dart';
-import 'reels_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key, this.initialQuery});
