@@ -5,12 +5,43 @@ import '../../notifications/presentation/notifications_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
+  Future<void> _sendPasswordReset(BuildContext context) async {
+    final email = Supabase.instance.client.auth.currentUser?.email;
+    if (email == null || email.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('برای این حساب ایمیل ثبت‌شده‌ای در دسترس نیست.')),
+      );
+      return;
+    }
+    try {
+      await Supabase.instance.client.auth.resetPasswordForEmail(email);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('لینک بازیابی رمز عبور به ایمیل حساب ارسال شد.')),
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ارسال لینک بازیابی انجام نشد؛ کمی بعد دوباره تلاش کنید.')),
+      );
+    }
+  }
+
   void _open(BuildContext context, String title, List<_PolicySection> sections) {
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => _PolicyScreen(title: title, sections: sections)));
   }
   @override
   Widget build(BuildContext context) {
     final entries = <_SettingEntry>[
+      _SettingEntry(Icons.password_rounded, 'بازیابی رمز عبور', 'ارسال لینک امن به ایمیل حساب',
+        () => _sendPasswordReset(context)),
+      _SettingEntry(Icons.folder_shared_outlined, 'درخواست‌های اطلاعات و حساب', 'دریافت نسخه اطلاعات یا درخواست حذف حساب',
+        () => _open(context, 'درخواست‌های اطلاعات و حساب', const [
+          _PolicySection('دسترسی و دریافت نسخه', 'برای درخواست نسخه‌ای از اطلاعات مرتبط با حساب، از گفت‌وگوی پشتیبانی داخل برنامه پیام دهید. درخواست باید از همان حساب ثبت شود تا امکان بررسی مالکیت حساب فراهم باشد.'),
+          _PolicySection('اصلاح اطلاعات', 'نام نمایشی، نام کاربری و اطلاعاتی را که در بخش ویرایش نمایه قابل تغییر است، از همان بخش اصلاح کنید. برای داده‌هایی که امکان ویرایش مستقیم ندارند، درخواست خود را به پشتیبانی ارسال کنید.'),
+          _PolicySection('درخواست حذف حساب', 'برای ثبت درخواست حذف حساب، از گفت‌وگوی پشتیبانی داخل برنامه استفاده کنید. پیش از اجرای حذف، پیامدهای آن، مواردی که ممکن است طبق قانون یا برای رسیدگی به گزارش‌ها و اختلاف‌ها نگهداری شوند، و وضعیت محتوای منتشرشده باید به شما توضیح داده شود. این صفحه به‌تنهایی حساب را حذف نمی‌کند.'),
+          _PolicySection('رسیدگی و پیگیری', 'درخواست‌ها پس از بررسی هویت و دامنه درخواست رسیدگی می‌شوند. اطلاعات ورود، رمز عبور یا کد یک‌بارمصرف را برای هیچ‌کس ارسال نکنید.'),
+        ])),
       _SettingEntry(Icons.notifications_active_outlined, 'اعلان‌ها', 'مدیریت اعلان‌های دریافتی',
         () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()))),
       _SettingEntry(Icons.lock_outline_rounded, 'حریم خصوصی و امنیت', 'اصول حفاظت از حساب و اطلاعات',
@@ -133,6 +164,9 @@ const List<_PolicySection> _privacy = [
   _PolicySection('دسترسی و اشتراک‌گذاری', 'محتوایی که عمومی منتشر می‌کنید برای دیگر کاربران قابل مشاهده است. داده خصوصی فقط در حد لازم برای ارائه سرویس، رسیدگی به درخواست معتبر قانونی یا حفاظت از امنیت کاربران در اختیار اشخاص مجاز قرار می‌گیرد.'),
   _PolicySection('نگهداری و حذف', 'داده‌ها فقط برای مدت لازم نگهداری می‌شوند. حذف حساب باید فرآیند روشن داشته باشد؛ داده‌هایی که قانوناً باید برای رسیدگی به اختلاف یا جلوگیری از تقلب حفظ شوند، با محدودیت دسترسی نگهداری می‌شوند.'),
   _PolicySection('حقوق کاربر و امنیت', 'در حدود قانون محل فعالیت می‌توانید درخواست دسترسی، اصلاح، دریافت نسخه یا حذف اطلاعات را ثبت کنید. تدابیر فنی متناسب برای حفاظت از داده‌ها به‌کار می‌رود، اما هیچ سامانه‌ای مصونیت مطلق ندارد.'),
+  _PolicySection('ارائه‌دهندگان زیرساخت', 'برای میزبانی، ذخیره‌سازی، احراز هویت و ارسال اعلان ممکن است از ارائه‌دهندگان فنی استفاده شود. دسترسی این ارائه‌دهندگان باید در حد ارائه خدمت و مطابق تعهدات قراردادی و امنیتی محدود باشد.'),
+  _PolicySection('اعلان‌ها و کنترل کاربر', 'اعلان‌های دستگاه ممکن است از طریق سرویس اعلان سیستم‌عامل ارسال شوند. می‌توانید اعلان‌ها را از تنظیمات دستگاه مدیریت کنید؛ خاموش‌کردن اعلان‌ها ممکن است باعث از دست رفتن هشدارهای فوری شود.'),
+  _PolicySection('به‌روزرسانی سیاست', 'هر نسخه نهایی باید شماره نسخه، تاریخ آخرین بازبینی و تاریخ اجرا داشته باشد. تغییرات مهم باید پیش از اجرا به‌صورت روشن اطلاع‌رسانی شوند.'),
 ];
 const List<_PolicySection> _community = [
   _PolicySection('احترام و امنیت', 'تهدید، تعقیب، آزار مستمر، تحقیر هدفمند و افشای نشانی یا اطلاعات تماس خصوصی ممنوع است.'),
