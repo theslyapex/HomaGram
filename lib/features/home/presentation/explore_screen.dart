@@ -134,21 +134,25 @@ class _ExploreScreenState extends State<ExploreScreen> {
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          child: Row(children: [
-            ChoiceChip(label: const Text('جدیدترین'), selected: !_popular,
-              onSelected: (_) { setState(() => _popular = false); _load(); }),
-            const SizedBox(width: 8),
-            ChoiceChip(label: const Text('محبوب‌ترین'), selected: _popular,
-              onSelected: (_) { setState(() => _popular = true); _load(); }),
-            const SizedBox(width: 8),
-            ChoiceChip(label: const Text('همه محتوا'), selected: !_reelsOnly,
-              onSelected: (_) { setState(() => _reelsOnly = false); _load(); }),
-            const SizedBox(width: 8),
-            ChoiceChip(label: const Text('ریلز'), selected: _reelsOnly,
-              onSelected: (_) { setState(() => _reelsOnly = true); _load(); }),
-          ]),
+        SizedBox(
+          height: 44,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            children: [
+              ChoiceChip(label: const Text('جدیدترین'), selected: !_popular,
+                onSelected: (_) { setState(() => _popular = false); _load(); }),
+              const SizedBox(width: 8),
+              ChoiceChip(label: const Text('محبوب‌ترین'), selected: _popular,
+                onSelected: (_) { setState(() => _popular = true); _load(); }),
+              const SizedBox(width: 8),
+              ChoiceChip(label: const Text('همه محتوا'), selected: !_reelsOnly,
+                onSelected: (_) { setState(() => _reelsOnly = false); _load(); }),
+              const SizedBox(width: 8),
+              ChoiceChip(label: const Text('ریلز'), selected: _reelsOnly,
+                onSelected: (_) { setState(() => _reelsOnly = true); _load(); }),
+            ],
+          ),
         ),
         if (!_searching && _hashtags.isNotEmpty)
           SizedBox(height: 48, child: ListView(
