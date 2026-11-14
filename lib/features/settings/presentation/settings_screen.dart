@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../notifications/presentation/notifications_screen.dart';
 import '../../support/presentation/support_chat_screen.dart';
+import 'two_step_verification_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -66,6 +67,8 @@ class SettingsScreen extends StatelessWidget {
           _PolicySection('درخواست حذف حساب', 'برای ثبت درخواست حذف حساب، از گفت‌وگوی پشتیبانی داخل برنامه استفاده کنید. پیش از اجرای حذف، پیامدهای آن، مواردی که ممکن است طبق قانون یا برای رسیدگی به گزارش‌ها و اختلاف‌ها نگهداری شوند، و وضعیت محتوای منتشرشده باید به شما توضیح داده شود. این صفحه به‌تنهایی حساب را حذف نمی‌کند.'),
           _PolicySection('رسیدگی و پیگیری', 'درخواست‌ها پس از بررسی هویت و دامنه درخواست رسیدگی می‌شوند. اطلاعات ورود، رمز عبور یا کد یک‌بارمصرف را برای هیچ‌کس ارسال نکنید.'),
         ])),
+      _SettingEntry(Icons.shield_moon_outlined, 'تأیید دومرحله‌ای', 'افزودن کد امنیتی هنگام ورود به حساب',
+        () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const TwoStepVerificationScreen()))),
       _SettingEntry(Icons.notifications_active_outlined, 'اعلان‌ها', 'مدیریت اعلان‌های دریافتی',
         () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()))),
       _SettingEntry(Icons.lock_outline_rounded, 'حریم خصوصی و امنیت', 'اصول حفاظت از حساب و اطلاعات',
