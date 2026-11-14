@@ -199,6 +199,11 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final visiblePosts = _section == 0
+        ? _posts.where((post) => post['is_reel'] != true).toList()
+        : _section == 1
+            ? _posts.where((post) => post['is_reel'] == true).toList()
+            : _repostPosts;
     return Scaffold(
       appBar: AppBar(
         title: Text(_isMe ? 'پروفایل من' : 'پروفایل کاربر'),
@@ -242,99 +247,23 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 const SizedBox(height: 20),
                 Row(children: [
                   Expanded(child: _sectionButton(0, Icons.grid_on_rounded, 'پست‌ها')),
-                  Expanded(child: _sectionButton(1, Icons.repeat_rounded, 'بازنشرها')),
+                  Expanded(child: _sectionButton(1, Icons.play_circle_outline_rounded, 'ریلز')),
+                  Expanded(child: _sectionButton(2, Icons.repeat_rounded, 'بازنشرها')),
                 ]),
                 const SizedBox(height: 14),
-                if (_section == 1 && _repostPosts.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Text('هنوز بازنشری ثبت نشده است.', textAlign: TextAlign.center,
-                      style: TextStyle(color: Color(0xFF8490A4))),
-                  )
-                else if (_section == 1)
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _repostPosts.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3, crossAxisSpacing: 4, mainAxisSpacing: 4,
+                if (visiblePosts.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(30),
+                    child: Text(
+                      _section == 0 ? 'هنوز پستی منتشر نشده است.'
+                          : _section == 1 ? 'هنوز ریلزی منتشر نشده است.'
+                          : 'هنوز بازنشری ثبت نشده است.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Color(0xFF8490A4)),
                     ),
-                    itemBuilder: (context, index) {
-                      final post = _repostPosts[index];
-                      final url = post['media_url'] as String?;
-                      return GestureDetector(
-                        onTap: () => _showPost(post),
-                        child: Container(
-                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                          child: url == null
-                            ? Center(child: Padding(padding: const EdgeInsets.all(8),
-                                child: Text((post['caption'] as String? ?? '').isEmpty ? 'پست متنی' : post['caption'] as String,
-                                  maxLines: 5, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center,
-                                  style: const TextStyle(fontSize: 11))))
-                            : Stack(fit: StackFit.expand, children: [
-                                (post['media_type'] == 'video'
-                                      ? (post['cover_url'] != null
-                                          ? Image.network(post['cover_url'] as String, fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) => const Icon(Icons.play_circle_fill_rounded))
-                                          : Container(color: const Color(0xFF171C2B),
-                                              child: const Center(child: Icon(Icons.play_circle_fill_rounded,
-                                                size: 38, color: Colors.white))))
-                                      : Image.network(url, fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined))),
-                                if (post['media_type'] == 'video')
-                                  const Positioned(right: 6, top: 6,
-                                    child: Icon(Icons.play_arrow_rounded, color: Colors.white)),
-                              ]),
-                        ),
-                      );
-                    },
-                  ),
-                if (_section == 0 && _posts.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Text('هنوز پستی منتشر نشده است.', textAlign: TextAlign.center,
-                        style: TextStyle(color: Color(0xFF8490A4))),
                   )
-                else if (_section == 0)
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _posts.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3, crossAxisSpacing: 4, mainAxisSpacing: 4,
-                    ),
-                    itemBuilder: (context, index) {
-                      final post = _posts[index];
-                      final url = post['media_url'] as String?;
-                      return GestureDetector(
-                        onTap: () => _showPost(post),
-                        child: Container(
-                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                          child: url == null
-                              ? Center(child: Padding(
-                                  padding: const EdgeInsets.all(8),
-                                  child: Text((post['caption'] as String? ?? '').isEmpty ? 'پست متنی' : post['caption'] as String,
-                                      maxLines: 5, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center,
-                                      style: const TextStyle(fontSize: 11)),
-                                ))
-                              : Stack(fit: StackFit.expand, children: [
-                                  (post['media_type'] == 'video'
-                                      ? (post['cover_url'] != null
-                                          ? Image.network(post['cover_url'] as String, fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) => const Icon(Icons.play_circle_fill_rounded))
-                                          : Container(color: const Color(0xFF171C2B),
-                                              child: const Center(child: Icon(Icons.play_circle_fill_rounded,
-                                                size: 38, color: Colors.white))))
-                                      : Image.network(url, fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined))),
-                                  if (post['media_type'] == 'video')
-                                    const Positioned(right: 6, top: 6,
-                                      child: Icon(Icons.play_arrow_rounded, color: Colors.white)),
-                                ]),
-                        ),
-                      );
-                    },
-                  ),
+                else
+                  _profileMediaGrid(visiblePosts),
               ],
             ))),
     );
@@ -457,6 +386,55 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     final name = _profile?['display_name'] as String? ?? 'کاربر هماگرام';
     await SharePlus.instance.share(ShareParams(text: '$name در هماگرام\n@$username'));
   }
+
+  Widget _profileMediaGrid(List<Map<String, dynamic>> items) => GridView.builder(
+    shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
+    itemCount: items.length,
+    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: 3,
+      crossAxisSpacing: 4,
+      mainAxisSpacing: 4,
+    ),
+    itemBuilder: (context, index) {
+      final post = items[index];
+      final url = post['media_url'] as String?;
+      final isVideo = post['media_type'] == 'video' || post['is_reel'] == true;
+      return GestureDetector(
+        onTap: () => _showPost(post),
+        child: Container(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          child: url == null
+              ? Center(child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Text(
+                    (post['caption'] as String? ?? '').isEmpty ? 'پست متنی' : post['caption'] as String,
+                    maxLines: 5,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                ))
+              : Stack(fit: StackFit.expand, children: [
+                  isVideo
+                      ? (post['cover_url'] != null
+                          ? Image.network(post['cover_url'] as String, fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Icon(Icons.play_circle_fill_rounded))
+                          : Container(
+                              color: const Color(0xFF171C2B),
+                              child: const Center(child: Icon(Icons.play_circle_fill_rounded,
+                                size: 38, color: Colors.white)),
+                            ))
+                      : Image.network(url, fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined)),
+                  if (isVideo)
+                    const Positioned(right: 6, top: 6,
+                      child: Icon(Icons.play_arrow_rounded, color: Colors.white)),
+                ]),
+        ),
+      );
+    },
+  );
 
   Widget _sectionButton(int index, IconData icon, String label) {
     final selected = _section == index;
