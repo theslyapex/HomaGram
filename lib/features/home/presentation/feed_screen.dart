@@ -664,6 +664,7 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
   bool _loading = true, _sending = false;
   String? _replyTo;
   String? _replyName;
+  bool _likeBusy = false;
   String get _uid => AuthService.client.auth.currentUser!.id;
 
   @override
@@ -680,11 +681,55 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
       final profiles = ids.isEmpty ? <dynamic>[] : await AuthService.client.from('profiles')
         .select('id,username,display_name,avatar_path').inFilter('id', ids);
       final map = {for (final p in profiles) p['id'] as String: Map<String,dynamic>.from(p)};
+      final commentIds = rows.map((e) => e['id'] as String).toList();
+      final likes = commentIds.isEmpty ? <dynamic>[] : await AuthService.client.from('post_comment_likes')
+        .select('comment_id,user_id').inFilter('comment_id', commentIds);
+      final likeCounts = <String,int>{};
+      final myLikes = <String>{};
+      for (final like in likes) {
+        final id = like['comment_id'] as String;
+        likeCounts[id] = (likeCounts[id] ?? 0) + 1;
+        if (like['user_id'] == _uid) myLikes.add(id);
+      }
+      final avatarPaths = profiles.map((p) => p['avatar_path'] as String?).whereType<String>().toSet();
+      final avatarUrls = <String,String>{};
+      for (final path in avatarPaths) {
+        try { avatarUrls[path] = await AuthService.client.storage.from('avatars').createSignedUrl(path, 3600); } catch (_) {}
+      }
       if (!mounted) return;
       setState(() { _comments = rows.map((r) {
-        final m = Map<String,dynamic>.from(r); m['profile'] = map[m['user_id']]; return m;
+        final m = Map<String,dynamic>.from(r);
+        m['profile'] = map[m['user_id']];
+        m['like_count'] = likeCounts[m['id']] ?? 0;
+        m['liked_by_me'] = myLikes.contains(m['id']);
+        final avatarPath = (m['profile'] as Map<String,dynamic>?)?['avatar_path'] as String?;
+        m['avatar_url'] = avatarPath == null ? null : avatarUrls[avatarPath];
+        return m;
       }).toList(); _loading = false; });
     } catch (_) { if (mounted) setState(() => _loading = false); }
+  }
+
+  Future<void> _toggleCommentLike(Map<String,dynamic> comment) async {
+    if (_likeBusy) return;
+    setState(() => _likeBusy = true);
+    final id = comment['id'] as String;
+    final liked = comment['liked_by_me'] == true;
+    try {
+      final query = AuthService.client.from('post_comment_likes');
+      if (liked) {
+        await query.delete().eq('comment_id', id).eq('user_id', _uid);
+      } else {
+        await query.insert({'comment_id': id, 'user_id': _uid});
+      }
+      if (mounted) setState(() {
+        comment['liked_by_me'] = !liked;
+        comment['like_count'] = ((comment['like_count'] as int?) ?? 0) + (liked ? -1 : 1);
+      });
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ثبت پسند دیدگاه انجام نشد.')),
+      );
+    } finally { if (mounted) setState(() => _likeBusy = false); }
   }
 
   Future<void> _send() async {
@@ -713,16 +758,49 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
             final c = _comments[i], p = c['profile'] as Map<String,dynamic>?;
             final isReply = c['parent_id'] != null;
             return Padding(padding: EdgeInsets.only(bottom: 12, right: isReply ? 28 : 0),
-              child: ListTile(dense: true, tileColor: Theme.of(context).cardTheme.color,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                leading: CircleAvatar(child: Text(((p?['display_name'] as String?) ?? 'ک').characters.first)),
-                title: Text(p?['display_name'] as String? ?? 'کاربر',
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
-                subtitle: Text(c['body'] as String),
-                trailing: TextButton(onPressed: () => setState(() {
-                  _replyTo = c['parent_id'] == null ? c['id'] as String : c['parent_id'] as String;
-                  _replyName = p?['display_name'] as String? ?? 'کاربر';
-                }), child: const Text('پاسخ'))));
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardTheme.color,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  CircleAvatar(
+                    radius: 19,
+                    backgroundImage: c['avatar_url'] == null ? null : NetworkImage(c['avatar_url'] as String),
+                    child: c['avatar_url'] == null
+                        ? Text(((p?['display_name'] as String?) ?? 'ک').characters.first)
+                        : null,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(p?['display_name'] as String? ?? 'کاربر',
+                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+                    const SizedBox(height: 5),
+                    Text(c['body'] as String, style: const TextStyle(height: 1.55)),
+                    const SizedBox(height: 7),
+                    Row(children: [
+                      Text(persianDate(DateTime.tryParse(c['created_at']?.toString() ?? '')?.toLocal() ?? DateTime.now()),
+                        style: const TextStyle(fontSize: 10, color: Color(0xFF8490A4))),
+                      const Spacer(),
+                      InkWell(onTap: () => _toggleCommentLike(c), child: Row(children: [
+                        Icon(c['liked_by_me'] == true ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                          color: c['liked_by_me'] == true ? Colors.redAccent : const Color(0xFF8490A4), size: 17),
+                        const SizedBox(width: 4),
+                        Text('${c['like_count'] ?? 0}', style: const TextStyle(fontSize: 11)),
+                      ])),
+                      const SizedBox(width: 12),
+                      TextButton(
+                        onPressed: () => setState(() {
+                          _replyTo = c['parent_id'] == null ? c['id'] as String : c['parent_id'] as String;
+                          _replyName = p?['display_name'] as String? ?? 'کاربر';
+                        }),
+                        child: const Text('پاسخ'),
+                      ),
+                    ]),
+                  ])),
+                ]),
+              ));
           })),
       SafeArea(top: false, child: Padding(padding: const EdgeInsets.all(12),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
