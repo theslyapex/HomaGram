@@ -25,7 +25,7 @@ class StoryService {
   static Future<List<Map<String, dynamic>>> loadActiveStories() async {
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _client.from('stories')
-        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,created_at,expires_at')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,created_at,expires_at')
         .gt('expires_at', now)
         .order('created_at');
     return _hydrate(rows);
@@ -35,7 +35,7 @@ class StoryService {
   static Future<List<Map<String, dynamic>>> loadMyActiveStories() async {
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _client.from('stories')
-        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,created_at,expires_at')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,created_at,expires_at')
         .eq('author_id', _uid)
         .gt('expires_at', now)
         .order('created_at', ascending: false);
@@ -53,7 +53,7 @@ class StoryService {
     }
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _client.from('stories')
-        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,created_at,expires_at')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,created_at,expires_at')
         .eq('author_id', _uid)
         .lte('expires_at', now)
         .order('created_at', ascending: false)
@@ -154,6 +154,7 @@ class StoryService {
     String overlayColor = '#FFFFFF',
     String overlayFont = 'estedad',
     List<Map<String, dynamic>> drawingData = const [],
+    List<Map<String, dynamic>> stickerData = const [],
   }) async {
     final cleanOverlay = overlayText?.trim();
     if (cleanOverlay != null && cleanOverlay.length > 180) {
@@ -166,6 +167,20 @@ class StoryService {
       throw ArgumentError('تنظیمات متن روی رسانه معتبر نیست.');
     }
     if (drawingData.length > 100) throw ArgumentError('تعداد خطوط نقاشی بیش از حد مجاز است.');
+    const allowedStickers = {'❤️','😍','😂','🔥','✨','⭐','🌈','🌸','🦋','🎉','☀️','🌙','💯','👏','🎈','🍀','☕','🎧'};
+    if (stickerData.length > 20) throw ArgumentError('تعداد استیکرها بیش از حد مجاز است.');
+    for (final sticker in stickerData) {
+      final x = (sticker['x'] as num?)?.toDouble();
+      final y = (sticker['y'] as num?)?.toDouble();
+      final scale = (sticker['scale'] as num?)?.toDouble();
+      final rotation = (sticker['rotation'] as num?)?.toDouble();
+      if (!allowedStickers.contains(sticker['emoji']) ||
+          x == null || y == null || x < .05 || x > .95 || y < .05 || y > .95 ||
+          scale == null || scale < .5 || scale > 3 ||
+          rotation == null || rotation < -3.14 || rotation > 3.14) {
+        throw ArgumentError('اطلاعات استیکر معتبر نیست.');
+      }
+    }
     if (!isSupportedStoryMedia(mediaType: mediaType, mimeType: mimeType)) {
       throw ArgumentError('نوع رسانه یا فرمت فایل استوری پشتیبانی نمی‌شود.');
     }
@@ -196,6 +211,7 @@ class StoryService {
         'overlay_color': overlayColor,
         'overlay_font': overlayFont,
         'drawing_data': drawingData,
+        'sticker_data': stickerData,
       });
     } catch (_) {
       try { await _client.storage.from('story-media').remove([path]); } catch (_) {}
