@@ -628,11 +628,13 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text(widget.highlight == null ? 'ساخت هایلایت' : 'ویرایش هایلایت'),
+      title: Text(widget.highlight == null ? 'ساخت هایلایت' : 'ویرایش هایلایت',
+        style: const TextStyle(fontFamily: 'Estedad', fontWeight: FontWeight.w800)),
       actions: [
         TextButton(
           onPressed: _saving ? null : _save,
-          child: Text(_saving ? '...' : (widget.highlight == null ? 'ذخیره' : 'ذخیره تغییرات')),
+          child: Text(_saving ? '...' : (widget.highlight == null ? 'ذخیره' : 'ذخیره تغییرات'),
+            style: const TextStyle(fontFamily: 'Estedad', fontWeight: FontWeight.w700)),
         ),
       ],
     ),
