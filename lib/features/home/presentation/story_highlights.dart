@@ -164,6 +164,9 @@ class StoryHighlightService {
       try {
         await _client.from('story_highlights').delete().eq('id', highlightId);
       } catch (_) {}
+      if (coverImagePath != null) {
+        try { await _client.storage.from('avatars').remove([coverImagePath]); } catch (_) {}
+      }
       rethrow;
     }
   }
@@ -184,6 +187,9 @@ class StoryHighlightService {
     }
 
     final ownerId = _client.auth.currentUser!.id;
+    final currentHighlight = await _client.from('story_highlights')
+        .select('cover_image_path').eq('id', highlightId).eq('owner_id', ownerId).maybeSingle();
+    final oldCoverPath = currentHighlight?['cover_image_path'] as String?;
     final currentRows = await _client
         .from('story_highlight_items')
         .select('story_id,position')
@@ -224,6 +230,9 @@ class StoryHighlightService {
             .eq('highlight_id', highlightId)
             .inFilter('story_id', removals);
       }
+      if (oldCoverPath != null && oldCoverPath != coverImagePath) {
+        try { await _client.storage.from('avatars').remove([oldCoverPath]); } catch (_) {}
+      }
     } catch (_) {
       // Best-effort compensation prevents newly added items from being left
       // behind when a later edit step fails.
@@ -252,7 +261,13 @@ class StoryHighlightService {
   }
 
   static Future<void> deleteHighlight(String highlightId) async {
+    final row = await _client.from('story_highlights')
+        .select('cover_image_path').eq('id', highlightId).maybeSingle();
     await _client.from('story_highlights').delete().eq('id', highlightId);
+    final path = row?['cover_image_path'] as String?;
+    if (path != null) {
+      try { await _client.storage.from('avatars').remove([path]); } catch (_) {}
+    }
   }
 }
 
