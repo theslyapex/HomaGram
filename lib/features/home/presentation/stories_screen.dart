@@ -574,7 +574,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       return;
     }
     final beforeCaret = controller.text.substring(0, caret);
-    final match = RegExp(r'(?:^|\\s)@([a-zA-Z0-9_]{1,24})
+    final match = RegExp(r'(?:^|\s)@([a-zA-Z0-9_]{1,24})
     try {
       final picked = video
           ? await _picker.pickVideo(source: ImageSource.gallery, maxDuration: const Duration(seconds: 60))
