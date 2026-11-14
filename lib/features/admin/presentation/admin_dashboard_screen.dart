@@ -8,18 +8,19 @@ class AdminDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => DefaultTabController(
-    length: 3,
+    length: 4,
     child: Scaffold(
       appBar: AppBar(
         title: const Text('مدیریت هماگرام', style: TextStyle(fontWeight: FontWeight.w900)),
         bottom: const TabBar(isScrollable: true, tabs: [
           Tab(icon: Icon(Icons.dashboard_outlined), text: 'نمای کلی'),
           Tab(icon: Icon(Icons.people_alt_outlined), text: 'کاربران'),
-          Tab(icon: Icon(Icons.flag_outlined), text: 'گزارش‌ها'),
+          Tab(icon: Icon(Icons.flag_outlined), text: 'گزارش پست‌ها'),
+          Tab(icon: Icon(Icons.chat_bubble_outline), text: 'گزارش پیام‌ها'),
         ]),
       ),
       body: const TabBarView(children: [
-        _OverviewTab(), _UsersTab(), _ReportsTab(),
+        _OverviewTab(), _UsersTab(), _ReportsTab(), _MessageReportsTab(),
       ]),
     ),
   );
@@ -399,6 +400,102 @@ class _ReportsTabState extends State<_ReportsTab> {
     );
   }
 }
+
+class _MessageReportsTab extends StatefulWidget {
+  const _MessageReportsTab();
+  @override
+  State<_MessageReportsTab> createState() => _MessageReportsTabState();
+}
+class _MessageReportsTabState extends State<_MessageReportsTab> {
+  List<Map<String,dynamic>> _items = [];
+  bool _loading = true;
+  String? _error;
+  String? _working;
+  @override
+  void initState() { super.initState(); _load(); }
+  Future<void> _load() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final result = await AdminService.loadMessageReports();
+      if (!mounted) return;
+      setState(() { _items = result; _loading = false; });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() { _loading = false; _error = 'دریافت گزارش پیام‌ها انجام نشد.'; });
+    }
+  }
+  Future<void> _review(Map<String,dynamic> item, String status) async {
+    final id = item['report_id'] as String;
+    if (_working != null) return;
+    setState(() => _working = id);
+    try {
+      await AdminService.reviewMessageReport(id, status);
+      await _load();
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ثبت نتیجه بررسی انجام نشد.')));
+    } finally { if (mounted) setState(() => _working = null); }
+  }
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) return _RetryView(message: _error!, onRetry: _load);
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: _items.isEmpty
+        ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
+            SizedBox(height: 100), Icon(Icons.verified_outlined, size: 48),
+            SizedBox(height: 12), Center(child: Text('گزارش پیام ثبت نشده است.')),
+          ])
+        : ListView.separated(
+            padding: const EdgeInsets.all(14), itemCount: _items.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 9),
+            itemBuilder: (context, index) {
+              final item = _items[index];
+              final id = item['report_id'] as String;
+              final pending = item['status'] == 'pending';
+              return Card(child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Row(children: [
+                    Expanded(child: Text(_messageReason(item['reason']?.toString() ?? ''),
+                      style: const TextStyle(fontWeight: FontWeight.w900))),
+                    _ReportStatus(status: item['status']?.toString() ?? 'pending'),
+                  ]),
+                  const SizedBox(height: 8),
+                  Text((item['message_body'] as String?)?.trim().isNotEmpty == true
+                    ? item['message_body'] as String : 'پیام بدون متن یا دارای پیوست',
+                    maxLines: 5, overflow: TextOverflow.ellipsis),
+                  if ((item['details'] as String?)?.isNotEmpty == true) ...[
+                    const SizedBox(height: 7), Text('توضیح: ${item['details']}'),
+                  ],
+                  const SizedBox(height: 7),
+                  Text('شناسه پیام: ${item['message_id']}',
+                    style: Theme.of(context).textTheme.labelSmall),
+                  Text('شناسه گزارش‌دهنده: ${item['reporter_id']}',
+                    style: Theme.of(context).textTheme.labelSmall),
+                  if (pending) ...[
+                    const SizedBox(height: 10),
+                    Wrap(spacing: 8, children: [
+                      OutlinedButton(onPressed: _working == id ? null : () => _review(item,'dismissed'),
+                        child: const Text('رد گزارش')),
+                      FilledButton(onPressed: _working == id ? null : () => _review(item,'reviewed'),
+                        child: const Text('بررسی شد')),
+                      FilledButton.tonal(onPressed: _working == id ? null : () => _review(item,'actioned'),
+                        child: const Text('اقدام انجام شد')),
+                    ]),
+                  ],
+                ]),
+              ));
+            },
+          ),
+    );
+  }
+}
+String _messageReason(String value) => switch(value) {
+  'spam' => 'هرزنامه', 'harassment' => 'آزار و اذیت', 'threat' => 'تهدید',
+  'privacy' => 'نقض حریم خصوصی', 'inappropriate' => 'محتوای نامناسب', 'other' => 'سایر موارد', _ => value,
+};
 
 class _ReportStatus extends StatelessWidget {
   const _ReportStatus({required this.status});
