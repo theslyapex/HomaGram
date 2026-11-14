@@ -130,6 +130,21 @@ class _StoryDrawingView extends StatelessWidget {
   }
 }
 
+class _StoryStickerView extends StatelessWidget {
+  const _StoryStickerView({required this.story});
+  final Map<String, dynamic> story;
+
+  @override
+  Widget build(BuildContext context) {
+    final raw = story['sticker_data'];
+    if (raw is! List || raw.isEmpty) return const SizedBox.shrink();
+    final stickers = raw.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
+    return Positioned.fill(
+      child: IgnorePointer(child: _StoryStickerLayer(stickers: stickers)),
+    );
+  }
+}
+
 class _StoryOverlayTextView extends StatelessWidget {
   const _StoryOverlayTextView({required this.story});
 
@@ -174,6 +189,79 @@ class _StoryOverlayTextView extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+
+class _StoryStickerLayer extends StatelessWidget {
+  const _StoryStickerLayer({
+    required this.stickers,
+    this.onChanged,
+    this.interactive = false,
+  });
+
+  final List<Map<String, dynamic>> stickers;
+  final ValueChanged<List<Map<String, dynamic>>>? onChanged;
+  final bool interactive;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) => Stack(
+      clipBehavior: Clip.none,
+      children: [
+        for (var i = 0; i < stickers.length; i++)
+          _buildSticker(i, constraints.biggest),
+      ],
+    ),
+  );
+
+  Widget _buildSticker(int index, Size size) {
+    final sticker = stickers[index];
+    final emoji = sticker['emoji'] as String? ?? '⭐';
+    final x = ((sticker['x'] as num?)?.toDouble() ?? .5).clamp(.05, .95);
+    final y = ((sticker['y'] as num?)?.toDouble() ?? .5).clamp(.05, .95);
+    final scale = ((sticker['scale'] as num?)?.toDouble() ?? 1).clamp(.5, 3);
+    final rotation = (sticker['rotation'] as num?)?.toDouble() ?? 0;
+    var startScale = scale;
+    var startRotation = rotation;
+
+    Widget child = Transform.rotate(
+      angle: rotation,
+      child: Transform.scale(
+        scale: scale,
+        child: Text(emoji, style: const TextStyle(fontSize: 48, height: 1.1)),
+      ),
+    );
+
+    if (interactive && onChanged != null) {
+      child = GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onScaleStart: (_) {
+          startScale = scale;
+          startRotation = rotation;
+        },
+        onScaleUpdate: (details) {
+          final next = stickers.map((item) => Map<String, dynamic>.from(item)).toList();
+          next[index]['x'] = (x + details.focalPointDelta.dx / size.width).clamp(.05, .95);
+          next[index]['y'] = (y + details.focalPointDelta.dy / size.height).clamp(.05, .95);
+          next[index]['scale'] = (startScale * details.scale).clamp(.5, 3);
+          next[index]['rotation'] = (startRotation + details.rotation).clamp(-3.14, 3.14);
+          onChanged!(next);
+        },
+        onLongPress: () {
+          final next = stickers.map((item) => Map<String, dynamic>.from(item)).toList();
+          next.removeAt(index);
+          onChanged!(next);
+        },
+        child: child,
+      );
+    }
+
+    return Positioned(
+      left: x * size.width - 30,
+      top: y * size.height - 30,
+      child: IgnorePointer(ignoring: !interactive, child: child),
     );
   }
 }
@@ -400,6 +488,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   String _overlayColor = '#FFFFFF';
   String _overlayFont = 'estedad';
   final List<Map<String, dynamic>> _drawingStrokes = [];
+  final List<Map<String, dynamic>> _stickers = [];
   bool _drawingMode = false;
   bool _eraserMode = false;
   String _drawingColor = '#FFFFFF';
@@ -518,6 +607,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           overlayColor: _overlayColor,
           overlayFont: _overlayFont,
           drawingData: _drawingStrokes,
+          stickerData: _stickers,
         );
       }
       if (!mounted) return;
@@ -578,6 +668,12 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                             color: Colors.black87,
                             child: const Center(child: Icon(Icons.play_circle_outline, size: 70, color: Colors.white)),
                           ),
+                    if (_stickers.isNotEmpty)
+                      Positioned.fill(child: _StoryStickerLayer(
+                        stickers: _stickers,
+                        interactive: true,
+                        onChanged: (value) => setState(() { _stickers..clear()..addAll(value); }),
+                      )),
                     if (_drawingStrokes.isNotEmpty)
                       Positioned.fill(child: IgnorePointer(
                         child: CustomPaint(painter: _StoryDrawingPainter(_drawingStrokes)),
@@ -693,6 +789,29 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         ],
         if (!_textMode && _file != null) ...[
 
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text('استیکرها', style: Theme.of(context).textTheme.labelLarge),
+          ),
+          const SizedBox(height: 7),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            for (final emoji in ['❤️', '😍', '😂', '🔥', '✨', '⭐', '🌈', '🌸', '🦋', '🎉', '☀️', '🌙', '💯', '👏', '🎈', '🍀', '☕', '🎧'])
+              ActionChip(
+                label: Text(emoji, style: const TextStyle(fontSize: 22)),
+                onPressed: _busy || _stickers.length >= 20 ? null : () => setState(() {
+                  _stickers.add({'emoji': emoji, 'x': .5, 'y': .5, 'scale': 1.0, 'rotation': 0.0});
+                }),
+              ),
+            ActionChip(
+              avatar: const Icon(Icons.delete_sweep_outlined, size: 18),
+              label: const Text('حذف همه'),
+              onPressed: _stickers.isEmpty ? null : () => setState(_stickers.clear),
+            ),
+          ]),
+          const Text('استیکر را روی پیش‌نمایش بکشید؛ با دو انگشت اندازه و زاویه را تغییر دهید. برای حذف یک استیکر، آن را چند لحظه نگه دارید.',
+            style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4))),
+          const SizedBox(height: 12),
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             value: _drawingMode,
@@ -1113,6 +1232,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
         ),
         if (_story['media_type'] == 'image' || _story['media_type'] == 'video') ...[
           _StoryDrawingView(story: _story),
+          _StoryStickerView(story: _story),
           _StoryOverlayTextView(story: _story),
         ],
         Positioned.fill(
