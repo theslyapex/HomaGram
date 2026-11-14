@@ -579,7 +579,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
         _paused = _userPaused || _lifecyclePaused || !_routeVisible;
       });
       _markViewed();
-      if (_story['media_type'] == 'image') _startProgress();
+      if (_story['media_type'] != 'video') _startProgress();
     } else {
       Navigator.of(context).pop();
     }
@@ -595,7 +595,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
         _paused = _userPaused || _lifecyclePaused || !_routeVisible;
       });
       _markViewed();
-      if (_story['media_type'] == 'image') _startProgress();
+      if (_story['media_type'] != 'video') _startProgress();
     } else {
       _startProgress();
     }
