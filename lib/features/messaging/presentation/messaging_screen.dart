@@ -240,7 +240,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                                 Center(child: FilledButton.icon(
                                   onPressed: _newChat,
                                   icon: const Icon(Icons.add_comment_outlined),
-                                  label: const Text('شروع گفت‌وگوی جدید'),
+                                  label: const Text('شروع گفت‌وگوی جدید', style: TextStyle(fontFamily: 'Estedad')),
                                 )),
                               ],
                             )
