@@ -69,9 +69,15 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
     final id = _conversationId;
     if (id == null) return;
     try {
-      final rows = await SupportService.loadMessages(id);
+      final results = await Future.wait([
+        SupportService.loadConversationInfo(id),
+        SupportService.loadMessages(id),
+      ]);
       if (!mounted) return;
+      final info = results[0] as Map<String, dynamic>;
+      final rows = results[1] as List<Map<String, dynamic>>;
       setState(() {
+        _status = info['status'] as String? ?? 'open';
         _messages = rows;
         _loading = false;
         _error = null;
