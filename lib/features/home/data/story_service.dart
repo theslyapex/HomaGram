@@ -414,6 +414,16 @@ class StoryService {
     }
   }
 
+  static Future<Map<String, dynamic>?> loadStoryById(String storyId) async {
+    final rows = await _client.from('stories')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,music_path,music_start_ms,music_volume,created_at,expires_at')
+        .eq('id', storyId)
+        .limit(1);
+    if (rows.isEmpty) return null;
+    final hydrated = await _hydrate(rows);
+    return hydrated.isEmpty ? null : hydrated.first;
+  }
+
   static Future<List<Map<String, dynamic>>> searchMentionUsers(String query) async {
     final clean = query.trim().toLowerCase();
     if (clean.isEmpty || !RegExp(r'^[a-z0-9_]{1,24}
