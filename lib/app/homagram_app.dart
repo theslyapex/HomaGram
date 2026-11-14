@@ -377,5 +377,6 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
               ? const AuthGate()
               : const BootstrapScreen(supabaseConfigured: false),
         ),
-      );
+      ),
+    );
 }
