@@ -142,6 +142,11 @@ class StoryService {
     final mediaUrls = signedResults[1];
     final stickerUrls = signedResults[2];
     final musicUrls = signedResults[3];
+    final pollRows = await _client.rpc('get_story_polls', params: {'p_story_ids': storyIds});
+    final pollsByStory = <String, Map<String, dynamic>>{
+      for (final raw in (pollRows as List))
+        if (raw is Map) raw['story_id'] as String: Map<String, dynamic>.from(raw),
+    };
 
     return rows.map((row) {
       final story = Map<String, dynamic>.from(row);
@@ -152,6 +157,7 @@ class StoryService {
       story['avatar_url'] = avatarUrls[profile['avatar_path']];
       story['media_url'] = mediaUrls[story['media_path']];
       story['music_url'] = musicUrls[story['music_path']];
+      story['poll_data'] = pollsByStory[story['id']];
       final stickerData = story['sticker_data'];
       if (stickerData is List) {
         story['sticker_data'] = stickerData.map((raw) {
@@ -186,6 +192,8 @@ class StoryService {
     String? musicMimeType,
     int musicStartMs = 0,
     double musicVolume = 0.75,
+    String? pollQuestion,
+    List<String>? pollOptions,
   }) async {
     final cleanOverlay = overlayText?.trim();
     if (cleanOverlay != null && cleanOverlay.length > 180) {
@@ -212,6 +220,17 @@ class StoryService {
     }
     if (caption.trim().length > 500) {
       throw ArgumentError('متن استوری حداکثر ۵۰۰ نویسه است.');
+    }
+    final cleanPollQuestion = pollQuestion?.trim();
+    final cleanPollOptions = pollOptions?.map((option) => option.trim()).toList();
+    if (cleanPollQuestion != null || cleanPollOptions != null) {
+      if (cleanPollQuestion == null || cleanPollQuestion.isEmpty ||
+          cleanPollQuestion.length > 160 || cleanPollOptions == null ||
+          cleanPollOptions.length < 2 || cleanPollOptions.length > 4 ||
+          cleanPollOptions.any((option) => option.isEmpty || option.length > 60) ||
+          cleanPollOptions.map((option) => option.toLowerCase()).toSet().length != cleanPollOptions.length) {
+        throw ArgumentError('سؤال و گزینه‌های نظرسنجی معتبر نیستند.');
+      }
     }
 
     final uploadedStickerPaths = <String>[];
@@ -289,6 +308,7 @@ class StoryService {
       path, bytes, fileOptions: FileOptions(contentType: mimeType, upsert: false),
     );
     String? uploadedMusicPath;
+    String? createdStoryId;
     try {
       if (musicBytes != null) {
         final musicExt = musicFileName!.split('.').last.toLowerCase();
@@ -301,7 +321,7 @@ class StoryService {
           fileOptions: FileOptions(contentType: musicMimeType!, upsert: false),
         );
       }
-      await _client.from('stories').insert({
+      final insertedStory = await _client.from('stories').insert({
         'author_id': _uid,
         'media_path': path,
         'media_type': mediaType,
@@ -317,8 +337,19 @@ class StoryService {
         'music_path': uploadedMusicPath,
         'music_start_ms': musicStartMs,
         'music_volume': musicVolume,
-      });
+      }).select('id').single();
+      createdStoryId = insertedStory['id'] as String;
+      if (cleanPollQuestion != null && cleanPollOptions != null) {
+        await _client.rpc('create_story_poll', params: {
+          'p_story_id': createdStoryId,
+          'p_question': cleanPollQuestion,
+          'p_options': cleanPollOptions,
+        });
+      }
     } catch (_) {
+      if (createdStoryId != null) {
+        try { await _client.from('stories').delete().eq('id', createdStoryId); } catch (_) {}
+      }
       try { await _client.storage.from('story-media').remove([path]); } catch (_) {}
       if (uploadedMusicPath != null) {
         try { await _client.storage.from('story-audio').remove([uploadedMusicPath]); } catch (_) {}
@@ -444,6 +475,16 @@ class StoryService {
         .select('id,username,display_name')
         .eq('username', clean)
         .maybeSingle();
+  }
+
+  static Future<Map<String, dynamic>> voteStoryPoll(String pollId, int optionIndex) async {
+    if (optionIndex < 0 || optionIndex > 3) throw ArgumentError('گزینه نظرسنجی معتبر نیست.');
+    final result = await _client.rpc('submit_story_poll_vote', params: {
+      'p_poll_id': pollId,
+      'p_option_index': optionIndex,
+    });
+    if (result is! Map) throw StateError('نتیجه نظرسنجی معتبر نیست.');
+    return Map<String, dynamic>.from(result);
   }
 
   static Future<void> replyToStory(String authorId, String text) async {
