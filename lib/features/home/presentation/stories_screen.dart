@@ -57,6 +57,63 @@ class StoryTextStoryView extends StatelessWidget {
 }
 
 
+
+Color storyOverlayColor(String? value) {
+  const colors = {
+    '#FFFFFF': Color(0xFFFFFFFF),
+    '#111827': Color(0xFF111827),
+    '#FFE082': Color(0xFFFFE082),
+  };
+  return colors[value] ?? Colors.white;
+}
+
+class _StoryOverlayTextView extends StatelessWidget {
+  const _StoryOverlayTextView({required this.story});
+
+  final Map<String, dynamic> story;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = (story['overlay_text'] as String?)?.trim() ?? '';
+    if (text.isEmpty) return const SizedBox.shrink();
+    final x = ((story['overlay_x'] as num?)?.toDouble() ?? 0.5).clamp(0.0, 1.0);
+    final y = ((story['overlay_y'] as num?)?.toDouble() ?? 0.5).clamp(0.0, 1.0);
+    final scale = ((story['overlay_scale'] as num?)?.toDouble() ?? 1.0).clamp(0.6, 2.5);
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Align(
+          alignment: Alignment(x * 2 - 1, y * 2 - 1),
+          child: Transform.scale(
+            scale: scale,
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 320),
+              margin: const EdgeInsets.symmetric(horizontal: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: .22),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                text,
+                textAlign: TextAlign.center,
+                maxLines: 6,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: storyOverlayColor(story['overlay_color'] as String?),
+                  fontSize: 24,
+                  height: 1.35,
+                  fontWeight: FontWeight.w800,
+                  shadows: const [Shadow(color: Colors.black54, blurRadius: 8)],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class StoriesStrip extends StatefulWidget {
   const StoriesStrip({super.key});
 
@@ -267,15 +324,22 @@ class CreateStoryScreen extends StatefulWidget {
 class _CreateStoryScreenState extends State<CreateStoryScreen> {
   final _picker = ImagePicker();
   final _caption = TextEditingController();
+  final _overlayText = TextEditingController();
   XFile? _file;
   String? _type;
   bool _textMode = false;
   String _backgroundKey = 'aurora';
+  double _overlayX = 0.5;
+  double _overlayY = 0.5;
+  double _overlayScale = 1.0;
+  double _overlayStartScale = 1.0;
+  String _overlayColor = '#FFFFFF';
   bool _busy = false;
 
   @override
   void dispose() {
     _caption.dispose();
+    _overlayText.dispose();
     super.dispose();
   }
 
@@ -350,6 +414,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           fileName: file.name,
           mimeType: mime,
           caption: _caption.text,
+          overlayText: _overlayText.text,
+          overlayX: _overlayX,
+          overlayY: _overlayY,
+          overlayScale: _overlayScale,
+          overlayColor: _overlayColor,
         );
       }
       if (!mounted) return;
@@ -400,12 +469,61 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             borderRadius: BorderRadius.circular(22),
             child: SizedBox(
               height: 300,
-              child: _type == 'image'
-                  ? Image.file(File(_file!.path), fit: BoxFit.contain)
-                  : Container(
-                      color: Colors.black87,
-                      child: const Center(child: Icon(Icons.play_circle_outline, size: 70, color: Colors.white)),
-                    ),
+              child: LayoutBuilder(
+                builder: (context, constraints) => Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    _type == 'image'
+                        ? Image.file(File(_file!.path), fit: BoxFit.contain)
+                        : Container(
+                            color: Colors.black87,
+                            child: const Center(child: Icon(Icons.play_circle_outline, size: 70, color: Colors.white)),
+                          ),
+                    if (_overlayText.text.trim().isNotEmpty)
+                      Align(
+                        alignment: Alignment(_overlayX * 2 - 1, _overlayY * 2 - 1),
+                        child: GestureDetector(
+                          onScaleStart: (_) => _overlayStartScale = _overlayScale,
+                          onScaleUpdate: (details) {
+                            setState(() {
+                              _overlayX = (_overlayX + details.focalPointDelta.dx / constraints.maxWidth)
+                                  .clamp(0.06, 0.94).toDouble();
+                              _overlayY = (_overlayY + details.focalPointDelta.dy / constraints.maxHeight)
+                                  .clamp(0.08, 0.92).toDouble();
+                              _overlayScale = (_overlayStartScale * details.scale)
+                                  .clamp(0.6, 2.5).toDouble();
+                            });
+                          },
+                          child: Transform.scale(
+                            scale: _overlayScale,
+                            child: Container(
+                              constraints: BoxConstraints(maxWidth: constraints.maxWidth * .82),
+                              margin: const EdgeInsets.symmetric(horizontal: 10),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: .22),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                _overlayText.text,
+                                textAlign: TextAlign.center,
+                                maxLines: 5,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: storyOverlayColor(_overlayColor),
+                                  fontSize: 24,
+                                  height: 1.35,
+                                  fontWeight: FontWeight.w800,
+                                  shadows: const [Shadow(color: Colors.black54, blurRadius: 8)],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
         const SizedBox(height: 14),
@@ -461,6 +579,53 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               ),
             )).toList(),
           ),
+        ],
+        if (!_textMode && _file != null) ...[
+          const SizedBox(height: 14),
+          TextField(
+            controller: _overlayText,
+            maxLength: 180,
+            maxLines: 2,
+            onChanged: (_) { if (mounted) setState(() {}); },
+            decoration: const InputDecoration(
+              labelText: 'متن روی تصویر یا ویدئو',
+              hintText: 'متن را بنویسید، سپس روی پیش‌نمایش جابه‌جا یا بزرگ‌نمایی کنید',
+              border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.text_fields_rounded),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text('رنگ متن', style: Theme.of(context).textTheme.labelMedium),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 12,
+            children: const [
+              ('#FFFFFF', Color(0xFFFFFFFF)),
+              ('#111827', Color(0xFF111827)),
+              ('#FFE082', Color(0xFFFFE082)),
+            ].map((entry) => InkWell(
+              onTap: _busy ? null : () => setState(() => _overlayColor = entry.$1),
+              borderRadius: BorderRadius.circular(30),
+              child: Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: entry.$2,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: _overlayColor == entry.$1 ? HomaGramTheme.turquoise : Colors.grey,
+                    width: _overlayColor == entry.$1 ? 3 : 1,
+                  ),
+                ),
+              ),
+            )).toList(),
+          ),
+          const SizedBox(height: 8),
+          const Text('برای جابه‌جایی، متن را روی پیش‌نمایش بکشید؛ برای تغییر اندازه از دو انگشت استفاده کنید.',
+            style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4))),
         ],
         const SizedBox(height: 14),
         TextField(
@@ -775,6 +940,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
           onVideoReady: _onVideoReady,
           onVideoProgress: _onVideoProgress,
         ),
+        if (_story['media_type'] == 'image' || _story['media_type'] == 'video')
+          _StoryOverlayTextView(story: _story),
         Positioned.fill(
           child: Row(children: [
             Expanded(child: GestureDetector(
