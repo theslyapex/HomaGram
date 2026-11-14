@@ -17,7 +17,7 @@ class _SharedPostScreenState extends State<SharedPostScreen> {
   Future<Map<String, dynamic>> _load() async {
     final client = AuthService.client;
     final row = await client.from('posts')
-      .select('id,author_id,author_username,author_display_name,caption,media_path,media_type,created_at')
+      .select('id,author_id,author_username,author_display_name,caption,media_path,media_type,cover_path,created_at')
       .eq('id', widget.postId).single();
     final post = Map<String, dynamic>.from(row);
     final profile = await client.from('profiles').select('avatar_path')
@@ -29,6 +29,10 @@ class _SharedPostScreenState extends State<SharedPostScreen> {
     final path = post['media_path'] as String?;
     if (path != null) {
       post['media_url'] = await client.storage.from('post-media').createSignedUrl(path, 3600);
+    }
+    final coverPath = post['cover_path'] as String?;
+    if (coverPath != null) {
+      try { post['cover_url'] = await client.storage.from('post-media').createSignedUrl(coverPath, 3600); } catch (_) {}
     }
     return post;
   }
