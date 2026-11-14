@@ -219,9 +219,9 @@ class _StoryStickerLayer extends StatelessWidget {
   Widget _buildSticker(int index, Size size) {
     final sticker = stickers[index];
     final emoji = sticker['emoji'] as String? ?? '⭐';
-    final x = ((sticker['x'] as num?)?.toDouble() ?? .5).clamp(.05, .95);
-    final y = ((sticker['y'] as num?)?.toDouble() ?? .5).clamp(.05, .95);
-    final scale = ((sticker['scale'] as num?)?.toDouble() ?? 1).clamp(.5, 3);
+    final x = ((sticker['x'] as num?)?.toDouble() ?? .5).clamp(.05, .95).toDouble();
+    final y = ((sticker['y'] as num?)?.toDouble() ?? .5).clamp(.05, .95).toDouble();
+    final scale = ((sticker['scale'] as num?)?.toDouble() ?? 1).clamp(.5, 3).toDouble();
     final rotation = (sticker['rotation'] as num?)?.toDouble() ?? 0;
     var startScale = scale;
     var startRotation = rotation;
