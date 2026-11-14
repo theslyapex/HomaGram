@@ -382,6 +382,37 @@ class MessagingService {
     });
   }
 
+  static Future<String> uploadConversationPhoto({
+    required String conversationId,
+    required Uint8List bytes,
+    required String extension,
+    required String mimeType,
+  }) async {
+    if (bytes.isEmpty || bytes.length > 5 * 1024 * 1024) {
+      throw ArgumentError('حجم تصویر باید حداکثر ۵ مگابایت باشد.');
+    }
+    if (!const ['jpg', 'jpeg', 'png', 'webp'].contains(extension.toLowerCase()) ||
+        !const ['image/jpeg', 'image/png', 'image/webp'].contains(mimeType)) {
+      throw ArgumentError('فرمت تصویر پشتیبانی نمی‌شود.');
+    }
+    final path = '$conversationId/$_userId/cover.$extension';
+    await _client.storage.from('conversation-photos').uploadBinary(
+      path,
+      bytes,
+      fileOptions: FileOptions(contentType: mimeType, upsert: true),
+    );
+    try {
+      await _client.rpc('update_conversation_photo', params: {
+        'p_conversation_id': conversationId,
+        'p_photo_path': path,
+      });
+      return await _client.storage.from('conversation-photos').createSignedUrl(path, 3600);
+    } catch (_) {
+      try { await _client.storage.from('conversation-photos').remove([path]); } catch (_) {}
+      rethrow;
+    }
+  }
+
   static Future<List<Map<String, dynamic>>> loadConversationMembers(
     String conversationId,
   ) async {
