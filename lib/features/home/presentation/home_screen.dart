@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
 import 'feed_screen.dart';
+import 'reels_screen.dart';
 import 'explore_screen.dart';
 import 'public_profile_screen.dart';
 import '../../messaging/presentation/messaging_screen.dart';
@@ -59,6 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final pages = [
       const FeedScreen(),
+      const ReelsScreen(),
       const ExploreScreen(),
       const MessagingScreen(),
       const NotificationsScreen(),
@@ -84,6 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onDestinationSelected: (value) => setState(() => _tab = value),
         destinations: [
           NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded), label: 'خانه'),
+          NavigationDestination(icon: Icon(Icons.video_collection_outlined), selectedIcon: Icon(Icons.video_collection_rounded), label: 'ریلز'),
           NavigationDestination(icon: Icon(Icons.search_rounded), label: 'جست‌وجو'),
           NavigationDestination(icon: Icon(Icons.chat_bubble_outline_rounded), selectedIcon: Icon(Icons.chat_rounded), label: 'پیام‌ها'),
           NavigationDestination(
