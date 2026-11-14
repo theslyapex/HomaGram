@@ -410,8 +410,8 @@ class StoryService {
         !const {'estedad', 'serif', 'mono'}.contains(overlayFont)) {
       throw ArgumentError('تنظیمات متن روی رسانه معتبر نیست.');
     }
-    if (widgetLayout.length > 3 ||
-        widgetLayout.keys.any((key) => !const {'poll', 'question', 'countdown'}.contains(key))) {
+    if (widgetLayout.length > 4 ||
+        widgetLayout.keys.any((key) => !const {'text', 'poll', 'question', 'countdown'}.contains(key))) {
       throw ArgumentError('چیدمان ابزارهای استوری معتبر نیست.');
     }
     for (final entry in widgetLayout.entries) {
