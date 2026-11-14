@@ -79,6 +79,57 @@ Color storyOverlayColor(String? value) {
   return colors[value] ?? Colors.white;
 }
 
+
+class _StoryDrawingPainter extends CustomPainter {
+  const _StoryDrawingPainter(this.strokes);
+  final List<dynamic> strokes;
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.saveLayer(Offset.zero & size, Paint());
+    for (final raw in strokes) {
+      if (raw is! Map || raw['points'] is! List) continue;
+      final points = <Offset>[];
+      for (final point in raw['points'] as List) {
+        if (point is List && point.length == 2 && point[0] is num && point[1] is num) {
+          points.add(Offset((point[0] as num).toDouble() * size.width, (point[1] as num).toDouble() * size.height));
+        }
+      }
+      if (points.isEmpty) continue;
+      final erase = raw['erase'] == true;
+      final color = storyOverlayColor(raw['color'] as String?);
+      final width = ((raw['width'] as num?)?.toDouble() ?? 4).clamp(1.0, 24.0);
+      final paint = Paint()
+        ..color = color
+        ..strokeWidth = width
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..style = PaintingStyle.stroke
+        ..blendMode = erase ? BlendMode.clear : BlendMode.srcOver;
+      if (points.length == 1) {
+        canvas.drawCircle(points.first, width / 2, Paint()..color = color..blendMode = erase ? BlendMode.clear : BlendMode.srcOver);
+      } else {
+        final path = Path()..moveTo(points.first.dx, points.first.dy);
+        for (final point in points.skip(1)) { path.lineTo(point.dx, point.dy); }
+        canvas.drawPath(path, paint);
+      }
+    }
+    canvas.restore();
+  }
+  @override
+  bool shouldRepaint(covariant _StoryDrawingPainter oldDelegate) => oldDelegate.strokes != strokes;
+}
+
+class _StoryDrawingView extends StatelessWidget {
+  const _StoryDrawingView({required this.story});
+  final Map<String, dynamic> story;
+  @override
+  Widget build(BuildContext context) {
+    final raw = story['drawing_data'];
+    if (raw is! List || raw.isEmpty) return const SizedBox.shrink();
+    return Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _StoryDrawingPainter(raw))));
+  }
+}
+
 class _StoryOverlayTextView extends StatelessWidget {
   const _StoryOverlayTextView({required this.story});
 
@@ -972,8 +1023,10 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
           onVideoReady: _onVideoReady,
           onVideoProgress: _onVideoProgress,
         ),
-        if (_story['media_type'] == 'image' || _story['media_type'] == 'video')
+        if (_story['media_type'] == 'image' || _story['media_type'] == 'video') ...[
+          _StoryDrawingView(story: _story),
           _StoryOverlayTextView(story: _story),
+        ],
         Positioned.fill(
           child: Row(children: [
             Expanded(child: GestureDetector(
