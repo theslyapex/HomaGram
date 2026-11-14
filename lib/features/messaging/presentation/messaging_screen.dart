@@ -20,6 +20,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
   List<ConversationPreview> _items = [];
   RealtimeChannel? _channel;
   bool _loading = true;
+  bool _showArchived = false;
   String? _error;
 
   @override
@@ -31,7 +32,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
 
   Future<void> _load() async {
     try {
-      final items = await MessagingService.loadInbox();
+      final items = await MessagingService.loadInbox(archived: _showArchived);
       if (!mounted) return;
       setState(() {
         _items = items;
@@ -208,6 +209,30 @@ class _MessagingScreenState extends State<MessagingScreen> {
                 ),
             ]),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 2, 14, 8),
+            child: Row(children: [
+              Expanded(child: ChoiceChip(
+                selected: !_showArchived,
+                label: const Text('گفت‌وگوها'),
+                avatar: const Icon(Icons.forum_outlined, size: 17),
+                onSelected: (_) {
+                  if (_showArchived) setState(() => _showArchived = false);
+                  _load();
+                },
+              )),
+              const SizedBox(width: 8),
+              Expanded(child: ChoiceChip(
+                selected: _showArchived,
+                label: const Text('بایگانی‌شده‌ها'),
+                avatar: const Icon(Icons.archive_outlined, size: 17),
+                onSelected: (_) {
+                  if (!_showArchived) setState(() => _showArchived = true);
+                  _load();
+                },
+              )),
+            ]),
+          ),
           Expanded(
             child: RefreshIndicator(
               onRefresh: _load,
@@ -251,7 +276,42 @@ class _MessagingScreenState extends State<MessagingScreen> {
                               separatorBuilder: (_, __) => const Divider(height: 1, indent: 76),
                               itemBuilder: (context, index) {
                                 final item = _items[index];
-                                return ListTile(
+                                return Dismissible(
+                                  key: ValueKey('conversation-${item.id}-$_showArchived'),
+                                  direction: DismissDirection.endToStart,
+                                  confirmDismiss: (_) async {
+                                    try {
+                                      await MessagingService.setConversationArchived(
+                                        item.id,
+                                        archived: !_showArchived,
+                                      );
+                                      await _load();
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                          content: Text(_showArchived
+                                              ? 'گفت‌وگو به فهرست اصلی بازگردانده شد.'
+                                              : 'گفت‌وگو بایگانی شد.'),
+                                        ));
+                                      }
+                                    } catch (_) {
+                                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('تغییر وضعیت بایگانی انجام نشد.')),
+                                      );
+                                    }
+                                    return false;
+                                  },
+                                  background: Container(
+                                    margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    alignment: Alignment.centerLeft,
+                                    padding: const EdgeInsets.only(left: 22),
+                                    decoration: BoxDecoration(
+                                      color: colors.primary.withValues(alpha: .14),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Icon(_showArchived ? Icons.unarchive_rounded : Icons.archive_rounded,
+                                      color: colors.primary),
+                                  ),
+                                  child: ListTile(
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                                   leading: CircleAvatar(
                                     radius: 25,
@@ -271,6 +331,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                                   onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
                                     builder: (_) => ChatScreen(conversationId: item.id, title: item.title),
                                   )),
+                                  ),
                                 );
                               },
                             ),
