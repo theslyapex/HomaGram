@@ -399,8 +399,8 @@ class _StoryHighlightsStripState extends State<StoryHighlightsStrip> {
                 ),
                 if (widget.isOwner)
                   Positioned(
-                    right: 1,
-                    bottom: 25,
+                    right: 9,
+                    top: 8,
                     child: ReorderableDelayedDragStartListener(
                       index: index,
                       child: const Material(
