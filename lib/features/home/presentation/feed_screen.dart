@@ -529,7 +529,7 @@ class _PostCardState extends State<PostCard> {
     final mediaUrl = post['media_url'] as String?;
     final mediaType = post['media_type'] as String?;
     final date = DateTime.tryParse(post['created_at'] as String? ?? '')?.toLocal();
-    final dateText = date == null ? '' : persianDate(date);
+    final dateText = date == null ? '' : persianDateTime(date);
     return Container(
       decoration: BoxDecoration(color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(22),
@@ -548,8 +548,13 @@ class _PostCardState extends State<PostCard> {
           Expanded(child: InkWell(onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
             builder: (_) => PublicProfileScreen(userId: post['author_id'] as String))),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(post['author_display_name'] as String? ?? 'کاربر HomaGram',
-                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                Flexible(child: Text(post['author_display_name'] as String? ?? 'کاربر HomaGram',
+                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13))),
+                const SizedBox(width: 4),
+                HomaGramVerifiedBadge(userId: post['author_id'] as String?),
+              ]),
               Text('@${post['author_username'] ?? 'user'} • $dateText', textDirection: TextDirection.ltr,
                 style: const TextStyle(fontSize: 10, color: Color(0xFF8490A4))),
             ]))),
@@ -827,6 +832,7 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
         : ListView.builder(padding: const EdgeInsets.all(14), itemCount: _comments.length,
           itemBuilder: (context, i) {
             final c = _comments[i], p = c['profile'] as Map<String,dynamic>?;
+            final createdAt = DateTime.tryParse(c['created_at']?.toString() ?? '')?.toLocal();
             final isReply = c['parent_id'] != null;
             return Padding(padding: EdgeInsets.only(bottom: 12, right: isReply ? 28 : 0),
               child: Container(
@@ -847,13 +853,18 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
                   ),
                   const SizedBox(width: 10),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(p?['display_name'] as String? ?? 'کاربر',
-                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                    Row(mainAxisSize: MainAxisSize.min, children: [
+                      Flexible(child: Text(p?['display_name'] as String? ?? 'کاربر',
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13))),
+                      const SizedBox(width: 4),
+                      HomaGramVerifiedBadge(userId: c['user_id'] as String?),
+                    ]),
                     const SizedBox(height: 5),
                     Text(c['body'] as String, style: const TextStyle(height: 1.75, fontSize: 13)),
                     const SizedBox(height: 7),
                     Row(children: [
-                      Text(persianDate(DateTime.tryParse(c['created_at']?.toString() ?? '')?.toLocal() ?? DateTime.now()),
+                      Text(createdAt == null ? '' : persianDateTime(createdAt),
                         style: const TextStyle(fontSize: 10, color: Color(0xFF8490A4))),
                       const Spacer(),
                       InkWell(onTap: () => _toggleCommentLike(c), child: Row(children: [
