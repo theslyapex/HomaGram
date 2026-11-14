@@ -549,7 +549,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
 
   Future<void> _pickImageSticker() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['gif', 'jpg', 'jpeg', 'png', 'webp'],
         allowMultiple: false,
