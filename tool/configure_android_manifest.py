@@ -45,6 +45,8 @@ def main() -> int:
     if application is None:
         print("application element not found in AndroidManifest.xml", file=sys.stderr)
         return 1
+    # Use the exact public product name in Android launcher and App info.
+    application.set(android + "label", "HomaGram")
     # Keep the icon shown by Android Settings/App info identical to the launcher icon.
     application.set(android + "icon", "@mipmap/ic_launcher")
     application.set(android + "roundIcon", "@mipmap/ic_launcher_round")
