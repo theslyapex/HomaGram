@@ -565,13 +565,34 @@ class MessagingService {
     });
   }
 
-  static Future<String> createChannelInvite(String conversationId) async {
+  static Future<String> createChannelInvite(
+    String conversationId, {
+    int expiresInHours = 168,
+    int maxUses = 100,
+  }) async {
     final result = await _client.rpc('create_channel_invite', params: {
       'p_conversation_id': conversationId,
-      'p_expires_in_hours': 168,
-      'p_max_uses': 100,
+      'p_expires_in_hours': expiresInHours,
+      'p_max_uses': maxUses,
     });
     return result as String;
+  }
+
+  static Future<List<Map<String, dynamic>>> loadChannelInvites(
+    String conversationId,
+  ) async {
+    final rows = await _client.rpc('list_channel_invites', params: {
+      'p_conversation_id': conversationId,
+    });
+    return (rows as List)
+        .map((row) => Map<String, dynamic>.from(row as Map))
+        .toList();
+  }
+
+  static Future<void> revokeChannelInvite(String inviteId) async {
+    await _client.rpc('revoke_channel_invite', params: {
+      'p_invite_id': inviteId,
+    });
   }
 
   static Future<String> joinChannelByInvite(String token) async {
