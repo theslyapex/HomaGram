@@ -384,6 +384,7 @@ class StoryService {
     String overlayFont = 'estedad',
     List<Map<String, dynamic>> drawingData = const [],
     List<Map<String, dynamic>> stickerData = const [],
+    Map<String, Map<String, double>> widgetLayout = const {},
     File? musicFile,
     String? musicFileName,
     String? musicMimeType,
@@ -408,6 +409,19 @@ class StoryService {
         !const {'#FFFFFF', '#111827', '#FFE082', '#FF6B6B', '#45D6C5', '#A78BFA', '#F9A8D4'}.contains(overlayColor) ||
         !const {'estedad', 'serif', 'mono'}.contains(overlayFont)) {
       throw ArgumentError('تنظیمات متن روی رسانه معتبر نیست.');
+    }
+    if (widgetLayout.length > 3 ||
+        widgetLayout.keys.any((key) => !const {'poll', 'question', 'countdown'}.contains(key))) {
+      throw ArgumentError('چیدمان ابزارهای استوری معتبر نیست.');
+    }
+    for (final entry in widgetLayout.entries) {
+      final value = entry.value;
+      final x = value['x'], y = value['y'], scale = value['scale'], rotation = value['rotation'];
+      if (x == null || y == null || scale == null || rotation == null ||
+          x < .03 || x > .97 || y < .05 || y > .95 ||
+          scale < .55 || scale > 2.2 || rotation < -3.14 || rotation > 3.14) {
+        throw ArgumentError('موقعیت یا اندازه ابزار استوری معتبر نیست.');
+      }
     }
     if (drawingData.length > 100) throw ArgumentError('تعداد خطوط نقاشی بیش از حد مجاز است.');
     const allowedStickers = {'❤️','😍','😂','🔥','✨','⭐','🌈','🌸','🦋','🎉','☀️','🌙','💯','👏','🎈','🍀','☕','🎧'};
@@ -553,6 +567,7 @@ class StoryService {
         'overlay_font': overlayFont,
         'drawing_data': drawingData,
         'sticker_data': persistedStickers,
+        'widget_layout': widgetLayout,
         'music_path': uploadedMusicPath,
         'music_start_ms': musicStartMs,
         'music_volume': musicVolume,
