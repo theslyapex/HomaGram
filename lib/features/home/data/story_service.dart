@@ -53,6 +53,155 @@ class StoryService {
     await _client.rpc('add_close_friend', params: {'p_friend_id': friendId});
   }
 
+  static Future<String> saveDraft({
+    required Map<String, dynamic> draftData,
+    File? mediaFile,
+    String? mediaFileName,
+    String? mediaMimeType,
+    File? musicFile,
+    String? musicFileName,
+    String? musicMimeType,
+    required List<Map<String, dynamic>> stickers,
+  }) async {
+    final stamp = DateTime.now().microsecondsSinceEpoch;
+    final uploaded = <String>[];
+    String? mediaPath;
+    String? musicPath;
+    final persistedStickers = <Map<String, dynamic>>[];
+    try {
+      if (mediaFile != null) {
+        final bytes = await mediaFile.readAsBytes();
+        if (bytes.isEmpty || bytes.length > 50 * 1024 * 1024 ||
+            mediaFileName == null || mediaMimeType == null ||
+            !const {'image/jpeg','image/png','image/webp','video/mp4','video/quicktime'}.contains(mediaMimeType)) {
+          throw ArgumentError('رسانه پیش‌نویس معتبر نیست.');
+        }
+        final ext = mediaFileName.contains('.') ? mediaFileName.split('.').last.toLowerCase() : 'bin';
+        mediaPath = '$_uid/$stamp/media.$ext';
+        await _client.storage.from('story-drafts').uploadBinary(
+          mediaPath, bytes, fileOptions: FileOptions(contentType: mediaMimeType, upsert: false),
+        );
+        uploaded.add(mediaPath);
+      }
+      if (musicFile != null) {
+        final bytes = await musicFile.readAsBytes();
+        if (bytes.isEmpty || bytes.length > 15 * 1024 * 1024 ||
+            musicFileName == null || musicMimeType == null ||
+            !const {'audio/mpeg','audio/mp4','audio/aac','audio/wav'}.contains(musicMimeType)) {
+          throw ArgumentError('موسیقی پیش‌نویس معتبر نیست.');
+        }
+        final ext = musicFileName.contains('.') ? musicFileName.split('.').last.toLowerCase() : 'mp3';
+        musicPath = '$_uid/$stamp/music.$ext';
+        await _client.storage.from('story-drafts').uploadBinary(
+          musicPath, bytes, fileOptions: FileOptions(contentType: musicMimeType, upsert: false),
+        );
+        uploaded.add(musicPath);
+      }
+      for (var i = 0; i < stickers.length; i++) {
+        final sticker = Map<String, dynamic>.from(stickers[i]);
+        if (sticker['type'] == 'image') {
+          final localPath = sticker['local_path'] as String?;
+          final mime = sticker['mime_type'] as String?;
+          final name = sticker['file_name'] as String? ?? 'sticker.png';
+          if (localPath == null || mime == null ||
+              !const {'image/gif','image/jpeg','image/png','image/webp'}.contains(mime)) {
+            throw ArgumentError('فایل استیکر پیش‌نویس معتبر نیست.');
+          }
+          final bytes = await File(localPath).readAsBytes();
+          if (bytes.isEmpty || bytes.length > 5 * 1024 * 1024) {
+            throw ArgumentError('حجم استیکر پیش‌نویس معتبر نیست.');
+          }
+          final ext = name.contains('.') ? name.split('.').last.toLowerCase() : 'png';
+          final stickerPath = '$_uid/$stamp/sticker_$i.$ext';
+          await _client.storage.from('story-drafts').uploadBinary(
+            stickerPath, bytes, fileOptions: FileOptions(contentType: mime, upsert: false),
+          );
+          uploaded.add(stickerPath);
+          sticker
+            ..['path'] = stickerPath
+            ..remove('local_path');
+        }
+        persistedStickers.add(sticker);
+      }
+      final row = await _client.from('story_drafts').insert({
+        'owner_id': _uid,
+        'media_path': mediaPath,
+        'music_path': musicPath,
+        'draft_data': {...draftData, 'stickers': persistedStickers},
+      }).select('id').single();
+      return row['id'] as String;
+    } catch (_) {
+      if (uploaded.isNotEmpty) {
+        try { await _client.storage.from('story-drafts').remove(uploaded); } catch (_) {}
+      }
+      rethrow;
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> loadDrafts() async {
+    final rows = await _client.from('story_drafts')
+        .select('id,media_path,music_path,draft_data,created_at,updated_at')
+        .eq('owner_id', _uid)
+        .order('updated_at', ascending: false)
+        .limit(50);
+    return rows.map((row) => Map<String, dynamic>.from(row)).toList();
+  }
+
+  static Future<Map<String, dynamic>?> loadDraft(String draftId) async {
+    final row = await _client.from('story_drafts')
+        .select('id,media_path,music_path,draft_data,created_at,updated_at')
+        .eq('id', draftId).eq('owner_id', _uid).maybeSingle();
+    if (row == null) return null;
+    final data = Map<String, dynamic>.from(row['draft_data'] as Map);
+    Future<String> restore(String path, String label) async {
+      final bytes = await _client.storage.from('story-drafts').download(path);
+      final file = File('${Directory.systemTemp.path}/homagram_${row['id']}_$label');
+      await file.writeAsBytes(bytes, flush: true);
+      return file.path;
+    }
+    final mediaPath = row['media_path'] as String?;
+    final musicPath = row['music_path'] as String?;
+    if (mediaPath != null) data['_media_file_path'] = await restore(mediaPath, 'media');
+    if (musicPath != null) data['_music_file_path'] = await restore(musicPath, 'music');
+    final rawStickers = data['stickers'];
+    if (rawStickers is List) {
+      final restored = <Map<String, dynamic>>[];
+      for (var i = 0; i < rawStickers.length; i++) {
+        final item = Map<String, dynamic>.from(rawStickers[i] as Map);
+        final path = item['path'] as String?;
+        if (item['type'] == 'image' && path != null) {
+          item['local_path'] = await restore(path, 'sticker_$i');
+        }
+        restored.add(item);
+      }
+      data['stickers'] = restored;
+    }
+    data['_draft_id'] = row['id'];
+    return data;
+  }
+
+  static Future<void> deleteDraft(String draftId) async {
+    final row = await _client.from('story_drafts')
+        .select('media_path,music_path,draft_data')
+        .eq('id', draftId).eq('owner_id', _uid).maybeSingle();
+    if (row == null) return;
+    final paths = <String>[
+      if (row['media_path'] is String) row['media_path'] as String,
+      if (row['music_path'] is String) row['music_path'] as String,
+    ];
+    final data = row['draft_data'];
+    if (data is Map && data['stickers'] is List) {
+      for (final item in data['stickers'] as List) {
+        if (item is Map && item['path'] is String) paths.add(item['path'] as String);
+      }
+    }
+    await _client.from('story_drafts').delete().eq('id', draftId).eq('owner_id', _uid);
+    if (paths.isNotEmpty) {
+      try { await _client.storage.from('story-drafts').remove(paths); } catch (_) {}
+    }
+  }
+
+
   static Future<void> removeCloseFriend(String friendId) async {
     await _client.rpc('remove_close_friend', params: {'p_friend_id': friendId});
   }
