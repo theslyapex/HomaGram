@@ -208,7 +208,6 @@ class _StoryOverlayTextView extends StatelessWidget {
               child: StoryInteractiveText(
                 text: text,
                 textAlign: TextAlign.center,
-                style:
                 maxLines: 6,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
@@ -2029,7 +2028,7 @@ class _StoryArchiveScreenState extends State<StoryArchiveScreen> {
   @override
   Widget build(BuildContext context) {
     final pattern = RegExp(
-      r'https?://[^\\s<>()]+|@[a-zA-Z0-9_]{3,24}|#[\\p{L}\\p{N}_]{2,}',
+      r'https?://[^\s<>()]+|@[a-zA-Z0-9_]{3,24}|#[\p{L}\p{N}_]{2,}',
       unicode: true,
     );
     final spans = <InlineSpan>[];
@@ -3998,7 +3997,7 @@ class _StoryArchiveScreenState extends State<StoryArchiveScreen> {
     final controller = _mentionTargetController;
     if (controller == null) return;
     final caret = controller.selection.baseOffset;
-    final start = _mentionStart.clamp(0, caret);
+    final start = _mentionStart.clamp(0, caret).toInt();
     final nextText = controller.text.replaceRange(start, caret, '@$username ');
     controller.value = TextEditingValue(
       text: nextText,
