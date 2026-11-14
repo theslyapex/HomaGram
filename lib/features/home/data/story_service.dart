@@ -237,12 +237,13 @@ class StoryService {
       throw ArgumentError('متن استوری حداکثر ۵۰۰ نویسه است.');
     }
     final cleanCountdownTitle = countdownTitle?.trim();
-    if ((cleanCountdownTitle == null) != (countdownTargetAt == null)) {
+    final targetAt = countdownTargetAt;
+    if ((cleanCountdownTitle == null) != (targetAt == null)) {
       throw ArgumentError('عنوان و زمان شمارش معکوس باید با هم وارد شوند.');
     }
     if (cleanCountdownTitle != null && (cleanCountdownTitle.isEmpty || cleanCountdownTitle.length > 100 ||
-        !countdownTargetAt!.isAfter(DateTime.now()) ||
-        countdownTargetAt.isAfter(DateTime.now().add(const Duration(days: 365))))) {
+        targetAt == null || !targetAt.isAfter(DateTime.now()) ||
+        targetAt.isAfter(DateTime.now().add(const Duration(days: 365))))) {
       throw ArgumentError('عنوان یا زمان شمارش معکوس معتبر نیست.');
     }
     final cleanQuestionBoxPrompt = questionBoxPrompt?.trim();
@@ -370,11 +371,11 @@ class StoryService {
       if (cleanQuestionBoxPrompt != null) {
         await _client.rpc('create_story_question', params: {'p_story_id': createdStoryId, 'p_prompt': cleanQuestionBoxPrompt});
       }
-      if (cleanCountdownTitle != null && countdownTargetAt != null) {
+      if (cleanCountdownTitle != null && targetAt != null) {
         await _client.rpc('create_story_countdown', params: {
           'p_story_id': createdStoryId,
           'p_title': cleanCountdownTitle,
-          'p_target_at': countdownTargetAt.toUtc().toIso8601String(),
+          'p_target_at': targetAt.toUtc().toIso8601String(),
         });
       }
       if (cleanPollQuestion != null && cleanPollOptions != null) {
