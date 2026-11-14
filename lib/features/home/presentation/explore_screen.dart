@@ -6,7 +6,8 @@ import 'public_profile_screen.dart';
 import 'shared_post_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
-  const ExploreScreen({super.key});
+  const ExploreScreen({super.key, this.initialQuery});
+  final String? initialQuery;
   @override
   State<ExploreScreen> createState() => _ExploreScreenState();
 }
@@ -21,7 +22,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
   String? _error;
 
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() {
+    super.initState();
+    final initial = widget.initialQuery;
+    if (initial != null && initial.isNotEmpty) _search.text = initial;
+    _load(term: initial);
+  }
   @override
   void dispose() { _debounce?.cancel(); _search.dispose(); super.dispose(); }
 
