@@ -55,7 +55,7 @@ begin
       select 1 from public.conversations c
       where c.id = v_conversation_id and c.kind = 'channel'
     ) then
-      return coalesce(new, old);
+      return new;
     end if;
 
     if tg_op = 'INSERT' then
@@ -139,7 +139,7 @@ begin
     );
   end if;
 
-  return coalesce(new, old);
+  return new;
 end;
 $$;
 
