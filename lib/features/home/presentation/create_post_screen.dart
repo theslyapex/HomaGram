@@ -371,11 +371,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   : 'برای ریلز، ابتدا یک ویدئو انتخاب کنید.',
                 style: const TextStyle(fontSize: 11, color: Color(0xFF8490A4))),
             ),
-            OutlinedButton.icon(
-              onPressed: _posting || _editing ? null : () => _chooseMedia(false),
-              icon: const Icon(Icons.add_photo_alternate_outlined),
-              label: const Text('افزودن تصویر و برش آن'),
-            ),
+            if (!widget.initialReel)
+              OutlinedButton.icon(
+                onPressed: _posting || _editing ? null : () => _chooseMedia(false),
+                icon: const Icon(Icons.add_photo_alternate_outlined),
+                label: const Text('افزودن تصویر و برش آن'),
+              ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: _posting || _editing ? null : () => _chooseMedia(true),
