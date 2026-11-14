@@ -18,7 +18,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   List<Map<String, dynamic>> _posts = [];
   List<Map<String, dynamic>> _users = [];
   List<String> _hashtags = [];
-  bool _loading = true, _searching = false, _popular = false;
+  bool _loading = true, _searching = false, _popular = false, _reelsOnly = false;
   String? _error;
 
   @override
@@ -42,8 +42,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
     try {
       final client = AuthService.client;
       var postQuery = client.from('posts').select(
-        'id,author_id,author_username,author_display_name,caption,media_path,media_type,created_at'
+        'id,author_id,author_username,author_display_name,caption,media_path,media_type,created_at,is_reel'
       ).eq('is_public', true);
+      if (_reelsOnly) postQuery = postQuery.eq('is_reel', true);
       if (query.isNotEmpty) {
         final hashtag = query.startsWith('#') ? query.substring(1) : query;
         postQuery = postQuery.ilike('caption', query.startsWith('#') ? '%#$hashtag%' : '%$query%');
@@ -136,6 +137,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
             const SizedBox(width: 8),
             ChoiceChip(label: const Text('محبوب‌ترین'), selected: _popular,
               onSelected: (_) { setState(() => _popular = true); _load(); }),
+            const SizedBox(width: 8),
+            ChoiceChip(label: const Text('همه محتوا'), selected: !_reelsOnly,
+              onSelected: (_) { setState(() => _reelsOnly = false); _load(); }),
+            const SizedBox(width: 8),
+            ChoiceChip(label: const Text('ریلز'), selected: _reelsOnly,
+              onSelected: (_) { setState(() => _reelsOnly = true); _load(); }),
           ]),
         ),
         if (!_searching && _hashtags.isNotEmpty)
@@ -237,8 +244,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
           ),
         )),
         if (post['media_type'] == 'video')
-          const Positioned(right: 6, top: 6,
-            child: Icon(Icons.play_circle_fill_rounded, color: Colors.white, size: 22)),
+          Positioned(right: 6, top: 6,
+            child: Icon(post['is_reel'] == true ? Icons.video_collection_rounded : Icons.play_circle_fill_rounded,
+              color: Colors.white, size: 22)),
       ]),
     );
   }
