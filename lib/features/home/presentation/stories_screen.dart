@@ -193,33 +193,33 @@ class _StoryOverlayTextView extends StatelessWidget {
     final scale = ((story['overlay_scale'] as num?)?.toDouble() ?? 1.0).clamp(0.6, 2.5);
     return Positioned.fill(
       child: Align(
-          alignment: Alignment(x * 2 - 1, y * 2 - 1),
-          child: Transform.scale(
-            scale: scale,
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 320),
-              margin: const EdgeInsets.symmetric(horizontal: 30),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: .22),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: StoryInteractiveText(
-                text: text,
-                textAlign: TextAlign.center,
-                maxLines: 6,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: storyOverlayColor(story['overlay_color'] as String?),
-                  fontSize: 24,
-                  fontFamily: _storyOverlayFont(story['overlay_font'] as String?),
-                  height: 1.35,
-                  fontWeight: FontWeight.w800,
-                  shadows: const [Shadow(color: Colors.black54, blurRadius: 8)],
-                ),
+        alignment: Alignment(x * 2 - 1, y * 2 - 1),
+        child: Transform.scale(
+          scale: scale,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 320),
+            margin: const EdgeInsets.symmetric(horizontal: 30),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: .22),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: StoryInteractiveText(
+              text: text,
+              textAlign: TextAlign.center,
+              maxLines: 6,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: storyOverlayColor(story['overlay_color'] as String?),
+                fontSize: 24,
+                fontFamily: _storyOverlayFont(story['overlay_font'] as String?),
+                height: 1.35,
+                fontWeight: FontWeight.w800,
+                shadows: const [Shadow(color: Colors.black54, blurRadius: 8)],
               ),
             ),
           ),
+        ),
       ),
     );
   }
@@ -3974,10 +3974,6 @@ class _StoryArchiveScreenState extends State<StoryArchiveScreen> {
     _mentionTargetController = controller;
     _mentionStart = caret - query.length - 1;
     _mentionQuery = query;
-    if (query.isEmpty) {
-      setState(() => _mentionSuggestions = []);
-      return;
-    }
     _mentionTimer = Timer(const Duration(milliseconds: 250), () async {
       try {
         final users = await StoryService.searchMentionUsers(query);
@@ -3995,6 +3991,7 @@ class _StoryArchiveScreenState extends State<StoryArchiveScreen> {
     final controller = _mentionTargetController;
     if (controller == null) return;
     final caret = controller.selection.baseOffset;
+    if (caret < 0) return;
     final start = _mentionStart.clamp(0, caret).toInt();
     final nextText = controller.text.replaceRange(start, caret, '@$username ');
     controller.value = TextEditingValue(
@@ -4021,7 +4018,7 @@ class _StoryArchiveScreenState extends State<StoryArchiveScreen> {
           dense: true,
           leading: const CircleAvatar(radius: 15, child: Icon(Icons.person_outline, size: 17)),
           title: Text(user['display_name'] as String? ?? user['username'] as String),
-          subtitle: Text('@${user['username']}'),
+          subtitle: Text('@' + (user['username'] as String)),
           onTap: () => _insertMention(user['username'] as String),
         )).toList(),
       ),
@@ -4949,12 +4946,9 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
         ),
         if ((_story['caption'] as String).isNotEmpty)
           Positioned(left: 22, right: 22, bottom: 94,
-            child: StoryInteractiveText(
-              text: _story['caption'] as String,
+            child: IgnorePointer(child: Text(_story['caption'] as String,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white, fontSize: 15,
-                shadows: [Shadow(blurRadius: 8, color: Colors.black)]),
-            )),
+              style: const TextStyle(color: Colors.white, fontSize: 15, shadows: [Shadow(blurRadius: 8, color: Colors.black)])))),
         Positioned(
           left: 12, right: 12, bottom: 12,
           child: _isMine
@@ -5474,7 +5468,7 @@ class _StoryArchiveScreenState extends State<StoryArchiveScreen> {
   @override
   Widget build(BuildContext context) {
     final pattern = RegExp(
-      r'https?://[^\\s<>()]+|@[a-zA-Z0-9_]{3,24}|#[\\p{L}\\p{N}_]{2,}',
+      r'https?://[^\s<>()]+|@[a-zA-Z0-9_]{3,24}|#[\p{L}\p{N}_]{2,}',
       unicode: true,
     );
     final spans = <InlineSpan>[];
