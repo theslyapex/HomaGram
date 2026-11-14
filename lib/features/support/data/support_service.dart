@@ -221,6 +221,17 @@ class SupportService {
           ),
           callback: (_) => onChange(),
         )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'support_conversations',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'id',
+            value: conversationId,
+          ),
+          callback: (_) => onChange(),
+        )
         .subscribe();
   }
 
