@@ -1,3 +1,4 @@
+import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -134,11 +135,11 @@ class _FeedScreenState extends State<FeedScreen> {
                 const Expanded(
                   child: Text('چیزی برای گفتن دارید؟', style: TextStyle(color: Color(0xFF8490A4))),
                 ),
-                IconButton(
+                HomaGramSpringPress(child: IconButton(
                   tooltip: 'ایجاد پست',
                   onPressed: _createPost,
                   icon: const Icon(Icons.add_circle_rounded, color: HomaGramTheme.turquoise, size: 29),
-                ),
+                )),
               ],
             ),
           ),
@@ -156,7 +157,7 @@ class _FeedScreenState extends State<FeedScreen> {
                 icon: Icons.cloud_off_outlined,
                 title: 'فید بارگذاری نشد',
                 message: 'اتصال را بررسی کنید و دوباره تلاش کنید.',
-                action: TextButton.icon(onPressed: _refresh, icon: const Icon(Icons.refresh), label: const Text('تلاش دوباره')),
+                action: HomaGramSpringPress(child: TextButton.icon(onPressed: _refresh, icon: const Icon(Icons.refresh), label: const Text('تلاش دوباره'))),
               );
             }
             final posts = snapshot.data ?? [];
@@ -175,8 +176,8 @@ class _FeedScreenState extends State<FeedScreen> {
                     const Text('اولین پست HomaGram را منتشر کنید و فید را شکل دهید.',
                         textAlign: TextAlign.center, style: TextStyle(height: 1.8, color: Color(0xFF7A879B))),
                     const SizedBox(height: 14),
-                    Center(child: FilledButton.icon(onPressed: _createPost,
-                        icon: const Icon(Icons.add), label: const Text('ایجاد اولین پست'))),
+                    Center(child: HomaGramSpringPress(child: FilledButton.icon(onPressed: _createPost,
+                        icon: const Icon(Icons.add), label: const Text('ایجاد اولین پست')))),
                   ],
                 ),
               );
@@ -418,9 +419,9 @@ class _PostCardState extends State<PostCard> {
       content: TextField(controller: controller, autofocus: true, maxLength: 2200,
         minLines: 2, maxLines: 7, decoration: const InputDecoration(hintText: 'متن پست')),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-        FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-          child: const Text('ذخیره تغییرات')),
+        HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف'))),
+        HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+          child: const Text('ذخیره تغییرات'))),
       ],
     ));
     controller.dispose();
@@ -442,10 +443,10 @@ class _PostCardState extends State<PostCard> {
       title: const Text('حذف پست'),
       content: const Text('این پست برای همیشه حذف شود؟'),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
-        FilledButton(onPressed: () => Navigator.pop(ctx, true),
+        HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف'))),
+        HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, true),
           style: FilledButton.styleFrom(backgroundColor: Colors.red),
-          child: const Text('حذف')),
+          child: const Text('حذف'))),
       ],
     ));
     if (confirmed != true) return;
@@ -552,7 +553,7 @@ class _PostCardState extends State<PostCard> {
               Text('@${post['author_username'] ?? 'user'} • $dateText', textDirection: TextDirection.ltr,
                 style: const TextStyle(fontSize: 10, color: Color(0xFF8490A4))),
             ]))),
-          IconButton(onPressed: _menu, icon: const Icon(Icons.more_horiz_rounded, color: Color(0xFF8490A4))),
+          HomaGramSpringPress(child: IconButton(onPressed: _menu, icon: const Icon(Icons.more_horiz_rounded, color: Color(0xFF8490A4)))),
         ])),
         if (caption.isNotEmpty || mediaUrl != null || post['media_unavailable'] == true)
           GestureDetector(
@@ -584,17 +585,17 @@ class _PostCardState extends State<PostCard> {
         Padding(padding: const EdgeInsets.fromLTRB(8, 4, 8, 8), child: Row(children: [
           GestureDetector(
             onLongPress: _showLikes,
-            child: TextButton.icon(onPressed: _busy ? null : _like,
+            child: HomaGramSpringPress(child: TextButton.icon(onPressed: _busy ? null : _like,
               icon: Icon(_liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
                 color: _liked ? Colors.redAccent : const Color(0xFF8792A5), size: 20),
-              label: Text('پسندیدن $_likes')),
+              label: Text('پسندیدن $_likes'))),
           ),
-          TextButton.icon(onPressed: _commentsPage,
+          HomaGramSpringPress(child: TextButton.icon(onPressed: _commentsPage,
             icon: const Icon(Icons.mode_comment_outlined, size: 19),
-            label: Text('دیدگاه $_comments')),
+            label: Text('دیدگاه $_comments'))),
           const Spacer(),
-          IconButton(tooltip: 'ارسال', onPressed: _share, icon: const Icon(Icons.send_outlined)),
-          IconButton(tooltip: 'گزینه‌ها', onPressed: _menu, icon: const Icon(Icons.more_vert)),
+          HomaGramSpringPress(child: IconButton(tooltip: 'ارسال', onPressed: _share, icon: const Icon(Icons.send_outlined))),
+          HomaGramSpringPress(child: IconButton(tooltip: 'گزینه‌ها', onPressed: _menu, icon: const Icon(Icons.more_vert))),
         ])),
       ]),
     );
@@ -665,8 +666,8 @@ class _PostShareSheetState extends State<_PostShareSheet> {
             decoration: InputDecoration(
               hintText: 'نام یا نام کاربری را جست‌وجو کنید',
               prefixIcon: const Icon(Icons.search_rounded),
-              suffixIcon: IconButton(onPressed: () { _controller.clear(); _search(''); },
-                icon: const Icon(Icons.close_rounded)),
+              suffixIcon: HomaGramSpringPress(child: IconButton(onPressed: () { _controller.clear(); _search(''); },
+                icon: const Icon(Icons.close_rounded))),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
             ),
           ),
@@ -707,13 +708,13 @@ class _PostShareSheetState extends State<_PostShareSheet> {
         SafeArea(top: false, child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
           child: SizedBox(width: double.infinity,
-            child: FilledButton.icon(
+            child: HomaGramSpringPress(child: FilledButton.icon(
               onPressed: _selectedUsers.isEmpty ? null : () {
                 Navigator.pop(context, _selectedUsers.values.toList());
               },
               icon: const Icon(Icons.send_rounded),
               label: Text('ارسال برای ${_selectedUsers.length} نفر'),
-            ),
+            )),
           ),
         )),
       ]),
@@ -862,13 +863,13 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
                         Text('${c['like_count'] ?? 0}', style: const TextStyle(fontSize: 11)),
                       ])),
                       const SizedBox(width: 12),
-                      TextButton(
+                      HomaGramSpringPress(child: TextButton(
                         onPressed: () => setState(() {
                           _replyTo = c['parent_id'] == null ? c['id'] as String : c['parent_id'] as String;
                           _replyName = p?['display_name'] as String? ?? 'کاربر';
                         }),
                         child: const Text('پاسخ'),
-                      ),
+                      )),
                     ]),
                   ])),
                 ]),
@@ -878,15 +879,15 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           if (_replyTo != null) Row(children: [
             Expanded(child: Text('پاسخ به $_replyName', style: const TextStyle(fontSize: 12))),
-            IconButton(onPressed: () => setState(() { _replyTo = null; _replyName = null; }),
-              icon: const Icon(Icons.close, size: 18)),
+            HomaGramSpringPress(child: IconButton(onPressed: () => setState(() { _replyTo = null; _replyName = null; }),
+              icon: const Icon(Icons.close, size: 18))),
           ]),
           Row(children: [
             Expanded(child: TextField(controller: _controller, minLines: 1, maxLines: 4,
               maxLength: 2000, decoration: const InputDecoration(hintText: 'دیدگاه خود را بنویسید…'))),
-            IconButton(onPressed: _sending ? null : _send,
+            HomaGramSpringPress(child: IconButton(onPressed: _sending ? null : _send,
               icon: _sending ? const SizedBox(width: 18,height:18,child:CircularProgressIndicator(strokeWidth:2))
-                : const Icon(Icons.send_rounded, color: HomaGramTheme.turquoise)),
+                : const Icon(Icons.send_rounded, color: HomaGramTheme.turquoise))),
           ]),
         ]))),
     ]),
