@@ -1,3 +1,4 @@
+import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../app/theme/app_theme.dart';
@@ -114,8 +115,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text('کشف HomaGram', style: TextStyle(fontWeight: FontWeight.w900)),
-        actions: [IconButton(onPressed: () => _load(), tooltip: 'تازه‌سازی',
-          icon: const Icon(Icons.refresh_rounded)), const SizedBox(width: 4)],
+        actions: [HomaGramSpringPress(child: IconButton(onPressed: () => _load(), tooltip: 'تازه‌سازی',
+          icon: const Icon(Icons.refresh_rounded))), const SizedBox(width: 4)],
       ),
       body: Column(children: [
         Padding(
@@ -127,9 +128,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
             decoration: InputDecoration(
               hintText: 'جست‌وجوی افراد، پست‌ها و هشتگ‌ها',
               prefixIcon: const Icon(Icons.search_rounded),
-              suffixIcon: _search.text.isEmpty ? null : IconButton(
+              suffixIcon: _search.text.isEmpty ? null : HomaGramSpringPress(child: IconButton(
                 onPressed: () { _search.clear(); _load(term: ''); },
-                icon: const Icon(Icons.close_rounded)),
+                icon: const Icon(Icons.close_rounded))),
               filled: true, fillColor: colors.surfaceContainerHighest.withValues(alpha: .55),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(17), borderSide: BorderSide.none),
             ),
@@ -172,7 +173,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 const Icon(Icons.cloud_off_rounded, size: 46), const SizedBox(height: 12),
                 Text(_error!, textAlign: TextAlign.center),
-                TextButton.icon(onPressed: () => _load(), icon: const Icon(Icons.refresh), label: const Text('تلاش دوباره')),
+                HomaGramSpringPress(child: TextButton.icon(onPressed: () => _load(), icon: const Icon(Icons.refresh), label: const Text('تلاش دوباره'))),
               ]),
             ))
             : RefreshIndicator(
