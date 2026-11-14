@@ -602,6 +602,28 @@ class MessagingService {
     return result as String;
   }
 
+  static Future<void> updateChannelMemberPermissions({
+    required String conversationId,
+    required bool membersCanPost,
+    required bool membersCanSendMedia,
+  }) async {
+    await _client.rpc('update_channel_member_permissions', params: {
+      'p_conversation_id': conversationId,
+      'p_members_can_post': membersCanPost,
+      'p_members_can_send_media': membersCanSendMedia,
+    });
+  }
+
+  static Future<void> transferChannelOwnership({
+    required String conversationId,
+    required String newOwnerUserId,
+  }) async {
+    await _client.rpc('transfer_channel_ownership', params: {
+      'p_conversation_id': conversationId,
+      'p_new_owner': newOwnerUserId,
+    });
+  }
+
   static Future<String> loadChannelTitle(String conversationId) async {
     final row = await _client.from('conversations')
         .select('title').eq('id', conversationId).single();
