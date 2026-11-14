@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../data/admin_service.dart';
+import 'admin_user_detail_screen.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -135,7 +136,12 @@ class _MetricCard extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return Card(
       margin: EdgeInsets.zero,
-      child: Padding(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+          builder: (_) => AdminUserDetailScreen(userId: user.id),
+        )),
+        child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Icon(item.icon, color: colors.primary, size: 22),
@@ -267,6 +273,7 @@ class _UserCard extends StatelessWidget {
           Icon(user.isBanned ? Icons.block_rounded : Icons.verified_user_outlined,
             color: user.isBanned ? colors.error : const Color(0xFF20A77A)),
         ]),
+        ),
       ),
     );
   }
