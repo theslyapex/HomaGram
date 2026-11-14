@@ -1,5 +1,36 @@
 import 'package:flutter/material.dart';
 
+
+class HomaGramPageTransitionsBuilder extends PageTransitionsBuilder {
+  const HomaGramPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    if (MediaQuery.disableAnimationsOf(context)) return child;
+    final curved = CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
+    return FadeTransition(
+      opacity: curved,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, .035),
+          end: Offset.zero,
+        ).animate(curved),
+        child: child,
+      ),
+    );
+  }
+}
+
 abstract final class HomaGramTheme {
   static const Color navy = Color(0xFF101B35);
   static const Color turquoise = Color(0xFF20B8B0);
@@ -19,6 +50,13 @@ abstract final class HomaGramTheme {
     );
     return ThemeData(
       useMaterial3: true,
+      pageTransitionsTheme: const PageTransitionsTheme(builders: {
+        TargetPlatform.android: HomaGramPageTransitionsBuilder(),
+        TargetPlatform.iOS: HomaGramPageTransitionsBuilder(),
+        TargetPlatform.windows: HomaGramPageTransitionsBuilder(),
+        TargetPlatform.macOS: HomaGramPageTransitionsBuilder(),
+        TargetPlatform.linux: HomaGramPageTransitionsBuilder(),
+      }),
       fontFamily: 'Estedad',
       colorScheme: scheme,
       scaffoldBackgroundColor: lightCanvas,
