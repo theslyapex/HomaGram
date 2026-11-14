@@ -246,6 +246,72 @@ class _StoryStickerView extends StatelessWidget {
   }
 }
 
+class _TransformableStoryElement extends StatefulWidget {
+  const _TransformableStoryElement({
+    required this.layout, required this.child, this.editing = false,
+    this.selected = false, this.onChanged,
+  });
+  final Map<String, double> layout;
+  final Widget child;
+  final bool editing;
+  final bool selected;
+  final ValueChanged<Map<String, double>>? onChanged;
+  @override
+  State<_TransformableStoryElement> createState() => _TransformableStoryElementState();
+}
+
+class _TransformableStoryElementState extends State<_TransformableStoryElement> {
+  late double _startScale;
+  late double _startRotation;
+  @override
+  void initState() {
+    super.initState();
+    _startScale = widget.layout['scale'] ?? 1;
+    _startRotation = widget.layout['rotation'] ?? 0;
+  }
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) {
+      final size = box.biggest;
+      final x = (widget.layout['x'] ?? .5).clamp(.03, .97).toDouble();
+      final y = (widget.layout['y'] ?? .5).clamp(.05, .95).toDouble();
+      final scale = (widget.layout['scale'] ?? 1).clamp(.55, 2.2).toDouble();
+      final rotation = (widget.layout['rotation'] ?? 0).clamp(-3.14, 3.14).toDouble();
+      Widget element = ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: size.width * .82, maxHeight: size.height * .58),
+        child: widget.child,
+      );
+      if (widget.editing) {
+        element = GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onScaleStart: (_) { _startScale = scale; _startRotation = rotation; },
+          onScaleUpdate: (details) => widget.onChanged?.call({
+            'x': (x + details.focalPointDelta.dx / size.width).clamp(.03, .97).toDouble(),
+            'y': (y + details.focalPointDelta.dy / size.height).clamp(.05, .95).toDouble(),
+            'scale': (_startScale * details.scale).clamp(.55, 2.2).toDouble(),
+            'rotation': (_startRotation + details.rotation).clamp(-3.14, 3.14).toDouble(),
+          }),
+          child: element,
+        );
+      }
+      if (widget.editing && widget.selected) {
+        element = DecoratedBox(
+          decoration: BoxDecoration(border: Border.all(color: const Color(0xFF62E5D0), width: 1.5), borderRadius: BorderRadius.circular(20)),
+          child: Padding(padding: const EdgeInsets.all(3), child: element),
+        );
+      }
+      return Positioned(
+        left: x * size.width, top: y * size.height,
+        child: FractionalTranslation(
+          translation: const Offset(-.5, -.5),
+          child: Transform.rotate(angle: rotation,
+            child: Transform.scale(scale: scale, alignment: Alignment.center, child: element)),
+        ),
+      );
+    },
+  );
+}
+
 class _StoryCountdownCard extends StatefulWidget {
   const _StoryCountdownCard({required this.countdown});
   final Map<String, dynamic> countdown;
@@ -874,6 +940,12 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   String _overlayFont = 'estedad';
   final List<Map<String, dynamic>> _drawingStrokes = [];
   final List<Map<String, dynamic>> _stickers = [];
+  final Map<String, Map<String, double>> _widgetLayout = {
+    'poll': {'x': .5, 'y': .58, 'scale': 1, 'rotation': 0},
+    'question': {'x': .5, 'y': .76, 'scale': 1, 'rotation': 0},
+    'countdown': {'x': .5, 'y': .38, 'scale': 1, 'rotation': 0},
+  };
+  String? _selectedWidget;
   File? _musicFile;
   String? _musicFileName;
   String? _musicMimeType;
@@ -1149,6 +1221,14 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }
 
 
+  Map<String, double> _widgetTransform(String key) => Map<String, double>.from(
+    _widgetLayout[key] ?? const {'x': .5, 'y': .5, 'scale': 1.0, 'rotation': 0.0},
+  );
+
+  void _updateWidgetTransform(String key, Map<String, double> value) {
+    setState(() { _widgetLayout[key] = value; _selectedWidget = key; });
+  }
+
   Future<void> _saveDraft() async {
     if (_busy) return;
     if (_textMode && _caption.text.trim().isEmpty) {
@@ -1179,6 +1259,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         'overlay_color': _overlayColor,
         'overlay_font': _overlayFont,
         'drawing_data': _drawingStrokes,
+        'widget_layout': _widgetLayout,
         'audience': _audience,
         'background_key': _backgroundKey,
         'music_name': _musicFileName,
@@ -1330,6 +1411,19 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       _stickers
         ..clear()
         ..addAll((data['stickers'] as List? ?? []).map((e) => Map<String, dynamic>.from(e as Map)));
+      final savedLayout = data['widget_layout'];
+      if (savedLayout is Map) {
+        for (final key in const ['poll', 'question', 'countdown']) {
+          final raw = savedLayout[key];
+          if (raw is Map) _widgetLayout[key] = {
+            'x': ((raw['x'] as num?)?.toDouble() ?? .5).clamp(.05, .95).toDouble(),
+            'y': ((raw['y'] as num?)?.toDouble() ?? .5).clamp(.08, .92).toDouble(),
+            'scale': ((raw['scale'] as num?)?.toDouble() ?? 1).clamp(.55, 2.2).toDouble(),
+            'rotation': ((raw['rotation'] as num?)?.toDouble() ?? 0).clamp(-3.14, 3.14).toDouble(),
+          };
+        }
+      }
+      _selectedWidget = null;
       _pollEnabled = data['poll_enabled'] == true;
       _pollQuestion.text = value('poll_question');
       final options = (data['poll_options'] as List? ?? []).map((e) => e.toString()).toList();
@@ -1437,6 +1531,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           overlayFont: _overlayFont,
           drawingData: _drawingStrokes,
           stickerData: _stickers,
+          widgetLayout: _widgetLayout,
           musicFile: _musicFile,
           musicFileName: _musicFileName,
           musicMimeType: _musicMimeType,
@@ -1509,31 +1604,40 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                             child: const Center(child: Icon(Icons.play_circle_outline, size: 70, color: Colors.white)),
                           ),
                     if (_pollEnabled)
-                      Positioned(left: 12, right: 12, bottom: 10,
-                        child: IgnorePointer(child: _StoryPollCard(
+                      _TransformableStoryElement(
+                        layout: _widgetTransform('poll'), editing: true,
+                        selected: _selectedWidget == 'poll',
+                        onChanged: (value) => _updateWidgetTransform('poll', value),
+                        child: _StoryPollCard(
                           poll: {
                             'question': _pollQuestion.text.trim().isEmpty ? 'سؤال نظرسنجی' : _pollQuestion.text.trim(),
                             'options': _pollOptions.map((item) => item.text.trim().isEmpty ? 'گزینه' : item.text.trim()).toList(),
-                            'counts': List<int>.filled(_pollOptions.length, 0),
-                            'total_votes': 0,
-                          },
-                          isOwner: true,
-                        ))),
+                            'counts': List<int>.filled(_pollOptions.length, 0), 'total_votes': 0,
+                          }, isOwner: true,
+                        ),
+                      ),
                     if (_questionBoxEnabled)
-                      Positioned(left: 12, right: 12, bottom: _pollEnabled ? 154 : 10,
-                        child: IgnorePointer(child: _StoryQuestionBoxCard(
+                      _TransformableStoryElement(
+                        layout: _widgetTransform('question'), editing: true,
+                        selected: _selectedWidget == 'question',
+                        onChanged: (value) => _updateWidgetTransform('question', value),
+                        child: _StoryQuestionBoxCard(
                           question: {'prompt': _questionBoxPrompt.text.trim().isEmpty ? 'باکس پرسش' : _questionBoxPrompt.text.trim(), 'response_count': 0},
                           isOwner: true,
-                        ))),
+                        ),
+                      ),
                     if (_countdownEnabled)
-                      Positioned(left: 12, right: 12,
-                        bottom: (_pollEnabled && _questionBoxEnabled) ? 310 : (_questionBoxEnabled ? 278 : (_pollEnabled ? 154 : 10)),
-                        child: IgnorePointer(child: _StoryCountdownCard(
+                      _TransformableStoryElement(
+                        layout: _widgetTransform('countdown'), editing: true,
+                        selected: _selectedWidget == 'countdown',
+                        onChanged: (value) => _updateWidgetTransform('countdown', value),
+                        child: _StoryCountdownCard(
                           countdown: {
                             'title': _countdownTitle.text.trim().isEmpty ? 'شمارش معکوس' : _countdownTitle.text.trim(),
                             'target_at': _countdownTarget.toIso8601String(),
                           },
-                        ))),
+                        ),
+                      ),
                     if (_stickers.isNotEmpty)
                       Positioned.fill(child: _StoryStickerLayer(
                         stickers: _stickers,
@@ -2471,6 +2575,23 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     return 'ارسال‌شده در ${persianDate(date)}  $localizedTime';
   }
 
+  Map<String, double> _storyWidgetLayout(String key) {
+    final all = _story['widget_layout'];
+    final raw = all is Map ? all[key] : null;
+    if (raw is Map) return {
+      'x': ((raw['x'] as num?)?.toDouble() ?? .5).clamp(.05, .95).toDouble(),
+      'y': ((raw['y'] as num?)?.toDouble() ?? .5).clamp(.08, .92).toDouble(),
+      'scale': ((raw['scale'] as num?)?.toDouble() ?? 1).clamp(.55, 2.2).toDouble(),
+      'rotation': ((raw['rotation'] as num?)?.toDouble() ?? 0).clamp(-3.14, 3.14).toDouble(),
+    };
+    const defaults = {
+      'poll': {'x': .5, 'y': .58, 'scale': 1.0, 'rotation': 0.0},
+      'question': {'x': .5, 'y': .76, 'scale': 1.0, 'rotation': 0.0},
+      'countdown': {'x': .5, 'y': .38, 'scale': 1.0, 'rotation': 0.0},
+    };
+    return Map<String, double>.from(defaults[key]!);
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: Colors.black,
@@ -2510,25 +2631,27 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
             )),
           ]),
         ),
-        if (_story['poll_data'] is Map || _story['question_box_data'] is Map || _story['countdown_data'] is Map)
-          Positioned(left: 22, right: 22, bottom: 142,
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              if (_story['countdown_data'] is Map)
-                Padding(padding: const EdgeInsets.only(bottom: 8), child: _StoryCountdownCard(
-                  countdown: Map<String, dynamic>.from(_story['countdown_data'] as Map),
-                )),
-              if (_story['question_box_data'] is Map)
-                Padding(padding: const EdgeInsets.only(bottom: 8), child: _StoryQuestionBoxCard(
-                  question: Map<String, dynamic>.from(_story['question_box_data'] as Map),
-                  isOwner: _isMine, onRespond: _respondToStoryQuestion,
-                  onViewResponses: _showStoryQuestionResponses, busy: _busy,
-                )),
-              if (_story['poll_data'] is Map)
-                _StoryPollCard(
-                  poll: Map<String, dynamic>.from(_story['poll_data'] as Map),
-                  isOwner: _isMine, onVote: _isMine ? null : _votePoll, busy: _busy,
-                ),
-            ])),
+        if (_story['countdown_data'] is Map)
+          _TransformableStoryElement(
+            layout: _storyWidgetLayout('countdown'), child: _StoryCountdownCard(
+              countdown: Map<String, dynamic>.from(_story['countdown_data'] as Map),
+            ),
+          ),
+        if (_story['question_box_data'] is Map)
+          _TransformableStoryElement(
+            layout: _storyWidgetLayout('question'), child: _StoryQuestionBoxCard(
+              question: Map<String, dynamic>.from(_story['question_box_data'] as Map),
+              isOwner: _isMine, onRespond: _respondToStoryQuestion,
+              onViewResponses: _showStoryQuestionResponses, busy: _busy,
+            ),
+          ),
+        if (_story['poll_data'] is Map)
+          _TransformableStoryElement(
+            layout: _storyWidgetLayout('poll'), child: _StoryPollCard(
+              poll: Map<String, dynamic>.from(_story['poll_data'] as Map),
+              isOwner: _isMine, onVote: _isMine ? null : _votePoll, busy: _busy,
+            ),
+          ),
         Positioned(
           top: 10, left: 12, right: 12,
           child: Column(children: [
