@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:video_player/video_player.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
@@ -226,12 +227,28 @@ class _StoryStickerLayer extends StatelessWidget {
     var startScale = scale;
     var startRotation = rotation;
 
+    final isImage = sticker['type'] == 'image';
+    final localPath = sticker['local_path'] as String?;
+    final signedUrl = sticker['signed_url'] as String?;
+    Widget stickerContent;
+    if (isImage && localPath != null) {
+      stickerContent = Image.file(
+        File(localPath), width: 76, height: 76, fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined, size: 42),
+      );
+    } else if (isImage && signedUrl != null) {
+      stickerContent = Image.network(
+        signedUrl, width: 76, height: 76, fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined, size: 42, color: Colors.white),
+      );
+    } else if (isImage) {
+      stickerContent = const Icon(Icons.image_not_supported_outlined, size: 42, color: Colors.white);
+    } else {
+      stickerContent = Text(emoji, style: const TextStyle(fontSize: 48, height: 1.1));
+    }
     Widget child = Transform.rotate(
       angle: rotation,
-      child: Transform.scale(
-        scale: scale,
-        child: Text(emoji, style: const TextStyle(fontSize: 48, height: 1.1)),
-      ),
+      child: Transform.scale(scale: scale, child: stickerContent),
     );
 
     if (interactive && onChanged != null) {
@@ -530,6 +547,53 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }
 
 
+  Future<void> _pickImageSticker() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['gif', 'jpg', 'jpeg', 'png', 'webp'],
+        allowMultiple: false,
+        withData: false,
+      );
+      if (result == null || result.files.isEmpty || !mounted) return;
+      final picked = result.files.single;
+      final path = picked.path;
+      if (path == null || path.isEmpty) {
+        _notice('دسترسی به فایل انتخاب‌شده ممکن نشد.', true);
+        return;
+      }
+      if (picked.size <= 0 || picked.size > 5 * 1024 * 1024) {
+        _notice('حجم استیکر باید حداکثر ۵ مگابایت باشد.', true);
+        return;
+      }
+      final ext = picked.extension?.toLowerCase() ?? '';
+      const mimeByExt = {
+        'gif': 'image/gif', 'jpg': 'image/jpeg', 'jpeg': 'image/jpeg',
+        'png': 'image/png', 'webp': 'image/webp',
+      };
+      final mime = mimeByExt[ext];
+      if (mime == null) {
+        _notice('فقط فایل‌های GIF، JPG، PNG و WebP پشتیبانی می‌شوند.', true);
+        return;
+      }
+      if (_stickers.length >= 20) {
+        _notice('حداکثر ۲۰ استیکر می‌توانید اضافه کنید.', true);
+        return;
+      }
+      setState(() {
+        _stickers.add({
+          'type': 'image',
+          'local_path': path,
+          'file_name': picked.name,
+          'mime_type': mime,
+          'x': .5, 'y': .5, 'scale': 1.0, 'rotation': 0.0,
+        });
+      });
+    } catch (_) {
+      _notice('انتخاب استیکر انجام نشد.', true);
+    }
+  }
+
   void _startDrawing(Offset point, Size size) {
     setState(() {
       _drawingStrokes.add({
@@ -796,6 +860,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           ),
           const SizedBox(height: 7),
           Wrap(spacing: 8, runSpacing: 8, children: [
+            OutlinedButton.icon(
+              onPressed: _busy || _stickers.length >= 20 ? null : _pickImageSticker,
+              icon: const Icon(Icons.add_photo_alternate_outlined),
+              label: const Text('تصویر یا GIF'),
+            ),
             for (final emoji in ['❤️', '😍', '😂', '🔥', '✨', '⭐', '🌈', '🌸', '🦋', '🎉', '☀️', '🌙', '💯', '👏', '🎈', '🍀', '☕', '🎧'])
               ActionChip(
                 label: Text(emoji, style: const TextStyle(fontSize: 22)),
