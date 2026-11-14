@@ -4,6 +4,7 @@ import 'package:video_player/video_player.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
 import '../../auth/presentation/profile_home_screen.dart';
+import 'story_highlights.dart';
 import '../../../core/utils/persian_date.dart';
 
 class PublicProfileScreen extends StatefulWidget {
@@ -209,6 +210,8 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                   _stat('دنبال‌شونده', _followingCount, onTap: () => _showConnections(false)),
                   _stat('بازنشر', _reposts),
                 ]),
+                const SizedBox(height: 14),
+                StoryHighlightsStrip(ownerId: widget.userId, isOwner: _isMe),
                 if (_isMe) ...[
                   const SizedBox(height: 12),
                   Card(
