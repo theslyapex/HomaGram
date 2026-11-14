@@ -207,7 +207,19 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     try {
       final client = AuthService.client, user = AuthService.client.auth.currentUser;
       if (user == null) throw StateError('نشست کاربری معتبر نیست؛ دوباره وارد شوید.');
-      final profile = await client.from('profiles').select('username,display_name').eq('id', user.id).single();
+      final profile = await client.from('profiles').select('username,display_name').eq('id', user.id).maybeSingle();
+      final metadata = user.userMetadata ?? const <String, dynamic>{};
+      final emailPrefix = user.email?.split('@').first;
+      final username = (profile?['username'] as String?)?.trim().isNotEmpty == true
+          ? (profile!['username'] as String).trim()
+          : (metadata['username'] as String?)?.trim().isNotEmpty == true
+              ? (metadata['username'] as String).trim()
+              : (emailPrefix?.trim().isNotEmpty == true ? emailPrefix!.trim() : 'user_${user.id.substring(0, 8)}');
+      final displayName = (profile?['display_name'] as String?)?.trim().isNotEmpty == true
+          ? (profile!['display_name'] as String).trim()
+          : (metadata['full_name'] as String?)?.trim().isNotEmpty == true
+              ? (metadata['full_name'] as String).trim()
+              : username;
       final stamp = DateTime.now().microsecondsSinceEpoch;
       if (_media != null) {
         final mime = _media!.mimeType ?? _mimeFromName(_media!.name, _mediaType!);
@@ -222,8 +234,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           fileOptions: const FileOptions(contentType: 'image/jpeg', upsert: false));
       }
       await client.from('posts').insert({
-        'author_id': user.id, 'author_username': profile['username'],
-        'author_display_name': profile['display_name'], 'caption': caption,
+        'author_id': user.id, 'author_username': username,
+        'author_display_name': displayName, 'caption': caption,
         'media_path': uploadedPath, 'media_type': uploadedPath == null ? null : _mediaType,
         'is_reel': _isReel, 'cover_path': uploadedCoverPath,
       });
