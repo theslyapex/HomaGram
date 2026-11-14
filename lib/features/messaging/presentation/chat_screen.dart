@@ -372,9 +372,35 @@ class _ChatScreenState extends State<ChatScreen> {
                                   ),
                                   child: GestureDetector(
                                     onLongPress: () => _messageActions(message),
+                                    onHorizontalDragEnd: (details) {
+                                      final velocity = details.primaryVelocity ?? 0;
+                                      if (velocity > 280 && !deleted) {
+                                        setState(() {
+                                          _replyToId = message['id'] as String;
+                                          _replyToBody = message['body'] as String? ?? '';
+                                        });
+                                      }
+                                    },
                                     child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
+                                      if (message['reply_to_id'] != null)
+                                        Container(
+                                          width: double.infinity,
+                                          margin: const EdgeInsets.only(bottom: 7),
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: colors.surface.withValues(alpha: .55),
+                                            borderRadius: BorderRadius.circular(9),
+                                            border: Border(right: BorderSide(color: colors.primary, width: 3)),
+                                          ),
+                                          child: Text(
+                                            'پاسخ به: ${message['reply_to_body'] ?? 'پیام'}',
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(fontSize: 10, color: colors.onSurfaceVariant),
+                                          ),
+                                        ),
                                       if (!deleted && (message['attachments'] as List? ?? []).isNotEmpty)
                                         _attachmentPreview((message['attachments'] as List).first as Map<String, dynamic>),
                                       if (deleted)
