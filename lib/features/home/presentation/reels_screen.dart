@@ -9,8 +9,9 @@ import 'feed_screen.dart';
 import 'public_profile_screen.dart';
 
 class ReelsScreen extends StatefulWidget {
-  const ReelsScreen({this.isVisible = true, super.key});
+  const ReelsScreen({this.isVisible = true, this.initialReelId, super.key});
   final bool isVisible;
+  final String? initialReelId;
 
   @override
   State<ReelsScreen> createState() => _ReelsScreenState();
@@ -19,6 +20,7 @@ class ReelsScreen extends StatefulWidget {
 class _ReelsScreenState extends State<ReelsScreen> {
   late Future<List<Map<String, dynamic>>> _reels;
   int _activeIndex = 0;
+  PageController? _pageController;
 
   @override
   void initState() {
@@ -63,6 +65,10 @@ class _ReelsScreenState extends State<ReelsScreen> {
       item['is_mine'] = item['author_id'] == uid;
       output.add(item);
     }
+    if (widget.initialReelId != null) {
+      final targetIndex = output.indexWhere((item) => item['id'] == widget.initialReelId);
+      if (targetIndex >= 0) _activeIndex = targetIndex;
+    }
     return output;
   }
 
@@ -77,6 +83,12 @@ class _ReelsScreenState extends State<ReelsScreen> {
       MaterialPageRoute<bool>(builder: (_) => const CreatePostScreen(initialReel: true)),
     );
     if (published == true && mounted) await _refresh();
+  }
+
+  @override
+  void dispose() {
+    _pageController?.dispose();
+    super.dispose();
   }
 
   @override
@@ -97,9 +109,11 @@ class _ReelsScreenState extends State<ReelsScreen> {
           onPressed: _createReel, icon: Icons.video_collection_outlined,
           actionLabel: 'ساخت اولین ریلز');
       }
+      _pageController ??= PageController(initialPage: _activeIndex);
       return RefreshIndicator(
         onRefresh: _refresh,
         child: PageView.builder(
+          controller: _pageController,
           scrollDirection: Axis.vertical,
           itemCount: reels.length,
           onPageChanged: (index) => setState(() => _activeIndex = index),
