@@ -190,16 +190,15 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
   Future<void> _loadInteractions() async {
     try {
       final client = AuthService.client;
-      final results = await Future.wait([
-        client.from('post_likes').select('user_id').eq('post_id', _id),
-        client.from('post_comments').select('id').eq('post_id', _id),
-        client.from('post_likes').select('post_id').eq('post_id', _id).eq('user_id', _uid).maybeSingle(),
-      ]);
+      final likes = await client.from('post_likes').select('user_id').eq('post_id', _id);
+      final comments = await client.from('post_comments').select('id').eq('post_id', _id);
+      final myLike = await client.from('post_likes').select('post_id')
+          .eq('post_id', _id).eq('user_id', _uid).maybeSingle();
       if (!mounted) return;
       setState(() {
-        _likes = (results[0] as List).length;
-        _comments = (results[1] as List).length;
-        _liked = results[2] != null;
+        _likes = likes.length;
+        _comments = comments.length;
+        _liked = myLike != null;
       });
     } catch (_) {}
   }
@@ -269,7 +268,7 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
   }
 
   Future<void> _share() async {
-    await Share.share('ریلز در HomaGram\n${widget.reel['caption'] ?? ''}');
+    await SharePlus.instance.share(ShareParams(text: 'ریلز در HomaGram\n${widget.reel['caption'] ?? ''}'));
   }
 
   @override
