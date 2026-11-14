@@ -1230,6 +1230,12 @@ class _ChatScreenState extends State<ChatScreen> {
               title: const Text('حذف برای همه', style: TextStyle(color: Colors.red)),
               onTap: () => Navigator.pop(context, 'delete'),
             ),
+            if (!mine) ListTile(
+              leading: const Icon(Icons.flag_outlined, color: Colors.orange),
+              title: const Text('گزارش این پیام'),
+              subtitle: const Text('ارسال محرمانه برای بررسی مدیران'),
+              onTap: () => Navigator.pop(context, 'report'),
+            ),
           ],
         ),
       ),
@@ -1261,6 +1267,54 @@ class _ChatScreenState extends State<ChatScreen> {
         if (updated != null) {
           await MessagingService.editMessage(message['id'] as String, updated);
           await _refresh();
+        }
+      } else if (action == 'report') {
+        final reason = await showModalBottomSheet<String>(
+          context: context,
+          showDragHandle: true,
+          builder: (sheetContext) => SafeArea(child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(padding: EdgeInsets.all(16),
+                child: Text('دلیل گزارش پیام', style: TextStyle(fontWeight: FontWeight.w900))),
+              for (final item in const [
+                ('spam','هرزنامه یا تبلیغات مزاحم'),
+                ('harassment','آزار و اذیت'),
+                ('threat','تهدید یا محتوای خطرناک'),
+                ('privacy','نقض حریم خصوصی'),
+                ('inappropriate','محتوای نامناسب'),
+                ('other','سایر موارد'),
+              ])
+                ListTile(title: Text(item.$2), onTap: () => Navigator.pop(sheetContext, item.$1)),
+            ],
+          )),
+        );
+        if (reason != null) {
+          final detailsController = TextEditingController();
+          final details = await showDialog<String>(
+            context: context,
+            builder: (dialogContext) => AlertDialog(
+              title: const Text('توضیحات تکمیلی'),
+              content: TextField(controller: detailsController, maxLength: 1000,
+                minLines: 2, maxLines: 5, decoration: const InputDecoration(
+                  hintText: 'در صورت نیاز توضیح کوتاهی بنویسید.')),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(dialogContext, ''), child: const Text('رد کردن')),
+                FilledButton(onPressed: () => Navigator.pop(dialogContext, detailsController.text.trim()),
+                  child: const Text('ثبت گزارش')),
+              ],
+            ),
+          );
+          detailsController.dispose();
+          if (details != null) {
+            await Supabase.instance.client.rpc('report_message', params: {
+              'p_message_id': message['id'],
+              'p_reason': reason,
+              'p_details': details.isEmpty ? null : details,
+            });
+            if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('گزارش برای بررسی ارسال شد.')));
+          }
         }
       } else if (action == 'delete') {
         final confirmed = await showDialog<bool>(
