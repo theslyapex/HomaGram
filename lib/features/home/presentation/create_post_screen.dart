@@ -1,3 +1,4 @@
+import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -188,9 +189,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 )),
                 Text('${(selectedMs / 1000).toStringAsFixed(1)}s', style: const TextStyle(fontSize: 11)),
               ]),
-              SizedBox(width: double.infinity, child: FilledButton(
+              SizedBox(width: double.infinity, child: HomaGramSpringPress(child: FilledButton(
                 onPressed: preview == null ? null : () => Navigator.pop(sheetContext, preview),
-                child: const Text('انتخاب این فریم'))),
+                child: const Text('انتخاب این فریم')))),
             ]),
           ));
         }),
@@ -302,17 +303,17 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             Text(_media!.name, maxLines: 1, overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontSize: 11, color: Color(0xFF8490A4))),
           ])),
-          IconButton(onPressed: _posting || _editing ? null : _editSelectedMedia, icon: const Icon(Icons.tune_rounded)),
-          IconButton(onPressed: _posting || _editing ? null : () => setState(() {
+          HomaGramSpringPress(child: IconButton(onPressed: _posting || _editing ? null : _editSelectedMedia, icon: const Icon(Icons.tune_rounded))),
+          HomaGramSpringPress(child: IconButton(onPressed: _posting || _editing ? null : () => setState(() {
             _media = null; _mediaType = null; _coverBytes = null;
-          }), icon: const Icon(Icons.close_rounded)),
+          }), icon: const Icon(Icons.close_rounded))),
         ])),
         if (isVideo) Padding(padding: const EdgeInsets.fromLTRB(12, 0, 12, 12), child: Row(children: [
-          Expanded(child: OutlinedButton.icon(onPressed: _posting || _editing ? null : _chooseVideoFrame,
-            icon: const Icon(Icons.video_camera_back_outlined, size: 18), label: const Text('انتخاب فریم'))),
+          Expanded(child: HomaGramSpringPress(child: OutlinedButton.icon(onPressed: _posting || _editing ? null : _chooseVideoFrame,
+            icon: const Icon(Icons.video_camera_back_outlined, size: 18), label: const Text('انتخاب فریم')))),
           const SizedBox(width: 8),
-          Expanded(child: OutlinedButton.icon(onPressed: _posting || _editing ? null : _chooseCoverFromGallery,
-            icon: const Icon(Icons.add_photo_alternate_outlined, size: 18), label: const Text('کاور از گالری'))),
+          Expanded(child: HomaGramSpringPress(child: OutlinedButton.icon(onPressed: _posting || _editing ? null : _chooseCoverFromGallery,
+            icon: const Icon(Icons.add_photo_alternate_outlined, size: 18), label: const Text('کاور از گالری')))),
         ])),
       ]),
     );
@@ -400,7 +401,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         const Text('ویدئو همیشه به‌عنوان ریلز منتشر می‌شود. پست متنی و تصویری در فید نمایش داده می‌شود.',
           textAlign: TextAlign.center, style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4))),
         const SizedBox(height: 18),
-        SizedBox(height: 54, child: FilledButton.icon(
+        SizedBox(height: 54, child: HomaGramSpringPress(child: FilledButton.icon(
           onPressed: _posting || _editing ? null : _publish,
           icon: _posting ? const SizedBox(width: 18, height: 18,
             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.publish_rounded),
@@ -408,7 +409,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             style: const TextStyle(fontWeight: FontWeight.w900)),
           style: FilledButton.styleFrom(backgroundColor: _isReel ? HomaGramTheme.royalPurple : HomaGramTheme.turquoise,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17))),
-        )),
+        ))),
       ]),
     );
   }
