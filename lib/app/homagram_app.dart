@@ -50,6 +50,7 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
       } catch (error) {
         debugPrint('Push-open routing unavailable: $error');
       }
+
     }
   }
 
