@@ -36,7 +36,7 @@ class StoryHighlightService {
 
     final storyRows = await _client
         .from('stories')
-        .select('id,author_id,media_path,media_type,caption,created_at,expires_at')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,created_at,expires_at')
         .inFilter('id', storyIds)
         .order('created_at');
     final profile = await _client
@@ -53,7 +53,9 @@ class StoryHighlightService {
     }
 
     final paths = storyRows
-        .map((s) => s['media_path'] as String)
+        .map((s) => s['media_path'] as String?)
+        .whereType<String>()
+        .where((path) => path.isNotEmpty)
         .toSet()
         .toList();
     final mediaUrls = <String, String>{};
@@ -79,7 +81,7 @@ class StoryHighlightService {
       story['username'] = profile?['username'] ?? 'user';
       story['avatar_path'] = avatarPath;
       story['avatar_url'] = avatarUrl;
-      story['media_url'] = mediaUrls[story['media_path']];
+      story['media_url'] = story['media_path'] == null ? null : mediaUrls[story['media_path']];
       story['is_viewed'] = false;
       storiesById[story['id'] as String] = story;
     }
@@ -393,6 +395,9 @@ class _StoryHighlightsStripState extends State<StoryHighlightsStrip> {
                 _HighlightAvatar(
                   title: highlight['title'] as String,
                   imageUrl: cover['media_url'] as String?,
+                  textStory: cover['media_type'] == 'text',
+                  textPreview: cover['text_content'] as String?,
+                  textBackgroundKey: cover['background_key'] as String?,
                   onTap: () => _open(highlight),
                   onLongPress: widget.isOwner ? () => _manage(highlight) : null,
                   video: cover['media_type'] == 'video',
@@ -430,6 +435,9 @@ class _HighlightAvatar extends StatelessWidget {
     this.imageUrl,
     this.add = false,
     this.video = false,
+    this.textStory = false,
+    this.textPreview,
+    this.textBackgroundKey,
     this.onLongPress,
   });
 
@@ -437,6 +445,9 @@ class _HighlightAvatar extends StatelessWidget {
   final String? imageUrl;
   final bool add;
   final bool video;
+  final bool textStory;
+  final String? textPreview;
+  final String? textBackgroundKey;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
 
@@ -466,23 +477,29 @@ class _HighlightAvatar extends StatelessWidget {
                       color: Color(0x1420B8B0),
                       child: Icon(Icons.add_rounded, color: HomaGramTheme.turquoise, size: 30),
                     )
-                  : imageUrl == null
-                      ? const ColoredBox(
-                          color: Color(0x221D2B46),
-                          child: Icon(Icons.auto_awesome_rounded, color: HomaGramTheme.turquoise),
+                  : textStory
+                      ? StoryTextStoryView(
+                          text: textPreview ?? '',
+                          backgroundKey: textBackgroundKey,
+                          compact: true,
                         )
-                      : Stack(fit: StackFit.expand, children: [
-                          Image(
-                            image: StoryImageProvider(imageUrl!, cacheKey: 'highlight-cover:$imageUrl'),
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const ColoredBox(
+                      : imageUrl == null
+                          ? const ColoredBox(
                               color: Color(0x221D2B46),
-                              child: Icon(Icons.broken_image_outlined),
-                            ),
-                          ),
-                          if (video)
-                            const Center(child: Icon(Icons.play_circle_fill, color: Colors.white, size: 22)),
-                        ]),
+                              child: Icon(Icons.auto_awesome_rounded, color: HomaGramTheme.turquoise),
+                            )
+                          : Stack(fit: StackFit.expand, children: [
+                              Image(
+                                image: StoryImageProvider(imageUrl!, cacheKey: 'highlight-cover:$imageUrl'),
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const ColoredBox(
+                                  color: Color(0x221D2B46),
+                                  child: Icon(Icons.broken_image_outlined),
+                                ),
+                              ),
+                              if (video)
+                                const Center(child: Icon(Icons.play_circle_fill, color: Colors.white, size: 22)),
+                            ]),
             ),
           ),
           const SizedBox(height: 6),
