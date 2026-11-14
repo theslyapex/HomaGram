@@ -1289,7 +1289,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                         ))),
                     if (_countdownEnabled)
                       Positioned(left: 12, right: 12,
-                        bottom: (_pollEnabled && _questionBoxEnabled) ? 310 : (_pollEnabled || _questionBoxEnabled ? 170 : 10),
+                        bottom: (_pollEnabled && _questionBoxEnabled) ? 310 : (_questionBoxEnabled ? 278 : (_pollEnabled ? 154 : 10)),
                         child: IgnorePointer(child: _StoryCountdownCard(
                           countdown: {
                             'title': _countdownTitle.text.trim().isEmpty ? 'شمارش معکوس' : _countdownTitle.text.trim(),
