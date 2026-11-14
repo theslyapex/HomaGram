@@ -267,6 +267,14 @@ class _StoryCountdownCardState extends State<_StoryCountdownCard> {
   }
 
   @override
+  void didUpdateWidget(covariant _StoryCountdownCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.countdown['target_at'] != widget.countdown['target_at']) {
+      _target = DateTime.tryParse(widget.countdown['target_at']?.toString() ?? '')?.toLocal();
+    }
+  }
+
+  @override
   void dispose() {
     _ticker?.cancel();
     super.dispose();
