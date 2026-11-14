@@ -206,6 +206,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   Future<void> _publish() async {
     final caption = _caption.text.trim();
+    if (widget.initialReel && !_isReel) {
+      _notice('برای ساخت ریلز باید ابتدا یک ویدئو انتخاب کنید.', error: true);
+      return;
+    }
     if (_isReel && _coverBytes == null) { _notice('برای ریلز یک کاور انتخاب کنید.', error: true); return; }
     if (caption.isEmpty && _media == null) { _notice('برای انتشار، متن یا رسانه اضافه کنید.', error: true); return; }
     if (caption.length > 2200) { _notice('متن پست حداکثر ۲۲۰۰ نویسه است.', error: true); return; }
@@ -400,7 +404,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           onPressed: _posting || _editing ? null : _publish,
           icon: _posting ? const SizedBox(width: 18, height: 18,
             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.publish_rounded),
-          label: Text(_posting ? 'در حال انتشار...' : _isReel ? 'انتشار ریلز' : 'انتشار پست',
+          label: Text(_posting ? 'در حال انتشار...' : (widget.initialReel || _isReel) ? 'انتشار ریلز' : 'انتشار پست',
             style: const TextStyle(fontWeight: FontWeight.w900)),
           style: FilledButton.styleFrom(backgroundColor: _isReel ? HomaGramTheme.royalPurple : HomaGramTheme.turquoise,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17))),
