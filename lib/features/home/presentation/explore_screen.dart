@@ -42,7 +42,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     try {
       final client = AuthService.client;
       var postQuery = client.from('posts').select(
-        'id,author_id,author_username,author_display_name,caption,media_path,media_type,created_at,is_reel'
+        'id,author_id,author_username,author_display_name,caption,media_path,media_type,cover_path,created_at,is_reel'
       ).eq('is_public', true);
       if (_reelsOnly) postQuery = postQuery.eq('is_reel', true);
       if (query.isNotEmpty) {
@@ -65,6 +65,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
         final path = post['media_path'] as String?;
         if (path != null) {
           try { post['media_url'] = await client.storage.from('post-media').createSignedUrl(path, 3600); }
+          catch (_) {}
+        }
+        final coverPath = post['cover_path'] as String?;
+        if (coverPath != null) {
+          try { post['cover_url'] = await client.storage.from('post-media').createSignedUrl(coverPath, 3600); }
           catch (_) {}
         }
         posts.add(post);
@@ -224,7 +229,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   Widget _postTile(Map<String, dynamic> post) {
-    final mediaUrl = post['media_url'] as String?;
+    final mediaUrl = post['media_type'] == 'video' ? (post['cover_url'] as String? ?? post['media_url'] as String?) : post['media_url'] as String?;
     final caption = (post['caption'] as String? ?? '').trim();
     return GestureDetector(
       onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
@@ -245,7 +250,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         )),
         if (post['media_type'] == 'video')
           Positioned(right: 6, top: 6,
-            child: Icon(post['is_reel'] == true ? Icons.video_collection_rounded : Icons.play_circle_fill_rounded,
+            child: Icon(Icons.video_collection_rounded,
               color: Colors.white, size: 22)),
       ]),
     );
