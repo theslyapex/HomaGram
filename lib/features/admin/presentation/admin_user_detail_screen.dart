@@ -12,8 +12,86 @@ class AdminUserDetailScreen extends StatefulWidget {
 
 class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
   late Future<Map<String, dynamic>> _future;
+  bool _isAdmin = false;
+  bool _deleting = false;
   @override
-  void initState() { super.initState(); _future = AdminService.loadUserDetail(widget.userId); }
+  void initState() {
+    super.initState();
+    _future = AdminService.loadUserDetail(widget.userId);
+    _checkAdmin();
+  }
+  Future<void> _checkAdmin() async {
+    try {
+      final value = await AdminService.isCurrentUserAdmin();
+      if (mounted) setState(() => _isAdmin = value);
+    } catch (_) {}
+  }
+
+  Future<void> _confirmDelete(Map<String, dynamic> userData) async {
+    if (!_isAdmin || _deleting) return;
+    final name = (userData['display_name'] as String?)?.trim();
+    final username = userData['username'] as String?;
+    final first = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('حذف حساب کاربر؟'),
+        content: Text('آیا مطمئن هستید حساب ${name?.isNotEmpty == true ? name : (username ?? widget.userId)} حذف شود؟ این عملیات برگشت‌پذیر نیست و داده‌های وابسته به حساب نیز طبق روابط پایگاه داده حذف خواهند شد.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('بله، ادامه بده'),
+          ),
+        ],
+      ),
+    );
+    if (first != true || !mounted) return;
+
+    final controller = TextEditingController();
+    final second = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setDialogState) => AlertDialog(
+        title: const Text('تأیید نهایی حذف'),
+        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('برای جلوگیری از حذف اشتباهی، عبارت «حذف حساب» را دقیقاً وارد کنید.'),
+          const SizedBox(height: 12),
+          TextField(
+            controller: controller,
+            autofocus: true,
+            onChanged: (_) => setDialogState(() {}),
+            decoration: const InputDecoration(labelText: 'عبارت تأیید'),
+          ),
+        ]),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('بازگشت')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: controller.text.trim() == 'حذف حساب' ? () => Navigator.pop(ctx, true) : null,
+            child: const Text('حذف دائمی حساب'),
+          ),
+        ],
+      )),
+    );
+    controller.dispose();
+    if (second != true || !mounted) return;
+
+    setState(() => _deleting = true);
+    try {
+      await AdminService.deleteUser(widget.userId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('حساب کاربر حذف شد.')),
+      );
+      Navigator.of(context).pop(true);
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('حذف حساب انجام نشد. ممکن است حساب مدیر یا دارای محدودیت حفاظتی باشد.')),
+      );
+    } finally {
+      if (mounted) setState(() => _deleting = false);
+    }
+  }
   Future<void> _refresh() async {
     final next = AdminService.loadUserDetail(widget.userId);
     setState(() => _future = next);
@@ -149,6 +227,21 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
             _reportSection('گزارش‌هایی که این کاربر ثبت کرده', submitted, true),
             const SizedBox(height: 12),
             _reportSection('گزارش‌های ثبت‌شده علیه محتوای این کاربر', against, false),
+            if (_isAdmin) ...[
+              const SizedBox(height: 22),
+              OutlinedButton.icon(
+                onPressed: _deleting ? null : () => _confirmDelete(d),
+                icon: _deleting
+                    ? const SizedBox(width: 17, height: 17, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.person_remove_alt_1_rounded),
+                label: Text(_deleting ? 'در حال حذف حساب…' : 'حذف حساب کاربر'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  side: const BorderSide(color: Colors.redAccent),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
+            ],
           ]),
         );
       },
