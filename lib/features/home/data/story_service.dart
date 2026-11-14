@@ -210,7 +210,7 @@ class StoryService {
   static Future<List<Map<String, dynamic>>> loadActiveStories() async {
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _client.from('stories')
-        .select('id,author_id,audience,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,music_path,music_start_ms,music_volume,created_at,expires_at')
+        .select('id,author_id,audience,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,widget_layout,music_path,music_start_ms,music_volume,created_at,expires_at')
         .gt('expires_at', now)
         .order('created_at');
     return _hydrate(rows);
@@ -220,7 +220,7 @@ class StoryService {
   static Future<List<Map<String, dynamic>>> loadMyActiveStories() async {
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _client.from('stories')
-        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,music_path,music_start_ms,music_volume,created_at,expires_at')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,widget_layout,music_path,music_start_ms,music_volume,created_at,expires_at')
         .eq('author_id', _uid)
         .gt('expires_at', now)
         .order('created_at', ascending: false);
@@ -238,7 +238,7 @@ class StoryService {
     }
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _client.from('stories')
-        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,music_path,music_start_ms,music_volume,created_at,expires_at')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,widget_layout,music_path,music_start_ms,music_volume,created_at,expires_at')
         .eq('author_id', _uid)
         .lte('expires_at', now)
         .order('created_at', ascending: false)
@@ -741,7 +741,7 @@ class StoryService {
 
   static Future<Map<String, dynamic>?> loadStoryById(String storyId) async {
     final rows = await _client.from('stories')
-        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,music_path,music_start_ms,music_volume,created_at,expires_at')
+        .select('id,author_id,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,widget_layout,music_path,music_start_ms,music_volume,created_at,expires_at')
         .eq('id', storyId)
         .limit(1);
     if (rows.isEmpty) return null;
