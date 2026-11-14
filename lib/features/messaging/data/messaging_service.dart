@@ -548,12 +548,13 @@ class MessagingService {
     required String title,
     required String slug,
     required String description,
+    bool isPublic = true,
   }) async {
     final result = await _client.rpc('create_channel', params: {
       'p_title': title.trim(),
       'p_slug': slug.trim().toLowerCase(),
       'p_description': description.trim(),
-      'p_is_public': true,
+      'p_is_public': isPublic,
     });
     return result as String;
   }
@@ -562,6 +563,30 @@ class MessagingService {
     await _client.rpc('join_public_channel', params: {
       'p_conversation_id': conversationId,
     });
+  }
+
+  static Future<String> createChannelInvite(String conversationId) async {
+    final result = await _client.rpc('create_channel_invite', params: {
+      'p_conversation_id': conversationId,
+      'p_expires_in_hours': 168,
+      'p_max_uses': 100,
+    });
+    return result as String;
+  }
+
+  static Future<String> joinChannelByInvite(String token) async {
+    final result = await _client.rpc('join_channel_by_invite', params: {
+      'p_token': token.trim().toLowerCase(),
+    });
+    return result as String;
+  }
+
+  static Future<String> loadChannelTitle(String conversationId) async {
+    final row = await _client.from('conversations')
+        .select('title').eq('id', conversationId).single();
+    return (row['title'] as String?)?.trim().isNotEmpty == true
+        ? row['title'] as String
+        : 'کانال خصوصی';
   }
 
 }
