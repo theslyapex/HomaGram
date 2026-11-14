@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/messaging_service.dart';
 import '../../home/presentation/shared_post_screen.dart';
+import '../../../core/utils/persian_date.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({
@@ -395,6 +396,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                         const SizedBox(width: 4),
                                         Text(_time(message['created_at'] as String?),
                                           style: TextStyle(fontSize: 10, color: colors.onSurfaceVariant)),
+                                        const SizedBox(width: 6),
+                                        Text(_messageDate(message['created_at'] as String?),
+                                          style: TextStyle(fontSize: 9, color: colors.onSurfaceVariant)),
                                       ]),
                                     ],
                                   ),
@@ -1282,6 +1286,11 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       }
     }
+  }
+
+  String _messageDate(String? value) {
+    final date = value == null ? null : DateTime.tryParse(value)?.toLocal();
+    return date == null ? '' : persianDate(date);
   }
 
   String _time(String? value) {
