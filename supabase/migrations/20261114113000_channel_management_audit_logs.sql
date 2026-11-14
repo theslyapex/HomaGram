@@ -68,7 +68,10 @@ begin
       end if;
     elsif tg_op = 'UPDATE' then
       v_target := new.user_id;
-      if old.left_at is null and new.left_at is not null then
+      if old.left_at is not null and new.left_at is null then
+        v_action := 'member_added';
+        v_metadata := jsonb_build_object('role', new.role, 'rejoined', true);
+      elsif old.left_at is null and new.left_at is not null then
         v_action := 'member_removed';
       elsif old.role is distinct from new.role then
         v_action := 'member_role_changed';
