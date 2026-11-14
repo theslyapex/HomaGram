@@ -6,6 +6,7 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:video_player/video_player.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
@@ -154,12 +155,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           if (bytes != null && token == requestId) update(() => preview = bytes);
         } catch (_) {}
       }
+      await render(selectedMs, (_) {});
       final selected = await showModalBottomSheet<Uint8List>(
         context: context, isScrollControlled: true,
         backgroundColor: Theme.of(context).colorScheme.surface,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
         builder: (sheetContext) => StatefulBuilder(builder: (context, update) {
-          if (preview == null) render(selectedMs, update);
           return SafeArea(child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 22),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
