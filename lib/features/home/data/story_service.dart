@@ -119,14 +119,27 @@ class StoryService {
     final mediaPaths = rows
         .map((row) => row['media_path'] as String?)
         .whereType<String>();
+    final stickerPaths = <String>[];
+    for (final row in rows) {
+      final data = row['sticker_data'];
+      if (data is List) {
+        for (final item in data) {
+          if (item is Map && item['type'] == 'image' && item['path'] is String) {
+            stickerPaths.add(item['path'] as String);
+          }
+        }
+      }
+    }
 
     // Sign each unique path once, with bounded concurrency.
     final signedResults = await Future.wait([
       _signPaths('avatars', avatarPaths),
       _signPaths('story-media', mediaPaths),
+      _signPaths('story-stickers', stickerPaths),
     ]);
     final avatarUrls = signedResults[0];
     final mediaUrls = signedResults[1];
+    final stickerUrls = signedResults[2];
 
     return rows.map((row) {
       final story = Map<String, dynamic>.from(row);
@@ -136,6 +149,16 @@ class StoryService {
       story['avatar_path'] = profile['avatar_path'];
       story['avatar_url'] = avatarUrls[profile['avatar_path']];
       story['media_url'] = mediaUrls[story['media_path']];
+      final stickerData = story['sticker_data'];
+      if (stickerData is List) {
+        story['sticker_data'] = stickerData.map((raw) {
+          if (raw is! Map) return raw;
+          final item = Map<String, dynamic>.from(raw);
+          final path = item['path'] as String?;
+          if (path != null) item['signed_url'] = stickerUrls[path];
+          return item;
+        }).toList();
+      }
       story['is_viewed'] = seen.contains(story['id']);
       return story;
     }).toList();
@@ -188,6 +211,62 @@ class StoryService {
       throw ArgumentError('متن استوری حداکثر ۵۰۰ نویسه است.');
     }
 
+    final uploadedStickerPaths = <String>[];
+    final persistedStickers = <Map<String, dynamic>>[];
+    try {
+      for (final raw in stickerData) {
+        final sticker = Map<String, dynamic>.from(raw);
+        if (sticker['type'] == 'image') {
+          final localPath = sticker.remove('local_path') as String?;
+          final mime = sticker['mime_type'] as String?;
+          final name = sticker['file_name'] as String? ?? 'sticker';
+          if (localPath == null || mime == null ||
+              !const {'image/gif','image/jpeg','image/png','image/webp'}.contains(mime)) {
+            throw ArgumentError('فایل استیکر معتبر نیست.');
+          }
+          final stickerBytes = await File(localPath).readAsBytes();
+          if (stickerBytes.isEmpty || stickerBytes.length > 5 * 1024 * 1024) {
+            throw ArgumentError('حجم استیکر باید حداکثر ۵ مگابایت باشد.');
+          }
+          final ext = name.contains('.') ? name.split('.').last.toLowerCase() : 'png';
+          if (!const {'gif','jpg','jpeg','png','webp'}.contains(ext)) {
+            throw ArgumentError('پسوند فایل استیکر پشتیبانی نمی‌شود.');
+          }
+          final stickerPath = '$_uid/${DateTime.now().microsecondsSinceEpoch}_${uploadedStickerPaths.length}.$ext';
+          await _client.storage.from('story-stickers').uploadBinary(
+            stickerPath, stickerBytes,
+            fileOptions: FileOptions(contentType: mime, upsert: false),
+          );
+          uploadedStickerPaths.add(stickerPath);
+          sticker
+            ..remove('mime_type')
+            ..remove('file_name')
+            ..['path'] = stickerPath;
+        } else if (sticker['type'] == 'emoji') {
+          if (!allowedStickers.contains(sticker['emoji'])) {
+            throw ArgumentError('ایموجی استیکر معتبر نیست.');
+          }
+        } else {
+          throw ArgumentError('نوع استیکر پشتیبانی نمی‌شود.');
+        }
+        final x = (sticker['x'] as num?)?.toDouble();
+        final y = (sticker['y'] as num?)?.toDouble();
+        final scale = (sticker['scale'] as num?)?.toDouble();
+        final rotation = (sticker['rotation'] as num?)?.toDouble();
+        if (x == null || y == null || x < .05 || x > .95 || y < .05 || y > .95 ||
+            scale == null || scale < .5 || scale > 3 ||
+            rotation == null || rotation < -3.14 || rotation > 3.14) {
+          throw ArgumentError('موقعیت استیکر معتبر نیست.');
+        }
+        persistedStickers.add(sticker);
+      }
+    } catch (_) {
+      if (uploadedStickerPaths.isNotEmpty) {
+        try { await _client.storage.from('story-stickers').remove(uploadedStickerPaths); } catch (_) {}
+      }
+      rethrow;
+    }
+
     final bytes = await file.readAsBytes();
     if (bytes.isEmpty || bytes.length > 52428800) {
       throw ArgumentError('حجم رسانه باید بیشتر از صفر و حداکثر ۵۰ مگابایت باشد.');
@@ -211,10 +290,13 @@ class StoryService {
         'overlay_color': overlayColor,
         'overlay_font': overlayFont,
         'drawing_data': drawingData,
-        'sticker_data': stickerData,
+        'sticker_data': persistedStickers,
       });
     } catch (_) {
       try { await _client.storage.from('story-media').remove([path]); } catch (_) {}
+      if (uploadedStickerPaths.isNotEmpty) {
+        try { await _client.storage.from('story-stickers').remove(uploadedStickerPaths); } catch (_) {}
+      }
       rethrow;
     }
   }
