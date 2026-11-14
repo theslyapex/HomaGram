@@ -504,7 +504,8 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _showConversationInfo() async {
     try {
       final info = await Supabase.instance.client.from('conversations')
-          .select('kind,title').eq('id', widget.conversationId).single();
+          .select('kind,title,channels(slug,description)')
+          .eq('id', widget.conversationId).single();
       var members = await MessagingService.loadConversationMembers(widget.conversationId);
       if (!mounted) return;
       String myRole = 'member';
@@ -515,6 +516,21 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       }
       final isGroup = info['kind'] == 'group';
+      final isChannel = info['kind'] == 'channel';
+      final canManage = myRole == 'owner' || myRole == 'admin';
+      final channelData = info['channels'] is Map
+          ? Map<String, dynamic>.from(info['channels'] as Map)
+          : <String, dynamic>{};
+
+      Future<void> manageMember(String targetId, String action) async {
+        if (isChannel) {
+          await MessagingService.manageChannelMember(widget.conversationId, targetId, action);
+        } else {
+          await MessagingService.manageGroupMember(widget.conversationId, targetId, action);
+        }
+        members = await MessagingService.loadConversationMembers(widget.conversationId);
+      }
+
       await showModalBottomSheet<void>(
         context: context, isScrollControlled: true, useSafeArea: true, showDragHandle: true,
         builder: (sheetContext) => StatefulBuilder(
@@ -525,34 +541,62 @@ class _ChatScreenState extends State<ChatScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                 child: Row(children: [
                   Expanded(child: Text(
-                    isGroup ? (info['title'] as String? ?? 'گروه') : widget.title,
+                    (info['title'] as String?) ?? (isChannel ? 'کانال' : isGroup ? 'گروه' : widget.title),
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
                   )),
-                  if (isGroup && (myRole == 'owner' || myRole == 'admin'))
+                  if ((isGroup || isChannel) && canManage)
                     IconButton(
-                      tooltip: 'تغییر نام گروه', icon: const Icon(Icons.edit_outlined),
+                      tooltip: isChannel ? 'ویرایش اطلاعات کانال' : 'تغییر نام گروه',
+                      icon: const Icon(Icons.edit_outlined),
                       onPressed: () async {
-                        final controller = TextEditingController(text: info['title'] as String? ?? '');
-                        final title = await showDialog<String>(
+                        final titleController = TextEditingController(text: info['title'] as String? ?? '');
+                        final slugController = TextEditingController(text: channelData['slug'] as String? ?? '');
+                        final descriptionController = TextEditingController(text: channelData['description'] as String? ?? '');
+                        final values = await showDialog<List<String>>(
                           context: context,
                           builder: (ctx) => AlertDialog(
-                            title: const Text('نام گروه'),
-                            content: TextField(controller: controller, maxLength: 100),
+                            title: Text(isChannel ? 'اطلاعات کانال' : 'نام گروه'),
+                            content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                              TextField(controller: titleController, maxLength: 100,
+                                decoration: const InputDecoration(labelText: 'نام')),
+                              if (isChannel) ...[
+                                TextField(controller: slugController, maxLength: 32,
+                                  decoration: const InputDecoration(labelText: 'شناسه', prefixText: '@')),
+                                TextField(controller: descriptionController, maxLength: 500, maxLines: 3,
+                                  decoration: const InputDecoration(labelText: 'توضیحات')),
+                              ],
+                            ])),
                             actions: [
                               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-                              FilledButton(onPressed: () => Navigator.pop(ctx, controller.text), child: const Text('ذخیره')),
+                              FilledButton(onPressed: () => Navigator.pop(ctx, [
+                                titleController.text, slugController.text, descriptionController.text,
+                              ]), child: const Text('ذخیره')),
                             ],
                           ),
                         );
-                        controller.dispose();
-                        if (title != null && title.trim().isNotEmpty) {
-                          await MessagingService.updateGroupTitle(widget.conversationId, title);
-                          if (mounted) setState(() {});
-                          if (sheetContext.mounted) Navigator.pop(sheetContext);
+                        titleController.dispose();
+                        slugController.dispose();
+                        descriptionController.dispose();
+                        if (values == null || values[0].trim().isEmpty) return;
+                        if (isChannel) {
+                          if (!RegExp(r'^[a-zA-Z0-9_]{3,32}$').hasMatch(values[1].trim())) {
+                            if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('شناسه باید ۳ تا ۳۲ حرف انگلیسی، عدد یا زیرخط باشد.')),
+                            );
+                            return;
+                          }
+                          await MessagingService.updateChannelDetails(
+                            conversationId: widget.conversationId,
+                            title: values[0], slug: values[1], description: values[2],
+                          );
+                        } else {
+                          await MessagingService.updateGroupTitle(widget.conversationId, values[0]);
                         }
+                        if (mounted) setState(() {});
+                        if (sheetContext.mounted) Navigator.pop(sheetContext);
                       },
                     ),
-                  if (isGroup && (myRole == 'owner' || myRole == 'admin'))
+                  if ((isGroup || isChannel) && canManage)
                     IconButton(
                       tooltip: 'افزودن عضو', icon: const Icon(Icons.person_add_alt_1_rounded),
                       onPressed: () async {
@@ -561,10 +605,12 @@ class _ChatScreenState extends State<ChatScreen> {
                           context: context,
                           builder: (ctx) => AlertDialog(
                             title: const Text('افزودن عضو'),
-                            content: TextField(controller: queryController, autofocus: true, decoration: const InputDecoration(hintText: 'نام کاربری')),
+                            content: TextField(controller: queryController, autofocus: true,
+                              decoration: const InputDecoration(hintText: 'نام کاربری')),
                             actions: [
                               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-                              FilledButton(onPressed: () => Navigator.pop(ctx, queryController.text), child: const Text('جست‌وجو')),
+                              FilledButton(onPressed: () => Navigator.pop(ctx, queryController.text),
+                                child: const Text('جست‌وجو')),
                             ],
                           ),
                         );
@@ -585,8 +631,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         );
                         if (selected == null) return;
-                        await MessagingService.manageGroupMember(widget.conversationId, selected['id'] as String, 'add');
-                        members = await MessagingService.loadConversationMembers(widget.conversationId);
+                        await manageMember(selected['id'] as String, 'add');
                         if (sheetContext.mounted) setSheetState(() {});
                       },
                     ),
@@ -600,15 +645,16 @@ class _ChatScreenState extends State<ChatScreen> {
                     final member = members[index];
                     final role = member['role'] as String? ?? 'member';
                     final isMe = member['user_id'] == _myId;
+                    final canAct = (isGroup || isChannel) && !isMe && canManage &&
+                        (myRole == 'owner' || role == 'member');
                     return ListTile(
                       leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
                       title: Text(member['display_name'] as String? ?? ''),
                       subtitle: Text('@${member['username']} • ${role == 'owner' ? 'مالک' : role == 'admin' ? 'مدیر' : 'عضو'}'),
-                      trailing: isGroup && !isMe && (myRole == 'owner' || (myRole == 'admin' && role == 'member'))
+                      trailing: canAct
                           ? PopupMenuButton<String>(
                               onSelected: (action) async {
-                                await MessagingService.manageGroupMember(widget.conversationId, member['user_id'] as String, action);
-                                members = await MessagingService.loadConversationMembers(widget.conversationId);
+                                await manageMember(member['user_id'] as String, action);
                                 if (sheetContext.mounted) setSheetState(() {});
                               },
                               itemBuilder: (_) => [
@@ -617,7 +663,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 if (myRole == 'owner' && role == 'admin')
                                   const PopupMenuItem(value: 'demote', child: Text('تنزل به عضو')),
                                 if (role != 'owner' && (myRole == 'owner' || role == 'member'))
-                                  const PopupMenuItem(value: 'remove', child: Text('حذف از گروه')),
+                                  PopupMenuItem(value: 'remove', child: Text(isChannel ? 'حذف از کانال' : 'حذف از گروه')),
                               ],
                             )
                           : role == 'owner' ? const Icon(Icons.verified_rounded, size: 18) : null,
@@ -635,7 +681,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       if (sheetContext.mounted) Navigator.pop(sheetContext);
                       if (mounted) Navigator.pop(context);
                     },
-                    icon: const Icon(Icons.logout_rounded), label: const Text('خروج از گفتگو'),
+                    icon: const Icon(Icons.logout_rounded),
+                    label: Text(isChannel ? 'خروج از کانال' : isGroup ? 'خروج از گروه' : 'خروج از گفتگو'),
                   )),
                 ),
               ),
