@@ -832,7 +832,9 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardTheme.color,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .42)),
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .035), blurRadius: 14, offset: const Offset(0, 5))],
                 ),
                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   CircleAvatar(
@@ -845,9 +847,9 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
                   const SizedBox(width: 10),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(p?['display_name'] as String? ?? 'کاربر',
-                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
                     const SizedBox(height: 5),
-                    Text(c['body'] as String, style: const TextStyle(height: 1.55)),
+                    Text(c['body'] as String, style: const TextStyle(height: 1.75, fontSize: 13)),
                     const SizedBox(height: 7),
                     Row(children: [
                       Text(persianDate(DateTime.tryParse(c['created_at']?.toString() ?? '')?.toLocal() ?? DateTime.now()),
