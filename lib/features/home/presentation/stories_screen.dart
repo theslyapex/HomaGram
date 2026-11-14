@@ -1299,12 +1299,16 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           switch (widgetKey) {
             case 'text':
               _overlayText.clear();
+              break;
             case 'poll':
               _pollEnabled = false;
+              break;
             case 'question':
               _questionBoxEnabled = false;
+              break;
             case 'countdown':
               _countdownEnabled = false;
+              break;
           }
           _selectedWidget = null;
           return;
@@ -1313,8 +1317,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             ? {'x': .5, 'y': .5, 'scale': 1, 'rotation': 0}
             : {
                 ...layout,
-                'scale': (layout['scale']! + scaleDelta).clamp(.55, 2.2),
-                'rotation': (layout['rotation']! + rotationDelta).clamp(-3.14, 3.14),
+                'scale': (layout['scale']! + scaleDelta).clamp(.55, 2.2).toDouble(),
+                'rotation': (layout['rotation']! + rotationDelta).clamp(-3.14, 3.14).toDouble(),
               };
       } else if (stickerIndex != null && stickerIndex < _stickers.length) {
         if (delete) {
