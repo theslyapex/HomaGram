@@ -1,3 +1,4 @@
+import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:share_plus/share_plus.dart';
@@ -143,8 +144,8 @@ class _ReelsScreenState extends State<ReelsScreen> {
         Text(subtitle, textAlign: TextAlign.center,
           style: const TextStyle(color: Color(0xFF8490A4), height: 1.6)),
         const SizedBox(height: 18),
-        FilledButton.icon(onPressed: onPressed,
-          icon: const Icon(Icons.add_rounded), label: Text(actionLabel)),
+        HomaGramSpringPress(child: FilledButton.icon(onPressed: onPressed,
+          icon: const Icon(Icons.add_rounded), label: Text(actionLabel))),
       ]),
     ),
   );
@@ -348,7 +349,7 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
               )),
               if (widget.reel['is_mine'] != true)
-                OutlinedButton(
+                HomaGramSpringPress(child: OutlinedButton(
                   onPressed: _openProfile,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.white,
@@ -357,7 +358,7 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
                     minimumSize: Size.zero,
                   ),
                   child: const Text('مشاهده پروفایل', style: TextStyle(fontSize: 10)),
-                ),
+                )),
             ]),
           ),
           if (caption.isNotEmpty) ...[
