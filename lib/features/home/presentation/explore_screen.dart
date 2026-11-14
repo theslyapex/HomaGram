@@ -200,7 +200,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               backgroundColor: HomaGramTheme.turquoise.withValues(alpha: .15),
                               child: Text(label.characters.first, style: const TextStyle(fontWeight: FontWeight.w900))),
                             const SizedBox(height: 5),
-                            Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10)),
+                            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                              Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 10))),
+                              HomaGramVerifiedBadge(userId: user['id'] as String?, size: 12),
+                            ]),
                             Text('@$username', maxLines: 1, overflow: TextOverflow.ellipsis,
                               textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 9, color: Color(0xFF8490A4))),
                           ]),
