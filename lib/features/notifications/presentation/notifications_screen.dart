@@ -220,7 +220,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(title: const Text('اعلان‌ها', style: TextStyle(fontWeight: FontWeight.w900))),
-      body: SafeArea(child: FutureBuilder<List<Map<String, dynamic>>>(
+      body: HomaGramEntrance(child: SafeArea(child: FutureBuilder<List<Map<String, dynamic>>>(
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -315,7 +315,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           )),
         ]);
       },
-    )),
+    ))),
     );
   }
 }
