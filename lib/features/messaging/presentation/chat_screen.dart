@@ -95,8 +95,8 @@ class _ChatScreenState extends State<ChatScreen> {
         title: const Text('جست‌وجوی پیام‌ها'),
         content: TextField(controller: controller, autofocus: true, decoration: const InputDecoration(hintText: 'حداقل دو نویسه')),
         actions: [
-          HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف'))),
-          HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('جست‌وجو'))),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('جست‌وجو')),
         ],
       ),
     );
@@ -431,17 +431,17 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       child: Row(children: [
                         Expanded(child: Text('پاسخ به: ${_replyToBody ?? 'پیام'}', maxLines: 1, overflow: TextOverflow.ellipsis)),
-                        HomaGramSpringPress(child: IconButton(onPressed: () => setState(() { _replyToId = null; _replyToBody = null; }), icon: const Icon(Icons.close, size: 18))),
+                        IconButton(onPressed: () => setState(() { _replyToId = null; _replyToBody = null; }), icon: const Icon(Icons.close, size: 18)),
                       ]),
                     ),
                   Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  HomaGramSpringPress(child: IconButton(
+                  IconButton(
                     tooltip: 'افزودن رسانه',
                     onPressed: _sending ? null : _pickMedia,
                     icon: const Icon(Icons.add_circle_outline_rounded),
-                  )),
+                  ),
                   Expanded(
                     child: TextField(
                       controller: _controller,
@@ -461,12 +461,12 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  HomaGramSpringPress(child: IconButton.filled(
+                  IconButton.filled(
                     onPressed: _sending ? null : _send,
                     icon: _sending
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.send_rounded),
-                  )),
+                  ),
                 ],
               ),
                 ],
@@ -692,8 +692,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   ]),
                 ),
                 actions: [
-                  HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف'))),
-                  HomaGramSpringPress(child: FilledButton(
+                  TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+                  FilledButton(
                     onPressed: () {
                       if (formKey.currentState!.validate()) {
                         Navigator.pop(dialogContext, [
@@ -703,7 +703,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       }
                     },
                     child: const Text('ساخت کد'),
-                  )),
+                  ),
                 ],
               ),
             );
@@ -728,7 +728,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     SelectableText(token, textDirection: TextDirection.ltr,
                       style: const TextStyle(fontFamily: 'monospace', fontSize: 12, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 12),
-                    SizedBox(width: double.infinity, child: HomaGramSpringPress(child: OutlinedButton.icon(
+                    SizedBox(width: double.infinity, child: OutlinedButton.icon(
                       onPressed: () async {
                         await Clipboard.setData(ClipboardData(text: token));
                         if (dialogContext.mounted) {
@@ -739,10 +739,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       },
                       icon: const Icon(Icons.copy_rounded),
                       label: const Text('کپی کد'),
-                    ))),
+                    )),
                   ]),
                   actions: [
-                    HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('بستن'))),
+                    FilledButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('بستن')),
                   ],
                 ),
               );
@@ -763,8 +763,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 title: const Text('غیرفعال‌سازی کد دعوت'),
                 content: const Text('با این کار، کد دیگر برای عضویت قابل استفاده نخواهد بود.'),
                 actions: [
-                  HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('انصراف'))),
-                  HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('غیرفعال کن'))),
+                  TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('انصراف')),
+                  FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('غیرفعال کن')),
                 ],
               ),
             );
@@ -801,11 +801,11 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: SizedBox(width: double.infinity, child: HomaGramSpringPress(child: FilledButton.icon(
+                child: SizedBox(width: double.infinity, child: FilledButton.icon(
                   onPressed: createInvite,
                   icon: const Icon(Icons.add_link_rounded),
                   label: const Text('ساخت یا تمدید کد دعوت'),
-                ))),
+                )),
               ),
               const SizedBox(height: 8),
               Expanded(
@@ -814,7 +814,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     : loadError != null
                         ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                             Text(loadError!),
-                            HomaGramSpringPress(child: TextButton(onPressed: reload, child: const Text('تلاش دوباره'))),
+                            TextButton(onPressed: reload, child: const Text('تلاش دوباره')),
                           ]))
                         : invites.isEmpty
                             ? const Center(child: Text('هنوز کد دعوتی ساخته نشده است.'))
@@ -836,11 +836,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                     title: Text(statusLabel(status), style: const TextStyle(fontWeight: FontWeight.w800)),
                                     subtitle: Text('${invite['use_count']} از ${invite['max_uses']} استفاده • $expiryText'),
                                     trailing: status == 'active'
-                                        ? HomaGramSpringPress(child: IconButton(
+                                        ? IconButton(
                                             tooltip: 'غیرفعال‌سازی',
                                             onPressed: () => revokeInvite(invite['id'] as String),
                                             icon: const Icon(Icons.block_rounded),
-                                          ))
+                                          )
                                         : null,
                                   );
                                 },
@@ -897,7 +897,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
                   )),
                   if ((isGroup || isChannel) && canManage)
-                    HomaGramSpringPress(child: IconButton(
+                    IconButton(
                       tooltip: isChannel ? 'ویرایش اطلاعات کانال' : 'تغییر نام گروه',
                       icon: const Icon(Icons.edit_outlined),
                       onPressed: () async {
@@ -919,10 +919,10 @@ class _ChatScreenState extends State<ChatScreen> {
                               ],
                             ])),
                             actions: [
-                              HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف'))),
-                              HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, [
+                              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
+                              FilledButton(onPressed: () => Navigator.pop(ctx, [
                                 titleController.text, slugController.text, descriptionController.text,
-                              ]), child: const Text('ذخیره'))),
+                              ]), child: const Text('ذخیره')),
                             ],
                           ),
                         );
@@ -945,11 +945,11 @@ class _ChatScreenState extends State<ChatScreen> {
                           await MessagingService.updateGroupTitle(widget.conversationId, values[0]);
                         }
                         if (mounted) setState(() {});
-                        if (sheetContext.mounted) Navigator.pop(sheet)Context);
+                        if (sheetContext.mounted) Navigator.pop(sheetContext);
                       },
                     ),
                   if (isChannel && canManage)
-                    HomaGramSpringPress(child: IconButton(
+                    IconButton(
                       tooltip: 'تنظیمات دسترسی اعضا',
                       icon: const Icon(Icons.tune_rounded),
                       onPressed: () async {
@@ -980,9 +980,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                   style: TextStyle(fontSize: 12)),
                               ]),
                               actions: [
-                                HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف'))),
-                                HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(dialogContext, [canPost, canSendMedia]),
-                                  child: const Text('ذخیره تنظیمات'))),
+                                TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+                                FilledButton(onPressed: () => Navigator.pop(dialogContext, [canPost, canSendMedia]),
+                                  child: const Text('ذخیره تنظیمات')),
                               ],
                             ),
                           ),
@@ -1004,23 +1004,23 @@ class _ChatScreenState extends State<ChatScreen> {
                           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('ذخیره تنظیمات دسترسی انجام نشد.')),
                           );
-                )        }
+                        }
                       },
                     ),
                   if (isChannel && canManage)
-                    HomaGramSpringPress(child: IconButton(
+                    IconButton(
                       tooltip: 'تاریخچه فعالیت‌های کانال',
                       icon: const Icon(Icons.history_rounded),
                       onPressed: () => _showChannelAuditLogs(widget.conversationId),
-                    )),
+                    ),
                   if (isChannel && canManage && channelData['is_public'] == false)
-                    HomaGramSpringPress(child: IconButton(
+                    IconButton(
                       tooltip: 'مدیریت کدهای دعوت',
                       icon: const Icon(Icons.key_rounded),
                       onPressed: () => _manageChannelInvites(widget.conversationId),
-                    )),
+                    ),
                   if ((isGroup || isChannel) && canManage)
-                    HomaGramSpringPress(child: IconButton(
+                    IconButton(
                       tooltip: 'افزودن عضو', icon: const Icon(Icons.person_add_alt_1_rounded),
                       onPressed: () async {
                         final queryController = TextEditingController();
@@ -1031,9 +1031,9 @@ class _ChatScreenState extends State<ChatScreen> {
                             content: TextField(controller: queryController, autofocus: true,
                               decoration: const InputDecoration(hintText: 'نام کاربری')),
                             actions: [
-                              HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف'))),
-                              HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, queryController.text),
-                                child: const Text('جست‌وجو'))),
+                              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
+                              FilledButton(onPressed: () => Navigator.pop(ctx, queryController.text),
+                                child: const Text('جست‌وجو')),
                             ],
                           ),
                         );
@@ -1043,7 +1043,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         if (!mounted) return;
                         final selected = await showModalBottomSheet<Map<String, dynamic>>(
                           context: context, showDragHandle: true,
-                          builder: (ctx) => HomaGramEntrance(child: ListView(
+                          builder: (ctx) => ListView(
                             shrinkWrap: true,
                             children: users.map((user) => ListTile(
                               leading: const CircleAvatar(child: Icon(Icons.person_outline)),
@@ -1051,11 +1051,11 @@ class _ChatScreenState extends State<ChatScreen> {
                               subtitle: Text('@${user['username']}'),
                               onTap: () => Navigator.pop(ctx, user),
                             )).toList(),
-                          )),
+                          ),
                         );
                         if (selected == null) return;
                         await manageMember(selected['id'] as String, 'add');
-                        if (sheetContext.mounted) setSheetStat)e(() {});
+                        if (sheetContext.mounted) setSheetState(() {});
                       },
                     ),
                 ]),
@@ -1085,8 +1085,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                       title: const Text('انتقال مالکیت کانال'),
                                       content: Text('مالکیت کانال به $displayName منتقل شود؟ شما پس از انتقال، مدیر کانال خواهید بود و مالک جدید کنترل کامل کانال را در اختیار می‌گیرد.'),
                                       actions: [
-                                        HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('انصراف'))),
-                                        HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('تأیید انتقال'))),
+                                        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('انصراف')),
+                                        FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('تأیید انتقال')),
                                       ],
                                     ),
                                   );
@@ -1130,7 +1130,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 top: false,
                 child: Padding(
                   padding: const EdgeInsets.all(12),
-                  child: SizedBox(width: double.infinity, child: HomaGramSpringPress(child: OutlinedButton.icon(
+                  child: SizedBox(width: double.infinity, child: OutlinedButton.icon(
                     onPressed: () async {
                       await MessagingService.leaveConversation(widget.conversationId);
                       if (sheetContext.mounted) Navigator.pop(sheetContext);
@@ -1138,7 +1138,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     },
                     icon: const Icon(Icons.logout_rounded),
                     label: Text(isChannel ? 'خروج از کانال' : isGroup ? 'خروج از گروه' : 'خروج از گفتگو'),
-                  ))),
+                  )),
                 ),
               ),
             ]),
@@ -1215,10 +1215,10 @@ class _ChatScreenState extends State<ChatScreen> {
               alignment: WrapAlignment.center,
               spacing: 10,
               children: ['👍', '❤️', '😂', '😮', '😢', '🔥'].map((emoji) =>
-                HomaGramSpringPress(child: TextButton(
+                TextButton(
                   onPressed: () => Navigator.pop(context, 'reaction:$emoji'),
                   child: Text(emoji, style: const TextStyle(fontSize: 24)),
-                )),
+                ),
               ).toList(),
             ),
             if (mine) ListTile(
@@ -1259,8 +1259,8 @@ class _ChatScreenState extends State<ChatScreen> {
             title: const Text('ویرایش پیام'),
             content: TextField(controller: controller, autofocus: true, maxLines: 5, maxLength: 10000),
             actions: [
-              HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(context), child: const Text('انصراف'))),
-              HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(context, controller.text), child: const Text('ذخیره'))),
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text('انصراف')),
+              FilledButton(onPressed: () => Navigator.pop(context, controller.text), child: const Text('ذخیره')),
             ],
           ),
         );
@@ -1300,9 +1300,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 minLines: 2, maxLines: 5, decoration: const InputDecoration(
                   hintText: 'در صورت نیاز توضیح کوتاهی بنویسید.')),
               actions: [
-                HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(dialogContext, ''), child: const Text('رد کردن'))),
-                HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(dialogContext, detailsController.text.trim()),
-                  child: const Text('ثبت گزارش'))),
+                TextButton(onPressed: () => Navigator.pop(dialogContext, ''), child: const Text('رد کردن')),
+                FilledButton(onPressed: () => Navigator.pop(dialogContext, detailsController.text.trim()),
+                  child: const Text('ثبت گزارش')),
               ],
             ),
           );
@@ -1324,8 +1324,8 @@ class _ChatScreenState extends State<ChatScreen> {
             title: const Text('حذف پیام'),
             content: const Text('این پیام برای همه اعضای گفتگو حذف شود؟'),
             actions: [
-              HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('انصراف'))),
-              HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف'))),
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('انصراف')),
+              FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف')),
             ],
           ),
         );
