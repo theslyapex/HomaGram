@@ -109,6 +109,15 @@ class AdminService {
     return result.map((row) => Map<String, dynamic>.from(row as Map)).toList();
   }
 
+  static Future<List<AdminAuditLog>> loadAuditLogs({int offset = 0}) async {
+    final result = await _client.rpc('admin_list_audit_logs', params: {
+      'p_limit': 100, 'p_offset': offset,
+    });
+    if (result is! List) return [];
+    return result.map((row) => AdminAuditLog.fromJson(
+      Map<String, dynamic>.from(row as Map))).toList();
+  }
+
   static Future<void> reviewMessageReport(String id, String status) async {
     await _client.rpc('admin_review_message_report', params: {
       'p_report_id': id, 'p_status': status, 'p_review_note': null,
@@ -120,4 +129,30 @@ class AdminService {
       'p_report_id': id, 'p_status': status, 'p_review_note': null,
     });
   }
+}
+
+class AdminAuditLog {
+  const AdminAuditLog({
+    required this.id, required this.actorId, required this.action,
+    required this.metadata, required this.createdAt,
+    this.actorUsername, this.actorDisplayName, this.targetUserId,
+    this.targetUsername, this.targetDisplayName,
+  });
+  final String id, actorId, action;
+  final Map<String, dynamic> metadata;
+  final DateTime? createdAt;
+  final String? actorUsername, actorDisplayName, targetUserId, targetUsername, targetDisplayName;
+
+  factory AdminAuditLog.fromJson(Map<String, dynamic> json) => AdminAuditLog(
+    id: json['log_id']?.toString() ?? '',
+    actorId: json['actor_id']?.toString() ?? '',
+    action: json['action']?.toString() ?? '',
+    metadata: json['metadata'] is Map ? Map<String, dynamic>.from(json['metadata'] as Map) : const {},
+    createdAt: DateTime.tryParse(json['created_at']?.toString() ?? ''),
+    actorUsername: json['actor_username'] as String?,
+    actorDisplayName: json['actor_display_name'] as String?,
+    targetUserId: json['target_user_id']?.toString(),
+    targetUsername: json['target_username'] as String?,
+    targetDisplayName: json['target_display_name'] as String?,
+  );
 }
