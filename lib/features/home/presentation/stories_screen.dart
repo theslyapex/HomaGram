@@ -1145,7 +1145,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   void _startProgress({Duration? duration}) {
     if (!mounted) return;
     _progress.stop();
-    _progress.duration = duration ?? const Duration(seconds: 5);
+    _progress.duration = duration ?? (_story['music_path'] != null ? const Duration(seconds: 15) : const Duration(seconds: 5));
     _progress.value = 0;
     if (!_paused) _progress.forward();
   }
