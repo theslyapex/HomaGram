@@ -1,3 +1,4 @@
+import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../data/admin_service.dart';
@@ -199,11 +200,11 @@ class _UsersTabState extends State<_UsersTab> {
         decoration: InputDecoration(
           hintText: 'جست‌وجوی نام یا نام کاربری',
           prefixIcon: const Icon(Icons.search_rounded),
-          suffixIcon: IconButton(
+          suffixIcon: HomaGramSpringPress(child: IconButton(
             tooltip: 'پاک‌کردن',
             onPressed: () { _search.clear(); _load(); },
             icon: const Icon(Icons.close_rounded),
-          ),
+          )),
         ),
       ),
     ),
@@ -374,23 +375,23 @@ class _ReportsTabState extends State<_ReportsTab> {
                     if (pending) ...[
                       const SizedBox(height: 12),
                       Wrap(spacing: 8, runSpacing: 8, children: [
-                        OutlinedButton.icon(
+                        HomaGramSpringPress(child: OutlinedButton.icon(
                           onPressed: _workingId == report.id ? null : () => _review(report, 'dismissed'),
                           icon: const Icon(Icons.close_rounded, size: 18),
                           label: const Text('رد گزارش'),
-                        ),
-                        FilledButton.icon(
+                        )),
+                        HomaGramSpringPress(child: FilledButton.icon(
                           onPressed: _workingId == report.id ? null : () => _review(report, 'reviewed'),
                           icon: _workingId == report.id
                             ? const SizedBox(width: 16, height: 16,
                                 child: CircularProgressIndicator(strokeWidth: 2))
                             : const Icon(Icons.check_rounded, size: 18),
                           label: const Text('بررسی شد'),
-                        ),
-                        FilledButton.tonal(
+                        )),
+                        HomaGramSpringPress(child: FilledButton.tonal(
                           onPressed: _workingId == report.id ? null : () => _review(report, 'actioned'),
                           child: const Text('اقدام انجام شد'),
-                        ),
+                        )),
                       ]),
                     ],
                   ]),
@@ -478,12 +479,12 @@ class _MessageReportsTabState extends State<_MessageReportsTab> {
                   if (pending) ...[
                     const SizedBox(height: 10),
                     Wrap(spacing: 8, children: [
-                      OutlinedButton(onPressed: _working == id ? null : () => _review(item,'dismissed'),
-                        child: const Text('رد گزارش')),
-                      FilledButton(onPressed: _working == id ? null : () => _review(item,'reviewed'),
-                        child: const Text('بررسی شد')),
-                      FilledButton.tonal(onPressed: _working == id ? null : () => _review(item,'actioned'),
-                        child: const Text('اقدام انجام شد')),
+                      HomaGramSpringPress(child: OutlinedButton(onPressed: _working == id ? null : () => _review(item,'dismissed'),
+                        child: const Text('رد گزارش'))),
+                      HomaGramSpringPress(child: FilledButton(onPressed: _working == id ? null : () => _review(item,'reviewed'),
+                        child: const Text('بررسی شد'))),
+                      HomaGramSpringPress(child: FilledButton.tonal(onPressed: _working == id ? null : () => _review(item,'actioned'),
+                        child: const Text('اقدام انجام شد'))),
                     ]),
                   ],
                 ]),
@@ -638,7 +639,7 @@ class _RetryView extends StatelessWidget {
         const SizedBox(height: 12),
         Text(message, textAlign: TextAlign.center),
         const SizedBox(height: 12),
-        FilledButton(onPressed: onRetry, child: const Text('تلاش دوباره')),
+        HomaGramSpringPress(child: FilledButton(onPressed: onRetry, child: const Text('تلاش دوباره'))),
       ]),
     ),
   );
