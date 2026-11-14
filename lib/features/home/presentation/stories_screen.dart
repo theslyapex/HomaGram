@@ -1,3 +1,4 @@
+import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -420,10 +421,10 @@ class _StoryQuestionBoxCard extends StatelessWidget {
           Text(question['prompt'] as String? ?? 'باکس پرسش', textAlign: TextAlign.center, maxLines: 3,
             overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
-          SizedBox(width: double.infinity, child: OutlinedButton(
+          SizedBox(width: double.infinity, child: HomaGramSpringPress(child: OutlinedButton(
             onPressed: busy ? null : (isOwner ? onViewResponses : onRespond),
             child: Text(isOwner ? 'مشاهده پاسخ‌ها • $count' : 'نوشتن پاسخ'),
-          )),
+          ))),
         ]),
       ),
     );
@@ -821,17 +822,17 @@ class _StoriesStripState extends State<StoriesStrip> {
                   const Spacer(),
                   if (snapshot.connectionState == ConnectionState.waiting)
                     const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
-                  TextButton(
+                  HomaGramSpringPress(child: TextButton(
                     onPressed: _archive,
                     style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
                     child: const Text('آرشیو', style: TextStyle(fontSize: 11)),
-                  ),
-                  IconButton(
+                  )),
+                  HomaGramSpringPress(child: IconButton(
                     tooltip: 'تازه‌سازی استوری‌ها',
                     visualDensity: VisualDensity.compact,
                     onPressed: _refresh,
                     icon: const Icon(Icons.refresh_rounded, size: 18),
-                  ),
+                  )),
                 ],
               ),
             ),
@@ -1390,7 +1391,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                         subtitle: Text(date == null ? type :
                           '$type • ${date.year}/${date.month.toString().padLeft(2,'0')}/${date.day.toString().padLeft(2,'0')}'),
                         onTap: () => Navigator.pop(sheetContext, draft['id'] as String),
-                        trailing: IconButton(
+                        trailing: HomaGramSpringPress(child: IconButton(
                           tooltip: 'حذف پیش‌نویس',
                           icon: const Icon(Icons.delete_outline_rounded),
                           onPressed: () async {
@@ -1408,7 +1409,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                               }
                             }
                           },
-                        ),
+                        )),
                       );
                     },
                   ),
@@ -1605,10 +1606,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     appBar: AppBar(
       title: const Text('استودیو استوری', style: TextStyle(fontWeight: FontWeight.w900)),
       actions: [
-        IconButton(tooltip: 'پیش‌نویس‌ها', onPressed: _busy ? null : _openDrafts,
-          icon: const Icon(Icons.drafts_outlined)),
-        IconButton(tooltip: 'ذخیره پیش‌نویس', onPressed: _busy ? null : _saveDraft,
-          icon: const Icon(Icons.save_outlined)),
+        HomaGramSpringPress(child: IconButton(tooltip: 'پیش‌نویس‌ها', onPressed: _busy ? null : _openDrafts,
+          icon: const Icon(Icons.drafts_outlined))),
+        HomaGramSpringPress(child: IconButton(tooltip: 'ذخیره پیش‌نویس', onPressed: _busy ? null : _saveDraft,
+          icon: const Icon(Icons.save_outlined))),
         const SizedBox(width: 4),
       ],
     ),
@@ -1738,7 +1739,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             ),
           ),
         const SizedBox(height: 14),
-        OutlinedButton.icon(
+        HomaGramSpringPress(child: OutlinedButton.icon(
           onPressed: _busy ? null : () => setState(() {
             _textMode = true;
             _file = null;
@@ -1747,19 +1748,19 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           }),
           icon: const Icon(Icons.text_fields_rounded),
           label: const Text('ساخت استوری متنی'),
-        ),
+        )),
         if (!_textMode) ...[
           const SizedBox(height: 8),
-          OutlinedButton.icon(onPressed: _busy ? null : () => _pick(false),
-            icon: const Icon(Icons.image_outlined), label: const Text('انتخاب تصویر')),
+          HomaGramSpringPress(child: OutlinedButton.icon(onPressed: _busy ? null : () => _pick(false),
+            icon: const Icon(Icons.image_outlined), label: const Text('انتخاب تصویر'))),
           const SizedBox(height: 8),
-          OutlinedButton.icon(onPressed: _busy ? null : () => _pick(true),
-            icon: const Icon(Icons.video_library_outlined), label: const Text('انتخاب ویدئو (حداکثر ۶۰ ثانیه)')),
+          HomaGramSpringPress(child: OutlinedButton.icon(onPressed: _busy ? null : () => _pick(true),
+            icon: const Icon(Icons.video_library_outlined), label: const Text('انتخاب ویدئو (حداکثر ۶۰ ثانیه)'))),
         ] else ...[
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerRight,
-            child: TextButton.icon(
+            child: HomaGramSpringPress(child: TextButton.icon(
               onPressed: _busy ? null : () => setState(() {
                 _textMode = false;
                 _type = null;
@@ -1767,7 +1768,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               }),
               icon: const Icon(Icons.photo_library_outlined),
               label: const Text('بازگشت به استوری تصویری'),
-            ),
+            )),
           ),
           const SizedBox(height: 8),
           Wrap(
@@ -1797,7 +1798,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           Align(alignment: Alignment.centerRight, child: Text('موسیقی استوری', style: Theme.of(context).textTheme.labelLarge)),
           const SizedBox(height: 7),
           if (_musicFile == null)
-            OutlinedButton.icon(onPressed: _busy ? null : _pickMusic, icon: const Icon(Icons.music_note_rounded), label: const Text('افزودن موسیقی از دستگاه'))
+            HomaGramSpringPress(child: OutlinedButton.icon(onPressed: _busy ? null : _pickMusic, icon: const Icon(Icons.music_note_rounded), label: const Text('افزودن موسیقی از دستگاه')))
           else ...[
             Container(
               padding: const EdgeInsets.all(12),
@@ -1805,8 +1806,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               child: Row(children: [
                 const Icon(Icons.audio_file_rounded, color: HomaGramTheme.turquoise), const SizedBox(width: 9),
                 Expanded(child: Text(_musicFileName ?? 'موسیقی انتخاب‌شده', maxLines: 1, overflow: TextOverflow.ellipsis)),
-                ValueListenableBuilder<VideoPlayerValue>(valueListenable: _musicPreview!, builder: (context, value, _) => IconButton(tooltip: value.isPlaying ? 'توقف پیش‌نمایش' : 'پخش پیش‌نمایش', onPressed: _busy ? null : _toggleMusicPreview, icon: Icon(value.isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill))),
-                IconButton(tooltip: 'حذف موسیقی', onPressed: _busy ? null : _removeMusic, icon: const Icon(Icons.close_rounded)),
+                ValueListenableBuilder<VideoPlayerValue>(valueListenable: _musicPreview!, builder: (context, value, _) => HomaGramSpringPress(child: IconButton(tooltip: value.isPlaying ? 'توقف پیش‌نمایش' : 'پخش پیش‌نمایش', onPressed: _busy ? null : _toggleMusicPreview, icon: Icon(value.isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill)))),
+                HomaGramSpringPress(child: IconButton(tooltip: 'حذف موسیقی', onPressed: _busy ? null : _removeMusic, icon: const Icon(Icons.close_rounded))),
               ]),
             ),
             if (_musicDuration.inMilliseconds > 5000)
@@ -1821,11 +1822,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           ),
           const SizedBox(height: 7),
           Wrap(spacing: 8, runSpacing: 8, children: [
-            OutlinedButton.icon(
+            HomaGramSpringPress(child: OutlinedButton.icon(
               onPressed: _busy || _stickers.length >= 20 ? null : _pickImageSticker,
               icon: const Icon(Icons.add_photo_alternate_outlined),
               label: const Text('تصویر یا GIF'),
-            ),
+            )),
             for (final emoji in ['❤️', '😍', '😂', '🔥', '✨', '⭐', '🌈', '🌸', '🦋', '🎉', '☀️', '🌙', '💯', '👏', '🎈', '🍀', '☕', '🎧'])
               ActionChip(
                 label: Text(emoji, style: const TextStyle(fontSize: 22)),
@@ -1880,7 +1881,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                     ),
                   ),
                   if (_pollOptions.length > 2)
-                    IconButton(
+                    HomaGramSpringPress(child: IconButton(
                       tooltip: 'حذف گزینه',
                       onPressed: _busy ? null : () {
                         setState(() {
@@ -1888,7 +1889,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                         });
                       },
                       icon: const Icon(Icons.remove_circle_outline),
-                    ),
+                    )),
                 ],
               ),
               const SizedBox(height: 7),
@@ -1896,13 +1897,13 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             if (_pollOptions.length < 4)
               Align(
                 alignment: Alignment.centerRight,
-                child: TextButton.icon(
+                child: HomaGramSpringPress(child: TextButton.icon(
                   onPressed: _busy ? null : () => setState(() {
                     _pollOptions.add(TextEditingController());
                   }),
                   icon: const Icon(Icons.add_rounded),
                   label: const Text('افزودن گزینه'),
-                ),
+                )),
               ),
             const Text(
               'هر نظرسنجی بین ۲ تا ۴ گزینه دارد. هر کاربر یک رأی ثبت می‌کند و پس از رأی دادن نیز می‌تواند انتخابش را تغییر دهد.',
@@ -1948,13 +1949,13 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
-            OutlinedButton.icon(
+            HomaGramSpringPress(child: OutlinedButton.icon(
               onPressed: _busy ? null : _pickCountdownTarget,
               icon: const Icon(Icons.calendar_month_outlined),
               label: Text(
                 'تاریخ و ساعت: ${_countdownTarget.year}/${_countdownTarget.month.toString().padLeft(2, '0')}/${_countdownTarget.day.toString().padLeft(2, '0')}  •  ${_countdownTarget.hour.toString().padLeft(2, '0')}:${_countdownTarget.minute.toString().padLeft(2, '0')}',
               ),
-            ),
+            )),
           ],
           Card(margin: const EdgeInsets.symmetric(vertical: 4), child: SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
@@ -1977,21 +1978,21 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                     ),
                   ),
                 ),
-              OutlinedButton.icon(
+              HomaGramSpringPress(child: OutlinedButton.icon(
                 onPressed: () => setState(() => _eraserMode = !_eraserMode),
                 icon: Icon(_eraserMode ? Icons.brush_rounded : Icons.auto_fix_high_outlined),
                 label: Text(_eraserMode ? 'قلم' : 'پاک‌کن'),
-              ),
-              IconButton(
+              )),
+              HomaGramSpringPress(child: IconButton(
                 tooltip: 'بازگشت',
                 onPressed: _drawingStrokes.isEmpty ? null : () => setState(() => _drawingStrokes.removeLast()),
                 icon: const Icon(Icons.undo_rounded),
-              ),
-              IconButton(
+              )),
+              HomaGramSpringPress(child: IconButton(
                 tooltip: 'پاک‌کردن همه',
                 onPressed: _drawingStrokes.isEmpty ? null : () => setState(() => _drawingStrokes.clear()),
                 icon: const Icon(Icons.delete_sweep_outlined),
-              ),
+              )),
             ]),
             Row(children: [
               const Text('ضخامت'),
@@ -2129,29 +2130,29 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         Row(
           children: [
             Expanded(
-              child: OutlinedButton.icon(
+              child: HomaGramSpringPress(child: OutlinedButton.icon(
                 onPressed: _busy ? null : _openDrafts,
                 icon: const Icon(Icons.drafts_outlined),
                 label: const Text('پیش‌نویس‌ها'),
-              ),
+              )),
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: OutlinedButton.icon(
+              child: HomaGramSpringPress(child: OutlinedButton.icon(
                 onPressed: _busy ? null : _saveDraft,
                 icon: const Icon(Icons.save_outlined),
                 label: const Text('ذخیره پیش‌نویس'),
-              ),
+              )),
             ),
           ],
         ),
         const SizedBox(height: 10),
-        FilledButton.icon(
+        HomaGramSpringPress(child: FilledButton.icon(
           onPressed: _busy ? null : _publish,
           icon: _busy ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
               : const Icon(Icons.send_rounded),
           label: Text(_busy ? 'در حال انتشار...' : 'انتشار استوری'),
-        ),
+        )),
       ],
     ),
   );
@@ -2373,8 +2374,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
       content: TextField(controller: controller, autofocus: true, maxLength: 1000, minLines: 2, maxLines: 5,
         decoration: const InputDecoration(hintText: 'پاسخ شما', border: OutlineInputBorder())),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-        FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('ارسال')),
+        HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف'))),
+        HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('ارسال'))),
       ],
     ));
     controller.dispose();
@@ -2412,7 +2413,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                     leading: const CircleAvatar(child: Icon(Icons.person_outline)),
                     title: Text(item['display_name'] as String? ?? 'کاربر'),
                     subtitle: Text(item['response'] as String? ?? ''),
-                    trailing: IconButton(
+                    trailing: HomaGramSpringPress(child: IconButton(
                       tooltip: 'پاسخ خصوصی', icon: const Icon(Icons.reply_rounded),
                       onPressed: () async {
                         Navigator.pop(ctx);
@@ -2421,7 +2422,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                           if (mounted) _notice('پاسخ خصوصی ارسال شد.');
                         } catch (_) { if (mounted) _notice('ارسال پیام انجام نشد.', error: true); }
                       },
-                    ),
+                    )),
                   );
                 },
               )),
@@ -2449,8 +2450,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
       content: TextField(controller: controller, autofocus: true, maxLength: 1000,
         minLines: 1, maxLines: 4, decoration: const InputDecoration(hintText: 'پیام شما')),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('لغو')),
-        FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('ارسال')),
+        HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('لغو'))),
+        HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('ارسال'))),
       ],
     ));
     controller.dispose();
@@ -2566,8 +2567,8 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
       title: const Text('حذف استوری'),
       content: const Text('این استوری حذف شود؟'),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
-        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('حذف')),
+        HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف'))),
+        HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('حذف'))),
       ],
     ));
     if (yes != true) return;
@@ -2731,11 +2732,11 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                 ],
               )),
               if (_isMine)
-                IconButton(onPressed: _showViewers, icon: const Icon(Icons.visibility_outlined, color: Colors.white)),
+                HomaGramSpringPress(child: IconButton(onPressed: _showViewers, icon: const Icon(Icons.visibility_outlined, color: Colors.white))),
               if (_isMine)
-                IconButton(onPressed: _delete, icon: const Icon(Icons.delete_outline, color: Colors.white)),
-              IconButton(onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close_rounded, color: Colors.white)),
+                HomaGramSpringPress(child: IconButton(onPressed: _delete, icon: const Icon(Icons.delete_outline, color: Colors.white))),
+              HomaGramSpringPress(child: IconButton(onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close_rounded, color: Colors.white))),
             ]),
           ]),
         ),
@@ -2750,17 +2751,17 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
         Positioned(
           left: 12, right: 12, bottom: 12,
           child: _isMine
-              ? Align(alignment: Alignment.center, child: OutlinedButton.icon(
+              ? Align(alignment: Alignment.center, child: HomaGramSpringPress(child: OutlinedButton.icon(
                   onPressed: _showViewers,
                   style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: const BorderSide(color: Colors.white54)),
-                  icon: const Icon(Icons.visibility_outlined), label: const Text('مشاهده بازدیدکنندگان')))
+                  icon: const Icon(Icons.visibility_outlined), label: const Text('مشاهده بازدیدکنندگان'))))
               : Row(children: [
-                  ...['❤️','🔥','👏','😂','😮'].map((e) => IconButton(
+                  ...['❤️','🔥','👏','😂','😮'].map((e) => HomaGramSpringPress(child: IconButton(
                     onPressed: _busy ? null : () => _react(e),
                     icon: Text(e, style: const TextStyle(fontSize: 23)),
-                  )),
+                  ))),
                   const Spacer(),
-                  IconButton(onPressed: _reply, icon: const Icon(Icons.send_rounded, color: Colors.white)),
+                  HomaGramSpringPress(child: IconButton(onPressed: _reply, icon: const Icon(Icons.send_rounded, color: Colors.white))),
                 ]),
         ),
         ]),
@@ -2960,11 +2961,11 @@ class _StoryMediaState extends State<_StoryMedia> {
             style: TextStyle(color: Colors.white, height: 1.7),
           ),
           const SizedBox(height: 16),
-          FilledButton.icon(
+          HomaGramSpringPress(child: FilledButton.icon(
             onPressed: _loading ? null : _loadVideo,
             icon: const Icon(Icons.refresh_rounded),
             label: const Text('تلاش دوباره'),
-          ),
+          )),
         ],
       ),
     ),
@@ -3181,11 +3182,11 @@ class _StoryArchiveScreenState extends State<StoryArchiveScreen> {
     appBar: AppBar(
       title: const Text('آرشیو استوری‌ها'),
       actions: [
-        IconButton(
+        HomaGramSpringPress(child: IconButton(
           tooltip: 'بارگذاری دوباره',
           onPressed: _loading ? null : _loadFirstPage,
           icon: const Icon(Icons.refresh_rounded),
-        ),
+        )),
       ],
     ),
     body: _loading
@@ -3197,11 +3198,11 @@ class _StoryArchiveScreenState extends State<StoryArchiveScreen> {
                   children: [
                     const Text('آرشیو بارگذاری نشد.'),
                     const SizedBox(height: 10),
-                    FilledButton.icon(
+                    HomaGramSpringPress(child: FilledButton.icon(
                       onPressed: _loadFirstPage,
                       icon: const Icon(Icons.refresh_rounded),
                       label: const Text('تلاش دوباره'),
-                    ),
+                    )),
                   ],
                 ),
               )
@@ -3224,11 +3225,11 @@ class _StoryArchiveScreenState extends State<StoryArchiveScreen> {
                         if (index >= _items.length) {
                           if (_failed) {
                             return Center(
-                              child: IconButton(
+                              child: HomaGramSpringPress(child: IconButton(
                                 tooltip: 'تلاش دوباره',
                                 onPressed: _loadNextPage,
                                 icon: const Icon(Icons.refresh_rounded),
-                              ),
+                              )),
                             );
                           }
                           return const Center(
