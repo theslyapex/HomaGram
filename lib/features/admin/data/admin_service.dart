@@ -27,7 +27,7 @@ class AdminUserSummary {
     required this.createdAt, required this.bannedUntil, required this.isBanned,
   });
   final String id;
-  final String? username, displayName;
+  final String? username, displayName, avatarUrl;
   final DateTime? createdAt, bannedUntil;
   final bool isBanned;
 
@@ -35,6 +35,7 @@ class AdminUserSummary {
     id: json['user_id'] as String,
     username: json['username'] as String?,
     displayName: json['display_name'] as String?,
+    avatarUrl: json['avatar_url'] as String?,
     createdAt: DateTime.tryParse(json['created_at']?.toString() ?? ''),
     bannedUntil: DateTime.tryParse(json['banned_until']?.toString() ?? ''),
     isBanned: json['is_banned'] as bool? ?? false,
@@ -163,8 +164,18 @@ class AdminService {
       'p_offset': 0,
     });
     if (result is! List) return [];
-    return result.map((row) =>
-      AdminUserSummary.fromJson(Map<String, dynamic>.from(row as Map))).toList();
+    final users = <AdminUserSummary>[];
+    for (final row in result) {
+      final data = Map<String, dynamic>.from(row as Map);
+      final avatarPath = data['avatar_path'] as String?;
+      if (avatarPath != null && avatarPath.isNotEmpty) {
+        try {
+          data['avatar_url'] = await _client.storage.from('avatars').createSignedUrl(avatarPath, 900);
+        } catch (_) {}
+      }
+      users.add(AdminUserSummary.fromJson(data));
+    }
+    return users;
   }
 
   static Future<Map<String, dynamic>> loadUserDetail(String userId) async {
