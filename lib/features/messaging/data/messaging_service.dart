@@ -632,7 +632,7 @@ class MessagingService {
     final profiles = await _client.from('profiles')
         .select('id,username,display_name,avatar_path').inFilter('id', ids);
     final byId = {for (final profile in profiles) profile['id'] as String: profile};
-    return rows.map((row) {
+    final result = rows.map((row) {
       final profile = byId[row['user_id']] ?? <String, dynamic>{};
       return <String, dynamic>{
         ...Map<String, dynamic>.from(row),
@@ -641,6 +641,12 @@ class MessagingService {
         'avatar_path': profile['avatar_path'],
       };
     }).toList();
+    await Future.wait(result.map((member) async {
+      final path = member['avatar_path'] as String?;
+      if (path == null || path.isEmpty) return;
+      try { member['avatar_url'] = await _client.storage.from('avatars').createSignedUrl(path, 1800); } catch (_) {}
+    }));
+    return result;
   }
 
   static Future<List<Map<String, dynamic>>> searchMessages(
