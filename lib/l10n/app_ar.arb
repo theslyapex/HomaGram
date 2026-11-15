@@ -697,5 +697,12 @@
   "saveSettings": "حفظ الإعدادات",
   "save": "حفظ",
   "replyFallback": "رسالة",
-  "userFallback": "مستخدم"
+  "userFallback": "مستخدم",
+  "noMessagesYet": "لا توجد رسائل بعد",
+  "deletedMessagePreview": "تم حذف الرسالة",
+  "imagePreview": "صورة",
+  "videoPreview": "فيديو",
+  "audioFilePreview": "ملف صوتي",
+  "filePreview": "ملف",
+  "formerAdmin": "مشرف سابق"
 }
