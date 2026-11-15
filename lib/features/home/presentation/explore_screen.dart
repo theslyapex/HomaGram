@@ -55,6 +55,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
       }
       final rows = await postQuery.order('created_at', ascending: false).limit(60);
       final ids = rows.map((r) => r['id'] as String).toList();
+      final authorIds = rows.map((r) => r['author_id'] as String).toSet().toList();
+      final profileRows = authorIds.isEmpty ? <dynamic>[] : await client.from('profiles')
+        .select('id,avatar_path').inFilter('id', authorIds);
+      final avatarPathById = {
+        for (final profile in profileRows)
+          profile['id'] as String: profile['avatar_path'] as String?,
+      };
       final likeRows = ids.isEmpty ? <dynamic>[] : await client.from('post_likes')
         .select('post_id').inFilter('post_id', ids);
       final counts = <String, int>{};
@@ -75,6 +82,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
         if (coverPath != null) {
           try { post['cover_url'] = await client.storage.from('post-media').createSignedUrl(coverPath, 3600); }
           catch (_) {}
+        }
+        final avatarPath = avatarPathById[post['author_id'] as String];
+        if (avatarPath != null && avatarPath.isNotEmpty) {
+          try {
+            post['avatar_url'] = await client.storage.from('avatars').createSignedUrl(avatarPath, 3600);
+          } catch (_) {}
         }
         posts.add(post);
       }
@@ -644,11 +657,31 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
         left: 18, right: 72, bottom: 34,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
+            GestureDetector(
+              onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                builder: (_) => PublicProfileScreen(userId: widget.post['author_id'] as String))),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: Colors.white24,
+                backgroundImage: (post['avatar_url'] as String?)?.isNotEmpty == true
+                    ? NetworkImage(post['avatar_url'] as String)
+                    : null,
+                child: (post['avatar_url'] as String?)?.isNotEmpty == true
+                    ? null : const Icon(Icons.person_outline_rounded, color: Colors.white, size: 19),
+              ),
+            ),
+            const SizedBox(width: 9),
             Expanded(child: GestureDetector(
               onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
                 builder: (_) => PublicProfileScreen(userId: widget.post['author_id'] as String))),
-              child: Text(author?.isNotEmpty == true ? author! : '@$username',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16)))),
+              child: Row(children: [
+                Flexible(child: Text(author?.isNotEmpty == true ? author! : '@$username',
+                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16))),
+                const SizedBox(width: 5),
+                HomaGramVerifiedBadge(userId: widget.post['author_id'] as String?, size: 16),
+              ]),
+            )),
             IconButton(onPressed: _postMenu,
               icon: const Icon(Icons.more_horiz_rounded, color: Colors.white),
               style: IconButton.styleFrom(backgroundColor: Colors.black45)),
