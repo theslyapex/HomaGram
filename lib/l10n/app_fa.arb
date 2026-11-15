@@ -1342,5 +1342,103 @@
   "storyQuestionLengthInvalid": "متن باکس پرسش را بین ۱ تا ۱۸۰ نویسه وارد کنید.",
   "storyCountdownInvalid": "عنوان و زمان شمارش معکوس را درست وارد کنید.",
   "storyPollInvalid": "سؤال و گزینه‌های نظرسنجی را کامل و بدون تکرار وارد کنید.",
-  "storyPublishFailed": "انتشار استوری انجام نشد. اتصال یا فرمت رسانه را بررسی کنید."
+  "storyPublishFailed": "انتشار استوری انجام نشد. اتصال یا فرمت رسانه را بررسی کنید.",
+  "storyStudioTitle": "استودیو استوری",
+  "storyDrafts": "پیش‌نویس‌ها",
+  "storySaveDraft": "ذخیره پیش‌نویس",
+  "storyPreviewPlaceholder": "متن استوری شما اینجا نمایش داده می‌شود",
+  "storyPollQuestionDefault": "سؤال نظرسنجی",
+  "storyPollOptionDefault": "گزینه",
+  "storyQuestionBoxDefault": "باکس پرسش",
+  "storyCountdownDefault": "شمارش معکوس",
+  "storySmaller": "کوچک‌تر",
+  "storyLarger": "بزرگ‌تر",
+  "storyRotateLeft": "چرخش به چپ",
+  "storyRotateRight": "چرخش به راست",
+  "storyResetElement": "بازنشانی جایگاه و اندازه",
+  "storyRemoveElement": "حذف عنصر انتخاب‌شده",
+  "storyCreateText": "ساخت استوری متنی",
+  "storyChooseImage": "انتخاب تصویر",
+  "storyChooseVideo": "انتخاب ویدئو (حداکثر ۶۰ ثانیه)",
+  "storyBackToMediaStory": "بازگشت به استوری تصویری",
+  "storyMusicTitle": "موسیقی استوری",
+  "storyAddMusic": "افزودن موسیقی از دستگاه",
+  "storySelectedMusic": "موسیقی انتخاب‌شده",
+  "storyStopPreview": "توقف پیش‌نمایش",
+  "storyPlayPreview": "پخش پیش‌نمایش",
+  "storyRemoveMusic": "حذف موسیقی",
+  "storyStartAt": "شروع از",
+  "storyMusicPlaybackNote": "موسیقی همراه استوری پخش می‌شود؛ هنگام پخش موسیقی روی ویدئو، صدای اصلی ویدئو قطع می‌شود.",
+  "storyStickersTitle": "استیکرها",
+  "storyImageOrGif": "تصویر یا GIF",
+  "storyRemoveAll": "حذف همه",
+  "storyStickerInstructions": "استیکر را روی پیش‌نمایش بکشید؛ با دو انگشت اندازه و زاویه را تغییر دهید. برای حذف یک استیکر، آن را چند لحظه نگه دارید.",
+  "storyAddPoll": "افزودن نظرسنجی",
+  "storyPollSubtitle": "مخاطبان استوری می‌توانند رأی بدهند.",
+  "storyPollQuestionLabel": "سؤال نظرسنجی",
+  "storyPollQuestionHint": "مثلاً کدام طرح را بیشتر می‌پسندید؟",
+  "storyPollOptionLabel": "گزینه {number}",
+  "storyRemoveOption": "حذف گزینه",
+  "storyAddOption": "افزودن گزینه",
+  "storyPollInstructions": "هر نظرسنجی بین ۲ تا ۴ گزینه دارد. هر کاربر یک رأی ثبت می‌کند و پس از رأی دادن نیز می‌تواند انتخابش را تغییر دهد.",
+  "storyAddQuestionBox": "افزودن باکس پرسش و پاسخ",
+  "storyQuestionBoxSubtitle": "مخاطبان می‌توانند پاسخ متنی خصوصی برای شما بفرستند.",
+  "storyQuestionBoxLabel": "متن باکس پرسش",
+  "storyQuestionBoxHint": "مثلاً دوست دارید درباره چه چیزی بدانید؟",
+  "storyAddCountdown": "افزودن شمارش معکوس",
+  "storyCountdownSubtitle": "برای یک رویداد یا زمان مهم، شمارش معکوس نمایش دهید.",
+  "storyCountdownLabel": "عنوان شمارش معکوس",
+  "storyCountdownHint": "مثلاً شروع یک رویداد",
+  "storyDateAndTime": "تاریخ و ساعت: {year}/{month}/{day} • {hour}:{minute}",
+  "storyDrawingTool": "ابزار نقاشی آزاد",
+  "storyDrawOnMedia": "روی رسانه بکشید",
+  "storyEnableDrawing": "برای طراحی فعال کنید",
+  "storyPen": "قلم",
+  "storyEraser": "پاک‌کن",
+  "storyUndo": "بازگشت",
+  "storyClearAll": "پاک‌کردن همه",
+  "storyBrushThickness": "ضخامت قلم",
+  "storyOverlayTextLabel": "متن روی تصویر یا ویدئو",
+  "storyOverlayTextHint": "متن را بنویسید، سپس روی پیش‌نمایش جابه‌جا یا بزرگ‌نمایی کنید",
+  "storyTextColor": "رنگ متن",
+  "storyTextFont": "قلم متن",
+  "storyOverlayInstructions": "برای جابه‌جایی، متن را روی پیش‌نمایش بکشید؛ برای تغییر اندازه از دو انگشت استفاده کنید.",
+  "storyAudienceTitle": "مخاطبان استوری",
+  "storyAudienceEveryone": "همه افراد مجاز",
+  "storyAudienceFollowers": "فقط دنبال‌کنندگان",
+  "storyAudienceCloseFriends": "فقط دوستان نزدیک",
+  "storyAudienceEveryoneNote": "حریم خصوصی حساب و مسدودسازی کاربران همچنان رعایت می‌شود.",
+  "storyAudienceFollowersNote": "فقط افرادی که شما را دنبال می‌کنند و مجاز به دیدن حساب هستند.",
+  "storyAudienceCloseFriendsNote": "فقط افرادی که در فهرست دوستان نزدیکت قرار دارند؛ این فهرست خصوصی است.",
+  "storyCaptionText": "متن استوری",
+  "storyMediaDescription": "توضیح تصویر یا ویدئو (اختیاری)",
+  "storyExpiryNote": "استوری پس از ۲۴ ساعت از نمایش عمومی خارج می‌شود و در آرشیو شخصی شما باقی می‌ماند.",
+  "storyPublishing": "در حال انتشار...",
+  "storyPublish": "انتشار استوری",
+  "@storyPollOptionLabel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyDateAndTime": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      },
+      "month": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "hour": {
+        "type": "String"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  }
 }
