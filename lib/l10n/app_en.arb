@@ -26,5 +26,39 @@
   "verificationResent": "A new verification email has been requested.",
   "passwordRecovery": "Password recovery",
   "accountEmail": "Account email",
-  "settings": "Settings"
+  "settings": "Settings",
+  "resendFailed": "Could not resend the email. Please try again later.",
+  "recoveryIfExists": "If an account exists for this email, a recovery link will be sent.",
+  "recoveryFailed": "Could not submit the recovery request. Please try again later.",
+  "checkYourEmail": "Check your email",
+  "afterVerification": "After verification, return to the app and sign in.",
+  "sending": "Sending…",
+  "resendEmail": "Resend email",
+  "backToSignIn": "Back to sign in",
+  "createNewAccount": "Create a new account",
+  "signInTitle": "Sign in to your account",
+  "joinCommunity": "Join the HomaGram community.",
+  "signInToContinue": "Sign in to continue.",
+  "emailAddress": "Email address",
+  "enterDisplayName": "Enter your display name.",
+  "max50Characters": "A maximum of 50 characters is allowed.",
+  "enterValidEmail": "Enter a valid email address.",
+  "passwordMinLength": "Password must be at least 10 characters.",
+  "passwordTooLong": "Password is too long.",
+  "confirmPasswordRequired": "Please confirm your password.",
+  "passwordsDoNotMatch": "Passwords do not match.",
+  "usernameCannotChange": "Your username cannot currently be changed after account creation. Choose carefully.",
+  "pleaseWait": "Please wait…",
+  "createAccount": "Create account",
+  "alreadyHaveAccount": "Already have an account? Sign in",
+  "noAccountSignUp": "Don't have an account? Sign up",
+  "termsNotice": "By continuing, you agree to HomaGram's Terms and Privacy Policy.",
+  "tagline": "Connection Beyond Boundaries",
+  "yourEmail": "your email",
+  "verificationSentTo": "A verification link has been sent to {email}. After verifying, return to the app and sign in.",
+  "@verificationSentTo": {
+    "placeholders": {
+      "email": {}
+    }
+  }
 }
