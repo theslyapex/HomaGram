@@ -1591,7 +1591,12 @@ class _ChatScreenState extends State<ChatScreen> {
                           builder: (ctx) => ListView(
                             shrinkWrap: true,
                             children: users.map((user) => ListTile(
-                              leading: const CircleAvatar(child: Icon(Icons.person_outline)),
+                              leading: CircleAvatar(
+                                backgroundImage: user['avatar_url'] is String
+                                    ? NetworkImage(user['avatar_url'] as String) : null,
+                                child: user['avatar_url'] is String
+                                    ? null : const Icon(Icons.person_outline),
+                              ),
                               title: Text(user['display_name'] as String? ?? user['username'] as String),
                               subtitle: Text('@${user['username']}'),
                               onTap: () => Navigator.pop(ctx, user),
