@@ -2243,5 +2243,10 @@
   },
   "usernameRequired": "أدخل اسم المستخدم.",
   "usernameInvalid": "استخدم من 5 إلى 24 حرفًا إنجليزيًا صغيرًا أو رقمًا أو شرطة سفلية.",
-  "adminCommunityUntitled": "بلا عنوان"
+  "adminCommunityUntitled": "بلا عنوان",
+  "termsNoticePrefix": "بالمتابعة، فإنك توافق على ",
+  "termsNoticeMiddle": " و",
+  "termsNoticeSuffix": ".",
+  "termsLinkLabel": "شروط الاستخدام",
+  "privacyLinkLabel": "سياسة الخصوصية"
 }
