@@ -697,5 +697,12 @@
   "saveSettings": "Save settings",
   "save": "Save",
   "replyFallback": "Message",
-  "userFallback": "user"
+  "userFallback": "user",
+  "noMessagesYet": "No messages yet",
+  "deletedMessagePreview": "Message deleted",
+  "imagePreview": "Image",
+  "videoPreview": "Video",
+  "audioFilePreview": "Audio file",
+  "filePreview": "File",
+  "formerAdmin": "Former admin"
 }
