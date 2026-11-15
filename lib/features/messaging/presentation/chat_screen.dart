@@ -1755,6 +1755,8 @@ class _ChatScreenState extends State<ChatScreen> {
         DateTime.now().difference(createdAt) <= const Duration(hours: 2);
     final canModerate = _conversationKind == 'direct' ? mine :
         mine || _myConversationRole == 'owner' || _myConversationRole == 'admin';
+    final canPin = _conversationKind == 'direct' ||
+        _myConversationRole == 'owner' || _myConversationRole == 'admin';
     final action = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
@@ -1767,7 +1769,7 @@ class _ChatScreenState extends State<ChatScreen> {
               title: Text(message['is_starred'] == true ? 'برداشتن از پیام‌های ستاره‌دار' : 'ستاره‌دار کردن پیام'),
               onTap: () => Navigator.pop(context, 'star'),
             ),
-            ListTile(
+            if (canPin) ListTile(
               leading: Icon(message['is_pinned'] == true ? Icons.push_pin_rounded : Icons.push_pin_outlined),
               title: Text(message['is_pinned'] == true ? 'برداشتن سنجاق پیام' : 'سنجاق‌کردن پیام'),
               onTap: () => Navigator.pop(context, 'pin'),
