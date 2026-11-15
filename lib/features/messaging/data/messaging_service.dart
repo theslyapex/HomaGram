@@ -10,6 +10,7 @@ class ConversationPreview {
     required this.subtitle,
     required this.updatedAt,
     this.peerUserId,
+    this.photoUrl,
   });
 
   final String id;
@@ -18,6 +19,7 @@ class ConversationPreview {
   final String subtitle;
   final DateTime updatedAt;
   final String? peerUserId;
+  final String? photoUrl;
 }
 
 class MessagingService {
@@ -51,7 +53,7 @@ class MessagingService {
     final results = await Future.wait([
       _client
           .from('conversations')
-          .select('id,kind,title,updated_at')
+          .select('id,kind,title,photo_path,updated_at')
           .inFilter('id', ids)
           .order('updated_at', ascending: false),
       _client
@@ -147,6 +149,20 @@ class MessagingService {
         }
       }
 
+      String? photoUrl;
+      final photoPath = conversation['photo_path'] as String?;
+      if ((kind == 'group' || kind == 'channel') &&
+          photoPath != null && photoPath.isNotEmpty) {
+        try {
+          photoUrl = await _client.storage
+              .from('conversation-photos')
+              .createSignedUrl(photoPath, 3600);
+        } catch (error) {
+          // Keep the conversation visible even if its private photo cannot be signed.
+          photoUrl = null;
+        }
+      }
+
       previews.add(ConversationPreview(
         id: id,
         kind: kind,
@@ -157,6 +173,7 @@ class MessagingService {
             ) ??
             DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
         peerUserId: kind == 'direct' ? otherMemberByConversation[id] : null,
+        photoUrl: photoUrl,
       ));
     }
 
