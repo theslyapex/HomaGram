@@ -1467,5 +1467,16 @@
   },
   "storyOpenLinkFailed": "Couldn't open the link.",
   "storyVideoPlaybackFailed": "Video playback failed. Check your internet connection and try again.",
-  "storyVideoLoading": "Loading video…"
+  "storyVideoLoading": "Loading video…",
+  "storyPublishedAt": "Posted {date} at {time}",
+  "@storyPublishedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }
