@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../theme/app_theme.dart';
 
@@ -30,16 +31,33 @@ const String homagramOfficialAccountId = '2459f67f-2b81-4b89-ab25-0916bd688a5e';
 
 class HomaGramVerifiedBadge extends StatelessWidget {
   const HomaGramVerifiedBadge({required this.userId, this.size = 15, super.key});
-
   final String? userId;
   final double size;
 
+  static final Map<String, Future<bool>> _verifiedCache = {};
+
+  Future<bool> _isVerified(String id) {
+    if (id == homagramOfficialAccountId) return Future.value(true);
+    return _verifiedCache.putIfAbsent(id, () async {
+      final row = await Supabase.instance.client.from('profiles')
+        .select('is_verified').eq('id', id).maybeSingle();
+      return row?['is_verified'] == true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (userId != homagramOfficialAccountId) return const SizedBox.shrink();
-    return Tooltip(
-      message: 'حساب تأییدشده هماگرام',
-      child: Icon(Icons.verified_rounded, color: const Color(0xFF3195F5), size: size),
+    final id = userId;
+    if (id == null || id.isEmpty) return const SizedBox.shrink();
+    return FutureBuilder<bool>(
+      future: _isVerified(id),
+      builder: (context, snapshot) {
+        if (snapshot.data != true) return const SizedBox.shrink();
+        return Tooltip(
+          message: 'حساب تأییدشده',
+          child: Icon(Icons.verified_rounded, color: const Color(0xFF3195F5), size: size),
+        );
+      },
     );
   }
 }
