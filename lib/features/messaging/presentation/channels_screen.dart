@@ -471,7 +471,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          '@$slug  •  ${isGroup ? _t.group : 'کانال'}  •  $count عضو',
+                                          _t.communityMemberSummary(slug, isGroup ? _t.group : _t.channel, count),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
