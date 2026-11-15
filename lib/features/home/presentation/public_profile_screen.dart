@@ -1,7 +1,7 @@
+import 'dart:async';
 import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
@@ -453,9 +453,24 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   }
 
   Future<void> _shareProfile() async {
-    final username = _profile?['username'] as String? ?? _t.feedUserFallback;
-    final name = _profile?['display_name'] as String? ?? _t.homagramUser;
-    await SharePlus.instance.share(ShareParams(text: _t.profileShareText(name, username)));
+    final recipients = await showModalBottomSheet<List<Map<String, dynamic>>>(
+      context: context, isScrollControlled: true, useSafeArea: true,
+      showDragHandle: true, builder: (_) => const _ProfileShareSheet(),
+    );
+    if (!mounted || recipients == null || recipients.isEmpty) return;
+    var sent = 0;
+    for (final recipient in recipients) {
+      try {
+        final conversationId = await MessagingService.createDirectConversation(recipient['id'] as String);
+        await MessagingService.sendTextMessage(
+          conversationId, 'HOMAGRAM_PROFILE:${widget.userId}',
+        );
+        sent++;
+      } catch (_) {}
+    }
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(sent == 0 ? _t.feedSendFailed : _t.feedSentCount(sent))),
+    );
   }
 
   Widget _profileMediaGrid(List<Map<String, dynamic>> items) => GridView.builder(
@@ -697,5 +712,92 @@ class _ProfileVideoState extends State<_ProfileVideo> {
         ),
       );
     },
+  );
+}
+
+
+class _ProfileShareSheet extends StatefulWidget {
+  const _ProfileShareSheet();
+  @override
+  State<_ProfileShareSheet> createState() => _ProfileShareSheetState();
+}
+
+class _ProfileShareSheetState extends State<_ProfileShareSheet> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
+  final _controller = TextEditingController();
+  final Map<String, Map<String, dynamic>> _selected = {};
+  List<Map<String, dynamic>> _users = [];
+  bool _loading = false;
+  String? _error;
+  Timer? _debounce;
+
+  @override
+  void dispose() { _debounce?.cancel(); _controller.dispose(); super.dispose(); }
+
+  void _searchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () => _search(value));
+  }
+
+  Future<void> _search(String value) async {
+    final term = value.trim();
+    if (term.length < 2) { if (mounted) setState(() { _users = []; _error = null; }); return; }
+    setState(() => _loading = true);
+    try {
+      final client = AuthService.client;
+      final me = client.auth.currentUser!.id;
+      final rows = await client.from('profiles')
+          .select('id,username,display_name,avatar_path')
+          .neq('id', me).ilike('username', '%$term%').limit(25);
+      final users = rows.map((row) => Map<String,dynamic>.from(row)).toList();
+      await Future.wait(users.map((user) async {
+        final path = user['avatar_path'] as String?;
+        if (path == null || path.isEmpty) return;
+        try { user['avatar_url'] = await client.storage.from('avatars').createSignedUrl(path, 1800); } catch (_) {}
+      }));
+      if (mounted) setState(() { _users = users; _loading = false; _error = null; });
+    } catch (_) {
+      if (mounted) setState(() { _loading = false; _error = _t.feedUserSearchFailed; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+    child: SizedBox(height: MediaQuery.sizeOf(context).height * .72, child: Column(children: [
+      Padding(padding: const EdgeInsets.all(18), child: Text(_t.feedSelectRecipients,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900))),
+      Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: TextField(
+        controller: _controller, onChanged: _searchChanged,
+        decoration: InputDecoration(hintText: _t.feedSearchUsersHint, prefixIcon: const Icon(Icons.search_rounded)),
+      )),
+      if (_selected.isNotEmpty) Padding(padding: const EdgeInsets.all(8),
+        child: Text(_t.feedSelectedPeople(_selected.length))),
+      Expanded(child: _loading ? const Center(child: CircularProgressIndicator())
+        : _error != null ? Center(child: Text(_error!))
+        : _users.isEmpty ? Center(child: Text(_t.feedSearchUsersPrompt))
+        : ListView.builder(itemCount: _users.length, itemBuilder: (context, index) {
+          final user = _users[index]; final id = user['id'] as String;
+          final url = user['avatar_url'] as String?;
+          final username = user['username'] as String? ?? '';
+          final selected = _selected.containsKey(id);
+          return ListTile(
+            leading: CircleAvatar(backgroundImage: url == null ? null : NetworkImage(url),
+              child: url == null ? Text(username.isEmpty ? '?' : username[0].toUpperCase()) : null),
+            title: Text((user['display_name'] as String?)?.trim().isNotEmpty == true
+              ? user['display_name'] as String : '@$username'),
+            subtitle: Text('@$username', textDirection: TextDirection.ltr),
+            trailing: Checkbox(value: selected, onChanged: (_) => setState(() {
+              selected ? _selected.remove(id) : _selected[id] = user;
+            })),
+            onTap: () => setState(() { selected ? _selected.remove(id) : _selected[id] = user; }),
+          );
+        })),
+      SafeArea(top: false, child: Padding(padding: const EdgeInsets.all(14), child: SizedBox(width: double.infinity,
+        child: FilledButton.icon(
+          onPressed: _selected.isEmpty ? null : () => Navigator.pop(context, _selected.values.toList()),
+          icon: const Icon(Icons.send_rounded), label: Text(_t.feedSendToCount(_selected.length)),
+        )))),
+    ])),
   );
 }
