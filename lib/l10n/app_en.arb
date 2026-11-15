@@ -163,5 +163,60 @@
     "placeholders": {
       "message": {}
     }
+  },
+  "publicProfileLoadFailed": "Could not load the profile or access is unavailable.",
+  "followActionFailed": "Could not update the follow status. Please try again.",
+  "myProfile": "My profile",
+  "userProfile": "User profile",
+  "editProfileSettings": "Edit profile and account settings",
+  "posts": "Posts",
+  "reels": "Reels",
+  "follower": "Follower",
+  "following": "Following",
+  "profileVisitors": "Profile visitors",
+  "profileVisitorsDisabled": "Profile visitors are disabled in privacy settings.",
+  "followers": "Followers",
+  "followingList": "Following",
+  "reposts": "Reposts",
+  "noPostsYet": "No posts published yet.",
+  "noReelsYet": "No reels published yet.",
+  "noRepostsYet": "No reposts yet.",
+  "homagramUser": "HomaGram user",
+  "editProfile": "Edit profile",
+  "followingAction": "Following",
+  "follow": "Follow",
+  "message": "Message",
+  "shareProfile": "Share profile",
+  "privateConversation": "Private conversation",
+  "startConversationFailed": "Could not start the conversation. This user may have restricted incoming messages.",
+  "textPost": "Text post",
+  "emptyConnections": "There are no users in this list yet.",
+  "loadConnectionsFailed": "Could not load the user list.",
+  "viewPost": "View post",
+  "noProfileVisitorsYet": "No profile visitors recorded yet.",
+  "profileVisitorCount": "{count} profile visitors",
+  "repostsCount": "Reposts ({count})",
+  "bornOn": "Born {date}",
+  "profileShareText": "{name} on HomaGram\n@{username}",
+  "@profileVisitorCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "@repostsCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "@bornOn": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "@profileShareText": {
+    "placeholders": {
+      "name": {},
+      "username": {}
+    }
   }
 }
