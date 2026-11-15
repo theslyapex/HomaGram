@@ -181,6 +181,18 @@ class _ChatScreenState extends State<ChatScreen> {
                       return ListTile(
                         title: Text(item['body'] as String? ?? '', maxLines: 2, overflow: TextOverflow.ellipsis),
                         subtitle: Text(_time(item['created_at'] as String?)),
+                        onTap: () {
+                          Navigator.pop(context);
+                          final index = _messages.indexWhere((message) => message['id'] == item['id']);
+                          if (index >= 0 && _scrollController.hasClients) {
+                            final offset = (_messages.length - 1 - index) * 92.0;
+                            _scrollController.animateTo(
+                              offset.clamp(0.0, _scrollController.position.maxScrollExtent),
+                              duration: const Duration(milliseconds: 350),
+                              curve: Curves.easeOut,
+                            );
+                          }
+                        },
                       );
                     },
                   ),
@@ -354,6 +366,8 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final pinnedMessages = _messages.where((message) =>
+      message['is_pinned'] == true && message['deleted_at'] == null).toList();
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 4,
@@ -420,6 +434,19 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: [
+          if (pinnedMessages.isNotEmpty)
+            Material(
+              color: colors.primaryContainer.withValues(alpha: .55),
+              child: ListTile(
+                dense: true,
+                leading: const Icon(Icons.push_pin_rounded),
+                title: const Text('پیام سنجاق‌شده', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+                subtitle: Text(pinnedMessages.last['body'] as String? ?? 'پیام رسانه‌ای',
+                  maxLines: 1, overflow: TextOverflow.ellipsis),
+                trailing: Text('${pinnedMessages.length}', style: const TextStyle(fontSize: 11)),
+                onTap: () => _showPinnedMessages(pinnedMessages),
+              ),
+            ),
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
@@ -1962,6 +1989,28 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       }
     }
+  }
+
+  Future<void> _showPinnedMessages(List<Map<String, dynamic>> pinned) async {
+    await showModalBottomSheet<void>(
+      context: context, isScrollControlled: true, showDragHandle: true,
+      builder: (sheetContext) => SafeArea(child: SizedBox(
+        height: MediaQuery.sizeOf(sheetContext).height * .55,
+        child: ListView.separated(
+          itemCount: pinned.length,
+          separatorBuilder: (_, __) => const Divider(height: 1),
+          itemBuilder: (context, index) {
+            final message = pinned[index];
+            return ListTile(
+              leading: const Icon(Icons.push_pin_rounded),
+              title: Text(message['body'] as String? ?? 'پیام رسانه‌ای',
+                maxLines: 2, overflow: TextOverflow.ellipsis),
+              subtitle: Text(_time(message['created_at'] as String?)),
+            );
+          },
+        ),
+      )),
+    );
   }
 
   Future<void> _showStarredMessages() async {
