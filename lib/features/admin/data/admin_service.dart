@@ -64,6 +64,36 @@ class AdminPostReport {
   );
 }
 
+class AdminModerationItem {
+  const AdminModerationItem({
+    required this.type, required this.id, required this.authorId,
+    required this.username, required this.displayName, required this.caption,
+    required this.mediaType, required this.createdAt, required this.bio,
+    required this.isVerified, this.mediaUrl, this.coverUrl, this.avatarUrl,
+  });
+  final String type, id, authorId;
+  final String? username, displayName, caption, mediaType, bio;
+  final DateTime? createdAt;
+  final bool isVerified;
+  final String? mediaUrl, coverUrl, avatarUrl;
+
+  factory AdminModerationItem.fromJson(Map<String, dynamic> json) => AdminModerationItem(
+    type: json['content_type']?.toString() ?? 'post',
+    id: json['content_id']?.toString() ?? '',
+    authorId: json['author_id']?.toString() ?? '',
+    username: json['username'] as String?,
+    displayName: json['display_name'] as String?,
+    caption: json['caption'] as String?,
+    mediaType: json['media_type'] as String?,
+    createdAt: DateTime.tryParse(json['created_at']?.toString() ?? ''),
+    bio: json['bio'] as String?,
+    isVerified: json['is_verified'] as bool? ?? false,
+    mediaUrl: json['media_url'] as String?,
+    coverUrl: json['cover_url'] as String?,
+    avatarUrl: json['avatar_url'] as String?,
+  );
+}
+
 class AdminService {
   AdminService._();
   static SupabaseClient get _client => Supabase.instance.client;
@@ -92,6 +122,51 @@ class AdminService {
     final result = await _client.rpc('admin_user_detail', params: {'p_user_id': userId});
     if (result is! Map) throw const FormatException('Invalid admin user detail');
     return Map<String, dynamic>.from(result);
+  }
+
+  static Future<List<AdminModerationItem>> loadModerationContent({String type = 'all', int offset = 0}) async {
+    final result = await _client.rpc('admin_list_moderation_content', params: {
+      'p_content_type': type, 'p_limit': 50, 'p_offset': offset,
+    });
+    if (result is! List) return [];
+    final items = <AdminModerationItem>[];
+    for (final row in result) {
+      final data = Map<String, dynamic>.from(row as Map);
+      final mediaPath = data['media_path'] as String?;
+      final coverPath = data['cover_path'] as String?;
+      final avatarPath = data['avatar_path'] as String?;
+      if (mediaPath != null && mediaPath.isNotEmpty) {
+        try {
+          data['media_url'] = await _client.storage.from('post-media').createSignedUrl(mediaPath, 900);
+        } catch (_) {}
+      }
+      if (coverPath != null && coverPath.isNotEmpty) {
+        try {
+          data['cover_url'] = await _client.storage.from('post-media').createSignedUrl(coverPath, 900);
+        } catch (_) {}
+      }
+      if (avatarPath != null && avatarPath.isNotEmpty) {
+        try {
+          data['avatar_url'] = await _client.storage.from('avatars').createSignedUrl(avatarPath, 900);
+        } catch (_) {}
+      }
+      items.add(AdminModerationItem.fromJson(data));
+    }
+    return items;
+  }
+
+  static Future<void> moderateContent({
+    required String action, String? userId, String? postId,
+    String? message, String? duration,
+  }) async {
+    final response = await _client.functions.invoke('admin-moderate-content', body: {
+      'action': action, 'user_id': userId, 'post_id': postId,
+      'message': message, 'duration': duration,
+    });
+    if (response.status < 200 || response.status >= 300 ||
+        response.data is! Map || response.data['success'] != true) {
+      throw StateError('Moderation action failed');
+    }
   }
 
   static Future<List<AdminPostReport>> loadReports() async {
