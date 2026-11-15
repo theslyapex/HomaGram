@@ -883,5 +883,84 @@
         "type": "String"
       }
     }
+  },
+  "createPostTitle": "ایجاد پست",
+  "createReelTitle": "ساخت ریلز",
+  "createPostHero": "لحظه‌ات را به اشتراک بگذار",
+  "createReelAuto": "ویدئو به‌صورت خودکار به ریلز تبدیل می‌شود.",
+  "createPostIntro": "متن یا تصویر منتشر کن؛ انتخاب ویدئو یعنی ساخت ریلز.",
+  "createChooseContent": "نوع محتوا را انتخاب کن",
+  "createPublishImage": "انتشار تصویر",
+  "createChooseImageHint": "یک تصویر انتخاب و قاب آن را تنظیم کن",
+  "createBuildReel": "ساخت ریلز",
+  "createReelHint": "ویدئو را انتخاب کن، کوتاه کن و کاور بساز",
+  "createTextPostHint": "برای انتشار پست متنی، کافی است پایین همین صفحه کپشن بنویسی.",
+  "createCaption": "کپشن",
+  "createCaptionHint": "داستان این تصویر یا ویدئو را بنویس...",
+  "createPreparingMedia": "در حال آماده‌سازی رسانه...",
+  "createVideoReelNote": "ویدئو همیشه به‌عنوان ریلز منتشر می‌شود. پست متنی و تصویری در فید نمایش داده می‌شود.",
+  "createPublishing": "در حال انتشار...",
+  "createPublishReel": "انتشار ریلز",
+  "createPublishPost": "انتشار پست",
+  "createSelectMediaFailed": "انتخاب رسانه انجام نشد: {error}",
+  "createUnsupportedFormat": "فرمت این فایل پشتیبانی نمی‌شود.",
+  "createVideoSizeLimit": "حجم ویدئو حداکثر ۵۰ مگابایت است.",
+  "createImageSizeLimit": "حجم تصویر حداکثر ۱۵ مگابایت است.",
+  "createVideoPreviewFailed": "ساخت پیش‌نمایش ویدئو ممکن نشد؛ دوباره انتخاب کنید.",
+  "createMediaEditFailed": "ویرایش رسانه انجام نشد: {error}",
+  "createCoverLimit": "حجم کاور باید کمتر از ۱۵ مگابایت باشد.",
+  "createCoverSelectFailed": "انتخاب کاور انجام نشد: {error}",
+  "createChooseVideoFirst": "برای ساخت ریلز باید ابتدا یک ویدئو انتخاب کنید.",
+  "createReelCoverRequired": "برای ریلز یک کاور انتخاب کنید.",
+  "createContentRequired": "برای انتشار، متن یا رسانه اضافه کنید.",
+  "createCaptionLimit": "متن پست حداکثر ۲۲۰۰ نویسه است.",
+  "createSessionInvalid": "نشست کاربری معتبر نیست؛ دوباره وارد شوید.",
+  "createUploadFailed": "بارگذاری فایل انجام نشد: {error}",
+  "createPublishFailed": "انتشار انجام نشد: {error}",
+  "createCoverReady": "کاور ریلز آماده است",
+  "createImageReady": "تصویر آماده انتشار",
+  "createChooseFrame": "انتخاب فریم",
+  "createCoverFromGallery": "کاور از گالری",
+  "createSelectCoverFrame": "انتخاب فریم کاور",
+  "createConfirm": "تأیید",
+  "createCancel": "لغو",
+  "createSelectThisFrame": "انتخاب همین فریم",
+  "createExtractFrameFailed": "استخراج این فریم ممکن نشد؛ زمان دیگری را انتخاب کنید.",
+  "createFramePreviewFailed": "نمایش فریم انتخابی ممکن نشد؛ دوباره تلاش کنید.",
+  "createFrameExtracting": "در حال استخراج فریم دقیق…",
+  "@createSelectMediaFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@createMediaEditFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@createCoverSelectFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@createUploadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@createPublishFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   }
 }
