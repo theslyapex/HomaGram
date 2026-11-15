@@ -1743,7 +1743,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final path = attachment['storage_path'] as String?;
     if (path == null || path.isEmpty) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('مسیر فایل در دسترس نیست.')),
+        SnackBar(content: Text(_t.filePathUnavailable)),
       );
       return null;
     }
@@ -1757,13 +1757,13 @@ class _ChatScreenState extends State<ChatScreen> {
       await Gal.putImageBytes(bytes);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تصویر در گالری دستگاه ذخیره شد.')),
+        SnackBar(content: Text(_t.imageSavedToGallery)),
       );
     } catch (error) {
       debugPrint('Save chat image failed: $error');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ذخیره تصویر انجام نشد؛ دسترسی گالری و اتصال را بررسی کنید.')),
+        SnackBar(content: Text(_t.imageSaveFailed)),
       );
     }
   }
@@ -1780,13 +1780,13 @@ class _ChatScreenState extends State<ChatScreen> {
       );
       if (!mounted || savedPath == null) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ویدئو با موفقیت ذخیره شد.')),
+        SnackBar(content: Text(_t.videoSaved)),
       );
     } catch (error) {
       debugPrint('Save chat video failed: $error');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('دانلود ویدئو انجام نشد؛ دوباره تلاش کنید.')),
+        SnackBar(content: Text(_t.videoDownloadFailed)),
       );
     }
   }
@@ -1803,13 +1803,13 @@ class _ChatScreenState extends State<ChatScreen> {
       );
       if (!mounted || savedPath == null) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('فایل با موفقیت ذخیره شد.')),
+        SnackBar(content: Text(_t.fileSaved)),
       );
     } catch (error) {
       debugPrint('Save chat file failed: $error');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('دانلود فایل انجام نشد؛ دوباره تلاش کنید.')),
+        SnackBar(content: Text(_t.fileDownloadFailed)),
       );
     }
   }
@@ -1865,7 +1865,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       Center(child: Image.memory(
                         bytes, fit: BoxFit.contain,
                         gaplessPlayback: false,
-                        errorBuilder: (_, __, ___) => const Text('تصویر قابل نمایش نیست.', style: TextStyle(color: Colors.white)),
+                        errorBuilder: (_, __, ___) => Text(_t.imageCannotDisplay, style: TextStyle(color: Colors.white)),
                       )),
                       Positioned(
                         top: 12, right: 16,
@@ -1873,7 +1873,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(22)),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            child: Text('زمان باقی‌مانده: $seconds ثانیه',
+                            child: Text(_t.secondsRemaining('$seconds'),
                               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                           ),
                         ),
@@ -1883,7 +1883,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         child: IconButton(
                           onPressed: () => Navigator.of(dialogContext).pop(),
                           icon: const Icon(Icons.close_rounded, color: Colors.white),
-                          tooltip: 'بستن تصویر',
+                          tooltip: _t.closeImage,
                         ),
                       ),
                     ],
@@ -1899,7 +1899,7 @@ class _ChatScreenState extends State<ChatScreen> {
       debugPrint('Open timed image failed: $error');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تصویر زمان‌دار قابل مشاهده نیست یا قبلاً باز شده است.')),
+          SnackBar(content: Text(_t.timedImageUnavailable)),
         );
       }
     } finally {
@@ -1936,25 +1936,25 @@ class _ChatScreenState extends State<ChatScreen> {
           const Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('تصویر زمان‌دار', style: TextStyle(fontWeight: FontWeight.w800)),
+              Text(_t.timedImage, style: TextStyle(fontWeight: FontWeight.w800)),
               SizedBox(height: 3),
-              Text('فقط یک‌بار · نمایش ۱۰ ثانیه‌ای', style: TextStyle(fontSize: 10)),
+              Text(_t.viewOnce10Seconds, style: TextStyle(fontSize: 10)),
             ],
           )),
           if (attachment['uploader_id'] == Supabase.instance.client.auth.currentUser?.id)
             const Icon(Icons.lock_outline_rounded)
           else if (attachment['viewed_by_me'] == true)
-            const Tooltip(message: 'قبلاً مشاهده شده', child: Icon(Icons.check_circle_outline_rounded))
+            Tooltip(message: _t.alreadyViewed, child: Icon(Icons.check_circle_outline_rounded))
           else
             IconButton(
-              tooltip: 'مشاهده تصویر',
+              tooltip: _t.viewImage,
               onPressed: () => _openTimedImage(attachment),
               icon: const Icon(Icons.visibility_rounded),
             ),
         ]),
       );
     }
-    if (url == null) return const Padding(padding: EdgeInsets.all(8), child: Text('رسانه در دسترس نیست.'));
+    if (url == null) return Padding(padding: EdgeInsets.all(8), child: Text(_t.mediaUnavailable));
     if (mime.startsWith('image/')) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 8),
@@ -1971,7 +1971,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   color: Colors.black.withValues(alpha: .62),
                   shape: const CircleBorder(),
                   child: IconButton(
-                    tooltip: 'دانلود تصویر',
+                    tooltip: _t.downloadImage,
                     visualDensity: VisualDensity.compact,
                     constraints: const BoxConstraints.tightFor(width: 38, height: 38),
                     padding: EdgeInsets.zero,
@@ -1997,7 +1997,7 @@ class _ChatScreenState extends State<ChatScreen> {
               color: Colors.black.withValues(alpha: .62),
               shape: const CircleBorder(),
               child: IconButton(
-                tooltip: 'دانلود ویدئو',
+                tooltip: _t.downloadVideo,
                 visualDensity: VisualDensity.compact,
                 constraints: const BoxConstraints.tightFor(width: 38, height: 38),
                 padding: EdgeInsets.zero,
@@ -2011,10 +2011,10 @@ class _ChatScreenState extends State<ChatScreen> {
     );
     return Row(mainAxisSize: MainAxisSize.min, children: [
       const Icon(Icons.attach_file_rounded), const SizedBox(width: 6),
-      Flexible(child: Text(attachment['file_name'] as String? ?? 'فایل')),
+      Flexible(child: Text(attachment['file_name'] as String? ?? _t.file)),
       const SizedBox(width: 6),
       IconButton(
-        tooltip: 'دانلود فایل',
+        tooltip: _t.downloadFile,
         visualDensity: VisualDensity.compact,
         onPressed: () => _downloadFileAttachment(attachment),
         icon: const Icon(Icons.download_rounded),
