@@ -177,6 +177,28 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
     ), success: 'حساب کاربر مسدود شد.');
   }
 
+  Future<void> _removeProfileContent(AdminModerationItem item) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('پاک‌سازی محتوای پروفایل'),
+        content: const Text('متن معرفی، نشانی وب‌سایت و تصویر پروفایل حذف می‌شوند؛ حساب کاربر و نام کاربری او باقی می‌مانند. برای صاحب حساب نیز اعلان ارسال می‌شود.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Theme.of(ctx).colorScheme.error),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('پاک‌سازی پروفایل'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await _runAction(item, () => AdminService.moderateContent(
+      action: 'remove_profile_content', userId: item.authorId,
+    ), success: 'اطلاعات نمایشی پروفایل پاک‌سازی شد.', removeItem: true);
+  }
+
   Future<void> _delete(AdminModerationItem item) async {
     if (item.type == 'profile') return;
     final ok = await showDialog<bool>(
@@ -313,7 +335,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
                       child: Text(_typeLabel(item.type), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
                     ),
                   ]),
-                  if (previewUrl != null) ...[
+                  if (previewUrl != null || (item.type != 'profile' && item.mediaUrl != null)) ...[
                     const SizedBox(height: 10),
                     InkWell(
                       borderRadius: BorderRadius.circular(13),
@@ -323,10 +345,12 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
                         child: Stack(children: [
                           SizedBox(
                             height: 175, width: double.infinity,
-                            child: Image.network(previewUrl, fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const ColoredBox(
-                                color: Color(0x221F8F8A), child: SizedBox(height: 175)),
-                            ),
+                            child: previewUrl == null
+                              ? const ColoredBox(color: Color(0x221F8F8A), child: SizedBox(height: 175))
+                              : Image.network(previewUrl, fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const ColoredBox(
+                                    color: Color(0x221F8F8A), child: SizedBox(height: 175)),
+                                ),
                           ),
                           if (item.type != 'profile' && item.mediaType == 'video')
                             const Positioned.fill(child: Center(child: Icon(Icons.play_circle_fill_rounded, size: 52, color: Colors.white))),
@@ -362,7 +386,13 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
                       icon: const Icon(Icons.block_rounded, size: 17),
                       label: const Text('مسدودسازی حساب'),
                     ),
-                    if (item.type != 'profile')
+                    if (item.type == 'profile')
+                      FilledButton.tonalIcon(
+                        onPressed: busy ? null : () => _removeProfileContent(item),
+                        icon: const Icon(Icons.cleaning_services_outlined, size: 17),
+                        label: const Text('پاک‌سازی پروفایل'),
+                      )
+                    else
                       FilledButton.tonalIcon(
                         onPressed: busy ? null : () => _delete(item),
                         icon: busy
