@@ -1731,18 +1731,21 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<void> _downloadImageAttachment(Map<String, dynamic> attachment) async {
+  Future<Uint8List?> _downloadAttachmentBytes(Map<String, dynamic> attachment) async {
     final path = attachment['storage_path'] as String?;
     if (path == null || path.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('مسیر تصویر در دسترس نیست.')),
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('مسیر فایل در دسترس نیست.')),
       );
-      return;
+      return null;
     }
+    return Supabase.instance.client.storage.from('chat-media').download(path);
+  }
+
+  Future<void> _downloadImageAttachment(Map<String, dynamic> attachment) async {
     try {
-      final bytes = await Supabase.instance.client.storage
-          .from('chat-media')
-          .download(path);
+      final bytes = await _downloadAttachmentBytes(attachment);
+      if (bytes == null) return;
       await Gal.putImageBytes(bytes);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1753,6 +1756,47 @@ class _ChatScreenState extends State<ChatScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('ذخیره تصویر انجام نشد؛ دسترسی گالری و اتصال را بررسی کنید.')),
+      );
+    }
+  }
+
+  Future<void> _downloadVideoAttachment(Map<String, dynamic> attachment) async {
+    try {
+      final bytes = await _downloadAttachmentBytes(attachment);
+      if (bytes == null) return;
+      await Gal.putVideoBytes(bytes);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ویدئو در گالری دستگاه ذخیره شد.')),
+      );
+    } catch (error) {
+      debugPrint('Save chat video failed: $error');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ذخیره ویدئو انجام نشد؛ دسترسی گالری و اتصال را بررسی کنید.')),
+      );
+    }
+  }
+
+  Future<void> _downloadFileAttachment(Map<String, dynamic> attachment) async {
+    try {
+      final bytes = await _downloadAttachmentBytes(attachment);
+      if (bytes == null) return;
+      final name = (attachment['file_name'] as String?)?.trim();
+      final fileName = name == null || name.isEmpty ? 'HomaGram-file' : name;
+      final savedPath = await FilePicker.platform.saveFile(
+        fileName: fileName,
+        bytes: bytes,
+      );
+      if (!mounted || savedPath == null) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('فایل با موفقیت ذخیره شد.')),
+      );
+    } catch (error) {
+      debugPrint('Save chat file failed: $error');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('دانلود فایل انجام نشد؛ دوباره تلاش کنید.')),
       );
     }
   }
@@ -1793,11 +1837,38 @@ class _ChatScreenState extends State<ChatScreen> {
     }
     if (mime.startsWith('video/')) return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: _VideoMessagePreview(url: url),
+      child: Stack(
+        children: [
+          _VideoMessagePreview(url: url),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Material(
+              color: Colors.black.withValues(alpha: .62),
+              shape: const CircleBorder(),
+              child: IconButton(
+                tooltip: 'دانلود ویدئو',
+                visualDensity: VisualDensity.compact,
+                constraints: const BoxConstraints.tightFor(width: 38, height: 38),
+                padding: EdgeInsets.zero,
+                onPressed: () => _downloadVideoAttachment(attachment),
+                icon: const Icon(Icons.download_rounded, color: Colors.white, size: 21),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
     return Row(mainAxisSize: MainAxisSize.min, children: [
       const Icon(Icons.attach_file_rounded), const SizedBox(width: 6),
       Flexible(child: Text(attachment['file_name'] as String? ?? 'فایل')),
+      const SizedBox(width: 6),
+      IconButton(
+        tooltip: 'دانلود فایل',
+        visualDensity: VisualDensity.compact,
+        onPressed: () => _downloadFileAttachment(attachment),
+        icon: const Icon(Icons.download_rounded),
+      ),
     ]);
   }
 
