@@ -2240,5 +2240,8 @@
     }
   },
   "homagramLogoSemanticLabel": "HomaGram logo",
-  "verifiedAccount": "Verified account"
+  "verifiedAccount": "Verified account",
+  "usernameRequired": "Enter a username.",
+  "usernameInvalid": "Use 3–24 lowercase English letters, numbers, or underscores.",
+  "adminCommunityUntitled": "Untitled"
 }
