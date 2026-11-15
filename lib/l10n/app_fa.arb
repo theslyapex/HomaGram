@@ -1335,5 +1335,12 @@
         "type": "String"
       }
     }
-  }
+  },
+  "storyTextLengthInvalid": "متن استوری باید بین ۱ تا ۱۰۰۰ نویسه باشد.",
+  "storyChooseMediaFirst": "ابتدا تصویر یا ویدئو انتخاب کنید.",
+  "storyTextMaxLength": "متن استوری حداکثر ۵۰۰ نویسه است.",
+  "storyQuestionLengthInvalid": "متن باکس پرسش را بین ۱ تا ۱۸۰ نویسه وارد کنید.",
+  "storyCountdownInvalid": "عنوان و زمان شمارش معکوس را درست وارد کنید.",
+  "storyPollInvalid": "سؤال و گزینه‌های نظرسنجی را کامل و بدون تکرار وارد کنید.",
+  "storyPublishFailed": "انتشار استوری انجام نشد. اتصال یا فرمت رسانه را بررسی کنید."
 }
