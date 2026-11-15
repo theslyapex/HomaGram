@@ -115,15 +115,24 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
       List<Map<String, dynamic>> users = [];
       if (query.isNotEmpty && !query.startsWith('#')) {
-        final byUsername = await client.from('profiles').select('id,username,display_name')
+        final byUsername = await client.from('profiles').select('id,username,display_name,avatar_path')
           .neq('id', client.auth.currentUser!.id).ilike('username', '%$query%').limit(12);
-        final byName = await client.from('profiles').select('id,username,display_name')
+        final byName = await client.from('profiles').select('id,username,display_name,avatar_path')
           .neq('id', client.auth.currentUser!.id).ilike('display_name', '%$query%').limit(12);
         final merged = <String, Map<String, dynamic>>{};
         for (final user in [...byUsername, ...byName]) {
           merged[user['id'] as String] = Map<String, dynamic>.from(user);
         }
         users = merged.values.take(20).toList();
+        await Future.wait(users.map((user) async {
+          final path = user['avatar_path'] as String?;
+          if (path == null || path.isEmpty) return;
+          try {
+            user['avatar_url'] = await client.storage.from('avatars').createSignedUrl(path, 1800);
+          } catch (_) {
+            user['avatar_url'] = null;
+          }
+        }));
       }
       List<Map<String, dynamic>> communities = [];
       try {
@@ -272,7 +281,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           child: Column(children: [
                             CircleAvatar(radius: 25,
                               backgroundColor: HomaGramTheme.turquoise.withValues(alpha: .15),
-                              child: Text(label.characters.first, style: const TextStyle(fontWeight: FontWeight.w900))),
+                              backgroundImage: user['avatar_url'] is String
+                                  ? NetworkImage(user['avatar_url'] as String) : null,
+                              child: user['avatar_url'] is String ? null
+                                  : Text(label.characters.first, style: const TextStyle(fontWeight: FontWeight.w900))),
                             const SizedBox(height: 5),
                             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                               Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
