@@ -1862,5 +1862,117 @@
         "type": "String"
       }
     }
+  },
+  "adminCommunitiesLoadFailed": "دریافت فهرست گروه‌ها و کانال‌ها انجام نشد.",
+  "adminCommunityWarningMinLength": "متن اخطار باید حداقل ۸ نویسه داشته باشد.",
+  "adminCommunityDeleteGroupTitle": "حذف کامل گروه",
+  "adminCommunityDeleteChannelTitle": "حذف کامل کانال",
+  "adminCommunityDeleteDescription": "«{title}» و تمام پیام‌ها و عضویت‌های آن برای همه اعضا حذف می‌شود. این عملیات قابل بازگشت نیست.",
+  "adminCommunityDeleteForEveryone": "حذف برای همه",
+  "adminCommunityWarnTitle": "ارسال اخطار به {kind}",
+  "adminCommunityGroup": "گروه",
+  "adminCommunityChannel": "کانال",
+  "adminCommunityWarningLabel": "متن اخطار برای همه اعضا",
+  "adminCommunityBlockTitle": "مسدودسازی {kind}",
+  "adminCommunityBlockReasonOptional": "دلیل مسدودسازی (اختیاری)",
+  "adminCommunityConfirmBlockTitle": "تأیید مسدودسازی",
+  "adminCommunityBlockDescription": "با این کار ارسال پیام جدید در این گروه یا کانال برای همه اعضا متوقف می‌شود.",
+  "adminCommunityBlock": "مسدودسازی",
+  "adminCommunityWarnSent": "اخطار برای اعضای گروه یا کانال ارسال شد.",
+  "adminCommunityBlocked": "گروه یا کانال مسدود شد.",
+  "adminCommunityUnblocked": "محدودیت گروه یا کانال برداشته شد.",
+  "adminCommunityDeleted": "گروه یا کانال حذف شد.",
+  "adminCommunityActionFailed": "عملیات انجام نشد. دسترسی مدیر و اتصال را بررسی کنید.",
+  "adminCommunitySearchHint": "جست‌وجوی نام، شناسه یا مالک",
+  "adminRefresh": "به‌روزرسانی",
+  "adminCommunityGroups": "گروه‌ها",
+  "adminCommunityChannels": "کانال‌ها",
+  "adminNoCommunitiesFound": "گروه یا کانالی پیدا نشد.",
+  "adminCommunityUnknownOwner": "مالک نامشخص",
+  "adminCommunityPublic": "عمومی",
+  "adminCommunityPrivate": "خصوصی",
+  "adminCommunitySummary": "{kind} • {visibility} • {count} عضو",
+  "adminCommunityOwnerDate": "مالک: {owner} • {date}",
+  "adminCommunityBlockReason": "دلیل مسدودسازی: {reason}",
+  "adminCommunityActions": "اقدامات مدیریتی",
+  "adminCommunityUnblock": "رفع مسدودسازی",
+  "adminCommunityDeleteCompletely": "حذف کامل",
+  "adminCommunityId": "شناسه: {id}",
+  "adminCommunityNoDescription": "توضیحاتی ثبت نشده است.",
+  "adminCommunityActiveMembers": "تعداد اعضای فعال: {count}",
+  "adminCommunityStatus": "وضعیت: {status}",
+  "adminCommunityBlockedStatus": "مسدود",
+  "adminCommunityActiveStatus": "فعال",
+  "@adminCommunityDeleteDescription": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommunityWarnTitle": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommunityBlockTitle": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommunitySummary": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "visibility": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminCommunityOwnerDate": {
+    "placeholders": {
+      "owner": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommunityBlockReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommunityId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommunityActiveMembers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminCommunityStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
   }
 }
