@@ -356,7 +356,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                       HomaGramSpringPress(child: TextButton(onPressed: _loadMessages, child: Text(_t.retry))),
                     ]))
                   : _messages.isEmpty
-                      ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
+                      ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: [
                           SizedBox(height: 110),
                           Icon(Icons.support_agent_rounded, size: 58, color: Color(0xFF8B6CF6)),
                           SizedBox(height: 14),
