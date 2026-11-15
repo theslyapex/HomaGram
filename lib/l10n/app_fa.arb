@@ -1165,5 +1165,11 @@
         "type": "int"
       }
     }
-  }
+  },
+  "homeSettings": "تنظیمات",
+  "homeNotifications": "اعلان‌ها",
+  "homeAdminPanel": "پنل مدیریت",
+  "homeTab": "خانه",
+  "homeMessages": "پیام‌ها",
+  "homeProfile": "پروفایل"
 }
