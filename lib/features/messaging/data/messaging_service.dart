@@ -193,16 +193,50 @@ class MessagingService {
     return null;
   }
 
+  static Future<Map<String, dynamic>?> loadDirectPeerProfile(
+    String conversationId,
+  ) async {
+    final peerId = await loadDirectPeerUserId(conversationId);
+    if (peerId == null) return null;
+    final profile = await _client.from('profiles')
+        .select('id,username,display_name,avatar_path')
+        .eq('id', peerId)
+        .maybeSingle();
+    if (profile == null) return null;
+    final result = Map<String, dynamic>.from(profile);
+    final avatarPath = result['avatar_path'] as String?;
+    if (avatarPath != null && avatarPath.isNotEmpty) {
+      try {
+        result['avatar_url'] = await _client.storage
+            .from('avatars').createSignedUrl(avatarPath, 3600);
+      } catch (_) {
+        result['avatar_url'] = null;
+      }
+    }
+    return result;
+  }
+
   static Future<List<Map<String, dynamic>>> searchUsers(String query) async {
     final term = query.trim().replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '');
     if (term.length < 2) return [];
     final rows = await _client
         .from('profiles')
-        .select('id,username,display_name')
+        .select('id,username,display_name,avatar_path')
         .neq('id', _userId)
         .ilike('username', '%$term%')
         .limit(20);
-    return rows.map((row) => Map<String, dynamic>.from(row)).toList();
+    final users = rows.map((row) => Map<String, dynamic>.from(row)).toList();
+    await Future.wait(users.map((user) async {
+      final path = user['avatar_path'] as String?;
+      if (path == null || path.isEmpty) return;
+      try {
+        user['avatar_url'] = await _client.storage
+            .from('avatars').createSignedUrl(path, 3600);
+      } catch (_) {
+        user['avatar_url'] = null;
+      }
+    }));
+    return users;
   }
 
   static Future<String> createDirectConversation(String targetUserId) async {
