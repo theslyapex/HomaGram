@@ -172,7 +172,7 @@ class _PolicyScreen extends StatelessWidget {
       for (var i = 0; i < sections.length; i++)
         Card(margin: const EdgeInsets.only(bottom: 10), child: Padding(
           padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('${i + 1}. ${sections[i].title}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+            Text(sections[i].title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
             const SizedBox(height: 8),
             Text(sections[i].body, style: const TextStyle(height: 1.9, fontSize: 12)),
           ]),
