@@ -592,13 +592,15 @@ class MessagingService {
   }
 
   static Future<List<Map<String, dynamic>>> loadStarredMessages(String conversationId) async {
-    final rows = await _client.from('message_stars')
-      .select('message_id,messages(id,sender_id,body,message_type,created_at,deleted_at)')
-      .eq('user_id', _userId);
-    return rows.map((row) => Map<String, dynamic>.from(row)).where((row) {
-      final message = row['messages'];
-      return message is Map && message['deleted_at'] == null;
-    }).toList();
+    final stars = await _client.from('message_stars')
+      .select('message_id').eq('user_id', _userId);
+    final ids = stars.map((row) => row['message_id'] as String).toList();
+    if (ids.isEmpty) return [];
+    final messages = await _client.from('messages')
+      .select('id,sender_id,body,message_type,created_at,deleted_at')
+      .eq('conversation_id', conversationId).isFilter('deleted_at', null)
+      .inFilter('id', ids).order('created_at', ascending: false);
+    return messages.map((row) => <String, dynamic>{'messages': Map<String, dynamic>.from(row)}).toList();
   }
 
   static Future<void> markConversationRead(String conversationId) async {
