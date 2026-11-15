@@ -18,7 +18,7 @@ class SettingsScreen extends StatelessWidget {
     final email = Supabase.instance.client.auth.currentUser?.email;
     if (email == null || email.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t(context).emailUnavailable)),
+        SnackBar(content: Text(_t(context).emailUnavailable)),
       );
       return;
     }
@@ -26,12 +26,12 @@ class SettingsScreen extends StatelessWidget {
       await Supabase.instance.client.auth.resetPasswordForEmail(email);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t(context).passwordResetSent)),
+        SnackBar(content: Text(_t(context).passwordResetSent)),
       );
     } catch (_) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t(context).passwordResetFailed)),
+        SnackBar(content: Text(_t(context).passwordResetFailed)),
       );
     }
   }
@@ -40,11 +40,11 @@ class SettingsScreen extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text(_t(context).deleteAccountRequest),
-        content: const Text(_t(context).deleteAccountExplanation),
+        title: Text(_t(context).deleteAccountRequest),
+        content: Text(_t(context).deleteAccountExplanation),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(_t(context).cancel)),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text(_t(context).continueAndSend)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(_t(context).continueAndSend)),
         ],
       ),
     );
@@ -145,7 +145,7 @@ class SettingsScreen extends StatelessWidget {
             final ok = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
               title: Text(_t(context).signOut), content: Text(_t(context).confirmSignOut),
               actions: [
-                HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text(_t(context).cancel))),
+                HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(_t(context).cancel))),
                 HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(_t(context).signOut))),
               ],
             ));
