@@ -2077,5 +2077,17 @@
   "accountVisitorsDescription": "When disabled, visits to your profile won't be recorded.",
   "accountBlockedUsers": "Blocked accounts",
   "accountNoBlockedUsers": "You haven't blocked any accounts.",
-  "accountUnblock": "Unblock"
+  "accountUnblock": "Unblock",
+  "bugReportSettingsSaveFailed": "Couldn't save the setting. Please try again.",
+  "bugReportSettingsTitle": "Quick issue report",
+  "bugReportShakeTitle": "Report with one gesture",
+  "bugReportShakeDescription": "Shake your phone to open the issue report form with a screenshot of this screen.",
+  "bugReportShakeToggle": "Enable shake-to-report",
+  "bugReportSignedInOnly": "This feature is available only while you're signed in.",
+  "bugReportPreviewTitle": "Preview before sending",
+  "bugReportPreviewDescription": "After you shake your phone, a screenshot is captured only for preview. No image is sent without your confirmation.",
+  "bugReportDetailsTitle": "Describe the issue",
+  "bugReportDetailsDescription": "Describe what you were doing and what went wrong. The screenshot and description are sent together in one support message.",
+  "bugReportPrivacyTitle": "Privacy",
+  "bugReportPrivacyDescription": "Review the screenshot before sending. If private or sensitive information is visible, cancel the report."
 }
