@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 import '../data/admin_service.dart';
 
@@ -12,6 +13,7 @@ class AdminCommunitiesScreen extends StatefulWidget {
 }
 
 class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final TextEditingController _search = TextEditingController();
   Timer? _debounce;
   List<AdminCommunitySummary> _items = [];
@@ -64,7 +66,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = 'دریافت فهرست گروه‌ها و کانال‌ها انجام نشد.';
+        _error = _t.adminCommunitiesLoadFailed;
       });
     }
   }
@@ -99,7 +101,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('انصراف'),
+            child: Text('انصراف'),
           ),
           FilledButton(
             onPressed: () {
@@ -107,7 +109,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
               if (requiredText && text.length < 8) return;
               Navigator.pop(dialogContext, text);
             },
-            child: const Text('تأیید'),
+            child: Text('تأیید'),
           ),
         ],
       ),
@@ -116,7 +118,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
     if (value == null) return null;
     if (requiredText && value.length < 8) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('متن اخطار باید حداقل ۸ نویسه داشته باشد.')),
+        SnackBar(content: Text(_t.adminCommunityWarningMinLength)),
       );
       return null;
     }
@@ -127,21 +129,21 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(item.kind == 'group' ? 'حذف کامل گروه' : 'حذف کامل کانال'),
+        title: Text(item.kind == 'group' ? _t.adminCommunityDeleteGroupTitle : _t.adminCommunityDeleteChannelTitle),
         content: Text(
-          '«${item.title}» و تمام پیام‌ها و عضویت‌های آن برای همه اعضا حذف می‌شود. این عملیات قابل بازگشت نیست.',
+          _t.adminCommunityDeleteDescription(item.title),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('انصراف'),
+            child: Text('انصراف'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(dialogContext).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('حذف برای همه'),
+            child: Text(_t.adminCommunityDeleteForEveryone),
           ),
         ],
       ),
@@ -151,8 +153,8 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
 
   Future<void> _warn(AdminCommunitySummary item) async {
     final message = await _messageDialog(
-      title: 'ارسال اخطار به ${item.kind == 'group' ? 'گروه' : 'کانال'}',
-      label: 'متن اخطار برای همه اعضا',
+      title: _t.adminCommunityWarnTitle(item.kind == 'group' ? _t.adminCommunityGroup : _t.adminCommunityChannel),
+      label: _t.adminCommunityWarningLabel,
       requiredText: true,
     );
     if (message == null) return;
@@ -161,26 +163,26 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
 
   Future<void> _block(AdminCommunitySummary item) async {
     final reason = await _messageDialog(
-      title: 'مسدودسازی ${item.kind == 'group' ? 'گروه' : 'کانال'}',
-      label: 'دلیل مسدودسازی (اختیاری)',
+      title: _t.adminCommunityBlockTitle(item.kind == 'group' ? _t.adminCommunityGroup : _t.adminCommunityChannel),
+      label: _t.adminCommunityBlockReasonOptional,
     );
     if (reason == null) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('تأیید مسدودسازی'),
-        content: const Text('با این کار ارسال پیام جدید در این گروه یا کانال برای همه اعضا متوقف می‌شود.'),
+        title: Text(_t.adminCommunityConfirmBlockTitle),
+        content: Text(_t.adminCommunityBlockDescription),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('بازگشت'),
+            child: Text('بازگشت'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(dialogContext).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('مسدودسازی'),
+            child: Text(_t.adminCommunityBlock),
           ),
         ],
       ),
@@ -209,17 +211,17 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
       }
       if (!mounted) return;
       final text = switch (action) {
-        'warn' => 'اخطار برای اعضای گروه یا کانال ارسال شد.',
-        'block' => 'گروه یا کانال مسدود شد.',
-        'unblock' => 'محدودیت گروه یا کانال برداشته شد.',
-        'delete' => 'گروه یا کانال حذف شد.',
-        _ => 'عملیات مدیریتی انجام شد.',
+        'warn' => _t.adminCommunityWarnSent,
+        'block' => _t.adminCommunityBlocked,
+        'unblock' => _t.adminCommunityUnblocked,
+        'delete' => _t.adminCommunityDeleted,
+        _ => _t.adminActionCompleted,
       };
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
     } catch (error) {
       debugPrint('Admin community action failed: $error');
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('عملیات انجام نشد. دسترسی مدیر و اتصال را بررسی کنید.')),
+        SnackBar(content: Text(_t.adminCommunityActionFailed)),
       );
     } finally {
       if (mounted) setState(() => _working = null);
@@ -227,7 +229,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
   }
 
   String _date(DateTime? date) {
-    if (date == null) return 'تاریخ نامشخص';
+    if (date == null) return _t.adminUnknownTime;
     final d = date.toLocal();
     return '${d.year}/${d.month.toString().padLeft(2, '0')}/${d.day.toString().padLeft(2, '0')}';
   }
@@ -250,12 +252,12 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
                   _load(reset: true);
                 },
                 decoration: InputDecoration(
-                  hintText: 'جست‌وجوی نام، شناسه یا مالک',
+                  hintText: _t.adminCommunitySearchHint,
                   prefixIcon: const Icon(Icons.search_rounded),
                   suffixIcon: _search.text.isEmpty
                       ? null
                       : IconButton(
-                          tooltip: 'پاک کردن',
+                          tooltip: _t.adminClearSearch,
                           onPressed: () {
                             _search.clear();
                             _load(reset: true);
@@ -267,12 +269,12 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  const Expanded(
-                    child: Text('مدیریت گروه‌ها و کانال‌ها',
+                  Expanded(
+                    child: Text(_t.adminCommunities,
                       style: TextStyle(fontWeight: FontWeight.w900)),
                   ),
                   IconButton(
-                    tooltip: 'به‌روزرسانی',
+                    tooltip: _t.adminRefresh,
                     onPressed: () => _load(reset: true),
                     icon: const Icon(Icons.refresh_rounded),
                   ),
@@ -284,7 +286,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
                   spacing: 8,
                   children: [
                     ChoiceChip(
-                      label: const Text('همه'),
+                      label: Text(_t.adminFilterAll),
                       selected: _kind == 'all',
                       onSelected: (_) {
                         setState(() => _kind = 'all');
@@ -292,7 +294,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
                       },
                     ),
                     ChoiceChip(
-                      label: const Text('گروه‌ها'),
+                      label: Text(_t.adminCommunityGroups),
                       selected: _kind == 'group',
                       onSelected: (_) {
                         setState(() => _kind = 'group');
@@ -300,7 +302,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
                       },
                     ),
                     ChoiceChip(
-                      label: const Text('کانال‌ها'),
+                      label: Text(_t.adminCommunityChannels),
                       selected: _kind == 'channel',
                       onSelected: (_) {
                         setState(() => _kind = 'channel');
@@ -316,7 +318,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
         const Divider(height: 1),
         Expanded(
           child: _loading && _items.isEmpty
-              ? const Center(child: CircularProgressIndicator())
+              ? Center(child: CircularProgressIndicator())
               : _error != null && _items.isEmpty
                   ? Center(
                       child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -324,7 +326,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
                         const SizedBox(height: 8),
                         TextButton(
                           onPressed: () => _load(reset: true),
-                          child: const Text('تلاش دوباره'),
+                          child: Text(_t.adminRetry),
                         ),
                       ]),
                     )
@@ -337,7 +339,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
                                 SizedBox(height: 100),
                                 Icon(Icons.groups_2_outlined, size: 48),
                                 SizedBox(height: 12),
-                                Center(child: Text('گروه یا کانالی پیدا نشد.')),
+                                Center(child: Text(_t.adminNoCommunitiesFound)),
                               ],
                             )
                           : ListView.separated(
@@ -352,7 +354,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
                                       padding: const EdgeInsets.all(12),
                                       child: TextButton(
                                         onPressed: _loading ? null : () => _load(),
-                                        child: Text(_loading ? 'در حال دریافت…' : 'نمایش موارد بیشتر'),
+                                        child: Text(_loading ? _t.adminModerationLoading : _t.adminModerationShowMore),
                                       ),
                                     ),
                                   );
@@ -363,7 +365,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
                                     ? item.ownerDisplayName!
                                     : item.ownerUsername?.trim().isNotEmpty == true
                                         ? '@${item.ownerUsername}'
-                                        : 'مالک نامشخص';
+                                        : _t.adminCommunityUnknownOwner;
                                 return Card(
                                   margin: EdgeInsets.zero,
                                   child: Padding(
@@ -396,18 +398,18 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              '${isGroup ? 'گروه' : 'کانال'} • ${item.isPublic ? 'عمومی' : 'خصوصی'} • ${item.memberCount} عضو',
+                                              _t.adminCommunitySummary(isGroup ? _t.adminCommunityGroup : _t.adminCommunityChannel, item.isPublic ? _t.adminCommunityPublic : _t.adminCommunityPrivate, item.memberCount),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                             const SizedBox(height: 3),
-                                            Text('مالک: $owner • ${_date(item.createdAt)}',
+                                            Text(_t.adminCommunityOwnerDate(owner, _date(item.createdAt)),
                                               maxLines: 1, overflow: TextOverflow.ellipsis),
                                             if (item.slug?.isNotEmpty == true)
                                               Text('@${item.slug}', textDirection: TextDirection.ltr,
                                                 maxLines: 1, overflow: TextOverflow.ellipsis),
                                             if (item.isBlocked && item.blockReason?.isNotEmpty == true)
-                                              Text('دلیل مسدودسازی: ${item.blockReason}',
+                                              Text(_t.adminCommunityBlockReason(item.blockReason!),
                                                 maxLines: 2, overflow: TextOverflow.ellipsis,
                                                 style: TextStyle(color: colors.error)),
                                           ],
@@ -418,7 +420,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
                                               width: 24, height: 24,
                                               child: CircularProgressIndicator(strokeWidth: 2))
                                           : PopupMenuButton<String>(
-                                              tooltip: 'اقدامات مدیریتی',
+                                              tooltip: _t.adminCommunityActions,
                                               onSelected: (action) {
                                                 if (action == 'warn') _warn(item);
                                                 if (action == 'block') _block(item);
@@ -426,38 +428,38 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
                                                 if (action == 'delete') _confirmDelete(item);
                                               },
                                               itemBuilder: (_) => [
-                                                const PopupMenuItem(
+                                                PopupMenuItem(
                                                   value: 'warn',
                                                   child: ListTile(
                                                     dense: true,
                                                     leading: Icon(Icons.warning_amber_rounded),
-                                                    title: Text('ارسال اخطار'),
+                                                    title: Text(_t.adminModerationSendWarning),
                                                   ),
                                                 ),
                                                 if (item.isBlocked)
-                                                  const PopupMenuItem(
+                                                  PopupMenuItem(
                                                     value: 'unblock',
                                                     child: ListTile(
                                                       dense: true,
                                                       leading: Icon(Icons.lock_open_rounded),
-                                                      title: Text('رفع مسدودسازی'),
+                                                      title: Text(_t.adminCommunityUnblock),
                                                     ),
                                                   )
                                                 else
-                                                  const PopupMenuItem(
+                                                  PopupMenuItem(
                                                     value: 'block',
                                                     child: ListTile(
                                                       dense: true,
                                                       leading: Icon(Icons.block_rounded, color: Colors.orange),
-                                                      title: Text('مسدودسازی'),
+                                                      title: Text(_t.adminCommunityBlock),
                                                     ),
                                                   ),
-                                                const PopupMenuItem(
+                                                PopupMenuItem(
                                                   value: 'delete',
                                                   child: ListTile(
                                                     dense: true,
                                                     leading: Icon(Icons.delete_forever_outlined, color: Colors.red),
-                                                    title: Text('حذف کامل'),
+                                                    title: Text(_t.adminCommunityDeleteCompletely),
                                                   ),
                                                 ),
                                               ],
@@ -475,14 +477,14 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
                                                 Text(item.title,
                                                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                                                 const SizedBox(height: 8),
-                                                Text('شناسه: ${item.id}', textDirection: TextDirection.ltr),
+                                                Text(_t.adminCommunityId(item.id), textDirection: TextDirection.ltr),
                                                 const SizedBox(height: 8),
                                                 Text(item.description?.isNotEmpty == true
-                                                  ? item.description! : 'توضیحاتی ثبت نشده است.'),
+                                                  ? item.description! : _t.adminCommunityNoDescription),
                                                 const SizedBox(height: 8),
-                                                Text('تعداد اعضای فعال: ${item.memberCount}'),
+                                                Text(_t.adminCommunityActiveMembers(item.memberCount)),
                                                 const SizedBox(height: 8),
-                                                Text('وضعیت: ${item.isBlocked ? 'مسدود' : 'فعال'}'),
+                                                Text(_t.adminCommunityStatus(item.isBlocked ? _t.adminCommunityBlockedStatus : _t.adminCommunityActiveStatus)),
                                               ],
                                             ),
                                           ),
