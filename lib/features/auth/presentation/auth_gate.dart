@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 import '../data/auth_service.dart';
 import '../../home/presentation/home_screen.dart';
@@ -23,6 +24,8 @@ class _AuthGateState extends State<AuthGate> {
   String? _connectionWarning;
   int _profileRefresh = 0;
 
+  AppLocalizations get _t => AppLocalizations.of(context)!;
+
   @override
   void initState() {
     super.initState();
@@ -35,7 +38,7 @@ class _AuthGateState extends State<AuthGate> {
         _connectionWarning = null;
       });
     }, onError: (Object error, StackTrace stack) {
-      if (mounted) setState(() => _connectionWarning = 'ارتباط با سرویس حساب موقتاً قطع شد.');
+      if (mounted) setState(() => _connectionWarning = _t.authGateConnectionWarning);
     });
   }
 
@@ -84,11 +87,11 @@ class _AuthGateState extends State<AuthGate> {
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   const Icon(Icons.shield_outlined, size: 42),
                   const SizedBox(height: 12),
-                  const Text('وضعیت امنیت دومرحله‌ای دریافت نشد. برای حفظ امنیت، ورود تا برقراری ارتباط متوقف شده است.',
+                  Text(_t.authGateMfaStatusFailed,
                     textAlign: TextAlign.center),
                   const SizedBox(height: 14),
                   FilledButton(onPressed: () => setState(() => _profileRefresh++),
-                    child: const Text('تلاش دوباره')),
+                    child: Text(_t.retry)),
                 ]),
               )),
             );
@@ -111,13 +114,13 @@ class _AuthGateState extends State<AuthGate> {
                       const Icon(Icons.cloud_off_outlined, size: 42),
                       const SizedBox(height: 12),
                       const Text(
-                        'وضعیت پروفایل دریافت نشد. برای حفظ امنیت، ورود به صفحه اصلی تا برقراری ارتباط متوقف شده است.',
+                        _t.authGateProfileStatusFailed,
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 14),
                       FilledButton(
                         onPressed: () => setState(() => _profileRefresh++),
-                        child: const Text('تلاش دوباره'),
+                        child: Text(_t.retry),
                       ),
                     ]),
                   )),
