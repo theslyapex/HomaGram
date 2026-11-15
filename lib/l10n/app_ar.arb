@@ -163,5 +163,60 @@
     "placeholders": {
       "message": {}
     }
+  },
+  "publicProfileLoadFailed": "تعذر تحميل الملف الشخصي أو أن الوصول إليه غير متاح.",
+  "followActionFailed": "تعذر تحديث حالة المتابعة. حاول مرة أخرى.",
+  "myProfile": "ملفي الشخصي",
+  "userProfile": "الملف الشخصي للمستخدم",
+  "editProfileSettings": "تعديل الملف الشخصي وإعدادات الحساب",
+  "posts": "المنشورات",
+  "reels": "ريلز",
+  "follower": "متابع",
+  "following": "يتابع",
+  "profileVisitors": "زوار الملف الشخصي",
+  "profileVisitorsDisabled": "تم تعطيل عرض زوار الملف الشخصي في إعدادات الخصوصية.",
+  "followers": "المتابعون",
+  "followingList": "الذين تتابعهم",
+  "reposts": "إعادات النشر",
+  "noPostsYet": "لم يتم نشر أي منشورات بعد.",
+  "noReelsYet": "لم يتم نشر أي ريلز بعد.",
+  "noRepostsYet": "لا توجد إعادات نشر بعد.",
+  "homagramUser": "مستخدم HomaGram",
+  "editProfile": "تعديل الملف الشخصي",
+  "followingAction": "تتابعه",
+  "follow": "متابعة",
+  "message": "رسالة",
+  "shareProfile": "مشاركة الملف الشخصي",
+  "privateConversation": "محادثة خاصة",
+  "startConversationFailed": "تعذر بدء المحادثة. ربما قيّد هذا المستخدم استقبال الرسائل.",
+  "textPost": "منشور نصي",
+  "emptyConnections": "لا يوجد مستخدمون في هذه القائمة بعد.",
+  "loadConnectionsFailed": "تعذر تحميل قائمة المستخدمين.",
+  "viewPost": "عرض المنشور",
+  "noProfileVisitorsYet": "لم يتم تسجيل أي زوار للملف الشخصي بعد.",
+  "profileVisitorCount": "{count} زائر للملف الشخصي",
+  "repostsCount": "إعادات النشر ({count})",
+  "bornOn": "تاريخ الميلاد {date}",
+  "profileShareText": "{name} على HomaGram\n@{username}",
+  "@profileVisitorCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "@repostsCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "@bornOn": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "@profileShareText": {
+    "placeholders": {
+      "name": {},
+      "username": {}
+    }
   }
 }
