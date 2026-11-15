@@ -770,7 +770,7 @@ class _CloseFriendsManagerSheetState extends State<CloseFriendsManagerSheet> {
                               const SizedBox(width: 4),
                               HomaGramVerifiedBadge(userId: id, size: 13),
                             ]),
-                            subtitle: Text('@${person['username'] ?? 'user'}'),
+                            subtitle: Text('@${person['username'] ?? _t.feedUserFallback}'),
                             trailing: _savingId == id
                               ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))
                               : Switch(
