@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -21,6 +22,7 @@ class CreatePostScreen extends StatefulWidget {
 }
 
 class _CreatePostScreenState extends State<CreatePostScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final _caption = TextEditingController();
   final _picker = ImagePicker();
   XFile? _media;
@@ -51,7 +53,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       final edited = video ? await _trimVideo(picked) : await _cropImage(picked);
       if (edited != null && mounted) await _acceptMedia(edited, video ? 'video' : 'image');
     } catch (error) {
-      _notice('انتخاب رسانه انجام نشد: $error', error: true);
+      _notice(_t.createSelectMediaFailed(error), error: true);
     } finally {
       if (mounted) setState(() => _editing = false);
     }
@@ -63,7 +65,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       compressFormat: ImageCompressFormat.jpg, compressQuality: 88,
       uiSettings: [
         AndroidUiSettings(
-          toolbarTitle: 'تنظیم قاب تصویر', toolbarColor: HomaGramTheme.navy,
+          toolbarTitle: _t.createSelectCoverFrame, toolbarColor: HomaGramTheme.navy,
           toolbarWidgetColor: Colors.white, backgroundColor: Colors.black,
           activeControlsWidgetColor: HomaGramTheme.turquoise,
           initAspectRatio: CropAspectRatioPreset.original, lockAspectRatio: false,
@@ -71,7 +73,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             CropAspectRatioPreset.ratio3x2, CropAspectRatioPreset.ratio4x3, CropAspectRatioPreset.ratio16x9],
         ),
         IOSUiSettings(
-          title: 'تنظیم قاب تصویر', doneButtonTitle: 'تأیید', cancelButtonTitle: 'لغو',
+          title: _t.createSelectCoverFrame, doneButtonTitle: _t.createConfirm, cancelButtonTitle: _t.createCancel,
           aspectRatioPresets: [CropAspectRatioPreset.original, CropAspectRatioPreset.square,
             CropAspectRatioPreset.ratio3x2, CropAspectRatioPreset.ratio4x3, CropAspectRatioPreset.ratio16x9],
         ),
@@ -93,10 +95,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         ? mime == 'video/mp4' || mime == 'video/quicktime' || name.endsWith('.mp4') || name.endsWith('.mov')
         : mime == 'image/jpeg' || mime == 'image/png' || mime == 'image/webp' ||
             RegExp(r'\.(jpe?g|png|webp)$').hasMatch(name);
-    if (!allowed) { _notice('فرمت این فایل پشتیبانی نمی‌شود.', error: true); return; }
+    if (!allowed) { _notice(_t.createUnsupportedFormat, error: true); return; }
     final size = await file.length();
     if (size > (type == 'video' ? 50 : 15) * 1024 * 1024) {
-      _notice(type == 'video' ? 'حجم ویدئو حداکثر ۵۰ مگابایت است.' : 'حجم تصویر حداکثر ۱۵ مگابایت است.', error: true);
+      _notice(type == 'video' ? _t.createVideoSizeLimit : _t.createImageSizeLimit, error: true);
       return;
     }
     Uint8List? cover;
@@ -104,7 +106,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       cover = await VideoThumbnail.thumbnailData(
         video: file.path, imageFormat: ImageFormat.JPEG, maxWidth: 900, quality: 88, timeMs: 1000,
       );
-      if (cover == null) { _notice('ساخت پیش‌نمایش ویدئو ممکن نشد؛ دوباره انتخاب کنید.', error: true); return; }
+      if (cover == null) { _notice(_t.createVideoPreviewFailed, error: true); return; }
     }
     if (mounted) setState(() { _media = file; _mediaType = type; _coverBytes = cover; });
   }
@@ -116,7 +118,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     try {
       final edited = type == 'image' ? await _cropImage(current) : await _trimVideo(current);
       if (edited != null && mounted) await _acceptMedia(edited, type);
-    } catch (error) { _notice('ویرایش رسانه انجام نشد: $error', error: true); }
+    } catch (error) { _notice(_t.createMediaEditFailed(error), error: true); }
     finally { if (mounted) setState(() => _editing = false); }
   }
 
@@ -129,9 +131,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       final cropped = await _cropImage(picked);
       if (cropped == null) return;
       final bytes = await cropped.readAsBytes();
-      if (bytes.length > 15 * 1024 * 1024) { _notice('حجم کاور باید کمتر از ۱۵ مگابایت باشد.', error: true); return; }
+      if (bytes.length > 15 * 1024 * 1024) { _notice(_t.createCoverLimit, error: true); return; }
       if (mounted) setState(() => _coverBytes = bytes);
-    } catch (error) { _notice('انتخاب کاور انجام نشد: $error', error: true); }
+    } catch (error) { _notice(_t.createCoverSelectFailed(error), error: true); }
     finally { if (mounted) setState(() => _editing = false); }
   }
 
@@ -179,7 +181,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 preview = bytes;
                 previewMs = ms;
               } else {
-                renderError = 'استخراج این فریم ممکن نشد؛ زمان دیگری را انتخاب کنید.';
+                renderError = _t.createExtractFrameFailed;
               }
               isRendering = false;
             });
@@ -187,7 +189,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         } catch (_) {
           if (token == requestId) {
             update(() {
-              renderError = 'نمایش فریم انتخابی ممکن نشد؛ دوباره تلاش کنید.';
+              renderError = _t.createFramePreviewFailed;
               isRendering = false;
             });
           }
@@ -216,7 +218,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     : Image.memory(preview!, fit: BoxFit.cover))),
               const SizedBox(height: 8),
               Text(
-                isRendering ? 'در حال استخراج فریم دقیق…' : '${(selectedMs / 1000).toStringAsFixed(2)} ثانیه از ویدئو',
+                isRendering ? _t.createFrameExtracting : '${(selectedMs / 1000).toStringAsFixed(2)} ثانیه از ویدئو',
                 style: Theme.of(context).textTheme.labelSmall,
               ),
               if (renderError != null) ...[
@@ -239,7 +241,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               SizedBox(width: double.infinity, child: HomaGramSpringPress(child: FilledButton(
                 onPressed: preview == null || previewMs != selectedMs || isRendering
                     ? null : () => Navigator.pop(sheetContext, preview),
-                child: const Text('انتخاب همین فریم')))),
+                child: const Text(_t.createSelectThisFrame)))),
             ]),
           ));
         }),
@@ -256,17 +258,17 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Future<void> _publish() async {
     final caption = _caption.text.trim();
     if (widget.initialReel && !_isReel) {
-      _notice('برای ساخت ریلز باید ابتدا یک ویدئو انتخاب کنید.', error: true);
+      _notice(_t.createChooseVideoFirst, error: true);
       return;
     }
-    if (_isReel && _coverBytes == null) { _notice('برای ریلز یک کاور انتخاب کنید.', error: true); return; }
-    if (caption.isEmpty && _media == null) { _notice('برای انتشار، متن یا رسانه اضافه کنید.', error: true); return; }
-    if (caption.length > 2200) { _notice('متن پست حداکثر ۲۲۰۰ نویسه است.', error: true); return; }
+    if (_isReel && _coverBytes == null) { _notice(_t.createReelCoverRequired, error: true); return; }
+    if (caption.isEmpty && _media == null) { _notice(_t.createContentRequired, error: true); return; }
+    if (caption.length > 2200) { _notice(_t.createCaptionLimit, error: true); return; }
     setState(() => _posting = true);
     String? uploadedPath, uploadedCoverPath;
     try {
       final client = AuthService.client, user = AuthService.client.auth.currentUser;
-      if (user == null) throw StateError('نشست کاربری معتبر نیست؛ دوباره وارد شوید.');
+      if (user == null) throw StateError(_t.createSessionInvalid);
       final profile = await client.from('profiles').select('username,display_name').eq('id', user.id).maybeSingle();
       final metadata = user.userMetadata ?? const <String, dynamic>{};
       final emailPrefix = user.email?.split('@').first;
@@ -302,7 +304,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       if (mounted) Navigator.of(context).pop(true);
     } on StorageException catch (error) {
       await _removeUploaded(uploadedPath); await _removeUploaded(uploadedCoverPath);
-      _notice('بارگذاری فایل انجام نشد: ${error.message}', error: true);
+      _notice(_t.createUploadFailed(error.message), error: true);
     } on PostgrestException catch (error) {
       await _removeUploaded(uploadedPath); await _removeUploaded(uploadedCoverPath);
       final detail = [error.message, if (error.code != null) 'کد: ${error.code}',
@@ -310,7 +312,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       _notice('ثبت محتوا انجام نشد: $detail', error: true);
     } catch (error) {
       await _removeUploaded(uploadedPath); await _removeUploaded(uploadedCoverPath);
-      _notice('انتشار انجام نشد: $error', error: true);
+      _notice(_t.createPublishFailed(error.toString()), error: true);
     } finally { if (mounted) setState(() => _posting = false); }
   }
 
@@ -346,7 +348,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         ])),
         Padding(padding: const EdgeInsets.fromLTRB(14, 12, 8, 10), child: Row(children: [
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(isVideo ? 'کاور ریلز آماده است' : 'تصویر آماده انتشار', style: const TextStyle(fontWeight: FontWeight.w800)),
+            Text(isVideo ? _t.createCoverReady : _t.createImageReady, style: const TextStyle(fontWeight: FontWeight.w800)),
             const SizedBox(height: 3),
             Text(_media!.name, maxLines: 1, overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontSize: 11, color: Color(0xFF8490A4))),
@@ -358,10 +360,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         ])),
         if (isVideo) Padding(padding: const EdgeInsets.fromLTRB(12, 0, 12, 12), child: Row(children: [
           Expanded(child: HomaGramSpringPress(child: OutlinedButton.icon(onPressed: _posting || _editing ? null : _chooseVideoFrame,
-            icon: const Icon(Icons.video_camera_back_outlined, size: 18), label: const Text('انتخاب فریم')))),
+            icon: const Icon(Icons.video_camera_back_outlined, size: 18), label: const Text(_t.createChooseFrame)))),
           const SizedBox(width: 8),
           Expanded(child: HomaGramSpringPress(child: OutlinedButton.icon(onPressed: _posting || _editing ? null : _chooseCoverFromGallery,
-            icon: const Icon(Icons.add_photo_alternate_outlined, size: 18), label: const Text('کاور از گالری')))),
+            icon: const Icon(Icons.add_photo_alternate_outlined, size: 18), label: const Text(_t.createCoverFromGallery)))),
         ])),
       ]),
     );
@@ -390,7 +392,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: Text((widget.initialReel || _isReel) ? 'ساخت ریلز' : 'ایجاد پست',
+      appBar: AppBar(title: Text((widget.initialReel || _isReel) ? _t.createReelTitle : _t.createPostTitle,
         style: const TextStyle(fontWeight: FontWeight.w900))),
       body: HomaGramEntrance(child: ListView(padding: const EdgeInsets.fromLTRB(18, 10, 18, 28), children: [
         Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(
@@ -399,61 +401,60 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           child: Row(children: [
             const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 30), const SizedBox(width: 13),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('لحظه‌ات را به اشتراک بگذار',
+              Text(_t.createPostHero,
                 style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900)),
               const SizedBox(height: 4),
-              Text((widget.initialReel || _isReel) ? 'ویدئو به‌صورت خودکار به ریلز تبدیل می‌شود.'
-                : 'متن یا تصویر منتشر کن؛ انتخاب ویدئو یعنی ساخت ریلز.',
+              Text((widget.initialReel || _isReel) ? _t.createReelAuto : _t.createPostIntro,
                 style: const TextStyle(color: Colors.white70, fontSize: 11, height: 1.6)),
             ])),
           ])),
         const SizedBox(height: 20),
         if (_media == null) ...[
-          const Text('نوع محتوا را انتخاب کن', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+          Text(_t.createChooseContent, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
           const SizedBox(height: 11),
           if (!widget.initialReel) ...[
-            _pickerTile(icon: Icons.photo_library_outlined, title: 'انتشار تصویر',
-              subtitle: 'یک تصویر انتخاب و قاب آن را تنظیم کن',
+            _pickerTile(icon: Icons.photo_library_outlined, title: _t.createPublishImage,
+              subtitle: _t.createChooseImageHint,
               onTap: () => _chooseMedia(false), accent: HomaGramTheme.turquoise),
             const SizedBox(height: 10),
           ],
-          _pickerTile(icon: Icons.movie_creation_outlined, title: 'ساخت ریلز',
-            subtitle: 'ویدئو را انتخاب کن، کوتاه کن و کاور بساز',
+          _pickerTile(icon: Icons.movie_creation_outlined, title: _t.createBuildReel,
+            subtitle: _t.createReelHint,
             onTap: () => _chooseMedia(true), accent: HomaGramTheme.royalPurple),
           if (!widget.initialReel) ...[
             const SizedBox(height: 10),
             Container(padding: const EdgeInsets.all(15), decoration: BoxDecoration(
               color: colors.surfaceContainerHighest.withValues(alpha: .55), borderRadius: BorderRadius.circular(18)),
-              child: const Row(children: [
+              child: Row(children: [ 
                 Icon(Icons.text_fields_rounded, color: HomaGramTheme.turquoise), SizedBox(width: 10),
-                Expanded(child: Text('برای انتشار پست متنی، کافی است پایین همین صفحه کپشن بنویسی.',
+                Expanded(child: Text(_t.createTextPostHint,
                   style: TextStyle(fontSize: 11, height: 1.7))),
               ])),
           ],
         ] else _mediaPreview(),
         const SizedBox(height: 22),
-        const Text('کپشن', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+        Text(_t.createCaption, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
         const SizedBox(height: 9),
         TextField(controller: _caption, maxLength: 2200, minLines: 4, maxLines: 8,
           textDirection: TextDirection.rtl,
-          decoration: InputDecoration(hintText: 'داستان این تصویر یا ویدئو را بنویس...',
+          decoration: InputDecoration(hintText: _t.createCaptionHint,
             filled: true, fillColor: colors.surfaceContainerHighest.withValues(alpha: .42),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
             alignLabelWithHint: true)),
         if (_editing) ...[
           const SizedBox(height: 12), const LinearProgressIndicator(), const SizedBox(height: 7),
-          const Text('در حال آماده‌سازی رسانه...', textAlign: TextAlign.center,
+          Text(_t.createPreparingMedia, textAlign: TextAlign.center,
             style: TextStyle(fontSize: 11, color: Color(0xFF8490A4))),
         ],
         const SizedBox(height: 10),
-        const Text('ویدئو همیشه به‌عنوان ریلز منتشر می‌شود. پست متنی و تصویری در فید نمایش داده می‌شود.',
+        Text(_t.createVideoReelNote,
           textAlign: TextAlign.center, style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4))),
         const SizedBox(height: 18),
         SizedBox(height: 54, child: HomaGramSpringPress(child: FilledButton.icon(
           onPressed: _posting || _editing ? null : _publish,
           icon: _posting ? const SizedBox(width: 18, height: 18,
             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.publish_rounded),
-          label: Text(_posting ? 'در حال انتشار...' : (widget.initialReel || _isReel) ? 'انتشار ریلز' : 'انتشار پست',
+          label: Text(_posting ? _t.createPublishing : (widget.initialReel || _isReel) ? _t.createPublishReel : _t.createPublishPost,
             style: const TextStyle(fontWeight: FontWeight.w900)),
           style: FilledButton.styleFrom(backgroundColor: _isReel ? HomaGramTheme.royalPurple : HomaGramTheme.turquoise,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17))),
