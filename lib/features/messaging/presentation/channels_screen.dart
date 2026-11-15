@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../data/messaging_service.dart';
 import 'chat_screen.dart';
 
@@ -65,7 +66,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Row(children: [
+        title: Row(children: [
           Icon(Icons.lock_outline_rounded),
           SizedBox(width: 8),
           Expanded(child: Text(_t.privateChannelInviteCode)),
@@ -100,7 +101,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
           ],
         ),
         actions: [
-          HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text(_t.gotIt))),
+          HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx), child: Text(_t.gotIt))),
         ],
       ),
     );
@@ -125,13 +126,13 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                 TextFormField(
                   controller: title,
                   maxLength: 100,
-                  decoration: const InputDecoration(labelText: _t.channelName),
+                  decoration: InputDecoration(labelText: _t.channelName),
                   validator: (v) => (v == null || v.trim().isEmpty) ? _t.enterChannelName : null,
                 ),
                 TextFormField(
                   controller: slug,
                   maxLength: 32,
-                  decoration: const InputDecoration(labelText: _t.channelSlug, prefixText: '@'),
+                  decoration: InputDecoration(labelText: _t.channelSlug, prefixText: '@'),
                   validator: (v) => (v == null || !RegExp(r'^[a-zA-Z0-9_]{3,32}$').hasMatch(v.trim()))
                       ? _t.slugRules : null,
                 ),
@@ -139,7 +140,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                   controller: description,
                   maxLength: 500,
                   maxLines: 3,
-                  decoration: const InputDecoration(labelText: _t.descriptionOptional),
+                  decoration: InputDecoration(labelText: _t.descriptionOptional),
                 ),
                 const SizedBox(height: 8),
                 SwitchListTile(
@@ -156,7 +157,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
             ),
           ),
           actions: [
-            HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text(_t.cancel))),
+            HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text(_t.cancel))),
             HomaGramSpringPress(child: FilledButton(
               onPressed: () {
                 if (formKey.currentState!.validate()) {
@@ -168,7 +169,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                   });
                 }
               },
-              child: const Text(_t.createChannel),
+              child: Text(_t.createChannel),
             )),
           ],
         ),
@@ -199,7 +200,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
         } catch (_) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text(_t.channelCreatedInviteFailed)),
+              SnackBar(content: Text(_t.channelCreatedInviteFailed)),
             );
           }
         }
@@ -213,7 +214,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(_t.channelCreateFailedSlugTaken)),
+          SnackBar(content: Text(_t.channelCreateFailedSlugTaken)),
         );
       }
     } finally {
@@ -255,7 +256,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     final code = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text(_t.joinPrivateChannel),
+        title: Text(_t.joinPrivateChannel),
         content: Form(
           key: formKey,
           child: TextFormField(
@@ -263,9 +264,9 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
             autofocus: true,
             maxLength: 64,
             textDirection: TextDirection.ltr,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: _t.inviteCode,
-              hintText: _t.64CharCode,
+              hintText: _t.inviteCode64CharHint,
               counterText: '',
             ),
             validator: (value) => value == null || !RegExp(r'^[0-9a-fA-F]{64}$').hasMatch(value.trim())
@@ -273,12 +274,12 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
           ),
         ),
         actions: [
-          HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text(_t.cancel))),
+          HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text(_t.cancel))),
           HomaGramSpringPress(child: FilledButton(
             onPressed: () {
               if (formKey.currentState!.validate()) Navigator.pop(ctx, controller.text.trim());
             },
-            child: const Text(_t.joinMembership),
+            child: Text(_t.joinMembership),
           )),
         ],
       ),
@@ -296,7 +297,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(_t.inviteInvalidExpiredRevoked)),
+          SnackBar(content: Text(_t.inviteInvalidExpiredRevoked)),
         );
       }
     }
@@ -307,7 +308,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        title: const Text(_t.publicExplore),
+        title: Text(_t.publicExplore),
         actions: [
           HomaGramSpringPress(child: IconButton(
             onPressed: _joinByCode,
@@ -328,7 +329,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   _t.discoverPublicGroupsChannels,
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
                 ),
@@ -370,17 +371,17 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                   spacing: 8,
                   children: [
                     ChoiceChip(
-                      label: const Text(_t.all),
+                      label: Text(_t.all),
                       selected: _filter == 'all',
                       onSelected: (_) => _setFilter('all'),
                     ),
                     ChoiceChip(
-                      label: const Text(_t.groups),
+                      label: Text(_t.groups),
                       selected: _filter == 'group',
                       onSelected: (_) => _setFilter('group'),
                     ),
                     ChoiceChip(
-                      label: const Text(_t.channels),
+                      label: Text(_t.channels),
                       selected: _filter == 'channel',
                       onSelected: (_) => _setFilter('channel'),
                     ),
@@ -404,7 +405,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                           Center(child: Text(_error!)),
                           Center(child: TextButton(
                             onPressed: _load,
-                            child: const Text(_t.tryAgain),
+                            child: Text(_t.tryAgain),
                           )),
                         ])
                       : _communities.isEmpty
@@ -431,7 +432,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                                 Center(child: HomaGramSpringPress(child: FilledButton.icon(
                                   onPressed: _create,
                                   icon: const Icon(Icons.add_rounded),
-                                  label: const Text(_t.createPublicChannel),
+                                  label: Text(_t.createPublicChannel),
                                 ))),
                               ],
                             )
