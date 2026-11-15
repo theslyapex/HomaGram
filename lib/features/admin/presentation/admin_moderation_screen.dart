@@ -114,7 +114,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
             ClipRRect(
               borderRadius: BorderRadius.circular(14),
               child: Image.network(url, fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const SizedBox(
+                errorBuilder: (_, __, ___) => SizedBox(
                   height: 160, child: Center(child: Text(_t.adminModerationImageLoadFailed)))),
             ),
             const SizedBox(height: 10),
