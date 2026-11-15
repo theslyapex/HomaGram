@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../notifications/data/push_notification_service.dart';
+import '../../notifications/data/push_notification_service.dart';
 import 'auth_service.dart';
 
 class SavedHomagramAccount {
