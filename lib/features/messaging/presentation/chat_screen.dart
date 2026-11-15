@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:homagram/app/presentation/homagram_branding.dart';
@@ -273,7 +274,7 @@ class _ChatScreenState extends State<ChatScreen> {
         return;
       }
       final ext = file.name.toLowerCase().split('.').last;
-      final mime = choice == 'image'
+      final mime = (choice == 'image' || choice == 'timed_image')
           ? (ext == 'png' ? 'image/png' : ext == 'webp' ? 'image/webp' : 'image/jpeg')
           : (ext == 'mov' ? 'video/quicktime' : ext == 'webm' ? 'video/webm' : 'video/mp4');
       setState(() => _sending = true);
@@ -1815,8 +1816,12 @@ class _ChatScreenState extends State<ChatScreen> {
     var protectionEnabled = false;
     try {
       await ScreenProtector.preventScreenshotOn();
-      await ScreenProtector.protectDataLeakageOn();
       protectionEnabled = true;
+      if (Platform.isAndroid) {
+        await ScreenProtector.protectDataLeakageOn();
+      } else if (Platform.isIOS) {
+        await ScreenProtector.protectDataLeakageWithBlur();
+      }
       final response = await Supabase.instance.client.rpc(
         'open_timed_image',
         params: {'p_attachment_id': attachment['id']},
@@ -1898,7 +1903,11 @@ class _ChatScreenState extends State<ChatScreen> {
     } finally {
       if (protectionEnabled) {
         try {
-          await ScreenProtector.protectDataLeakageOff();
+          if (Platform.isAndroid) {
+            await ScreenProtector.protectDataLeakageOff();
+          } else if (Platform.isIOS) {
+            await ScreenProtector.protectDataLeakageWithBlurOff();
+          }
           await ScreenProtector.preventScreenshotOff();
         } catch (error) {
           debugPrint('Disable screen protection failed: $error');
