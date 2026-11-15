@@ -53,7 +53,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       final edited = video ? await _trimVideo(picked) : await _cropImage(picked);
       if (edited != null && mounted) await _acceptMedia(edited, video ? 'video' : 'image');
     } catch (error) {
-      _notice(_t.createSelectMediaFailed(error), error: true);
+      _notice(_t.createSelectMediaFailed(error.toString()), error: true);
     } finally {
       if (mounted) setState(() => _editing = false);
     }
@@ -118,7 +118,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     try {
       final edited = type == 'image' ? await _cropImage(current) : await _trimVideo(current);
       if (edited != null && mounted) await _acceptMedia(edited, type);
-    } catch (error) { _notice(_t.createMediaEditFailed(error), error: true); }
+    } catch (error) { _notice(_t.createMediaEditFailed(error.toString()), error: true); }
     finally { if (mounted) setState(() => _editing = false); }
   }
 
@@ -133,7 +133,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       final bytes = await cropped.readAsBytes();
       if (bytes.length > 15 * 1024 * 1024) { _notice(_t.createCoverLimit, error: true); return; }
       if (mounted) setState(() => _coverBytes = bytes);
-    } catch (error) { _notice(_t.createCoverSelectFailed(error), error: true); }
+    } catch (error) { _notice(_t.createCoverSelectFailed(error.toString()), error: true); }
     finally { if (mounted) setState(() => _editing = false); }
   }
 
