@@ -245,7 +245,7 @@ class MessagingService {
   ) async {
     final rows = await _client
         .from('messages')
-        .select('id,sender_id,body,message_type,reply_to_id,deleted_at,created_at,edited_at')
+        .select('id,sender_id,body,message_type,reply_to_id,deleted_at,deleted_by,forwarded_from_sender_id,forwarded_from_display_name,created_at,edited_at')
         .eq('conversation_id', conversationId)
         .order('created_at', ascending: true)
         .limit(200);
@@ -288,10 +288,24 @@ class MessagingService {
         .select('message_id,user_id,emoji').inFilter('message_id', ids);
     final receipts = await _client.from('message_receipts')
         .select('message_id,user_id,read_at').inFilter('message_id', ids);
+    final stars = await _client.from('message_stars')
+        .select('message_id,user_id').eq('user_id', _userId).inFilter('message_id', ids);
+    final pins = await _client.from('conversation_pins')
+        .select('message_id').eq('conversation_id', conversationId).inFilter('message_id', ids);
+    final deletedByIds = messages.map((m) => m['deleted_by'] as String?)
+        .whereType<String>().toSet().toList();
+    final deletedProfiles = deletedByIds.isEmpty ? <dynamic>[] :
+        await _client.from('profiles').select('id,display_name,username').inFilter('id', deletedByIds);
+    final deletedNames = {for (final p in deletedProfiles)
+      p['id'] as String: (p['display_name'] as String?)?.trim().isNotEmpty == true
+        ? p['display_name'] as String : '@${p['username'] ?? ''}'};
     for (final message in messages) {
       final id = message['id'];
       final ownReceipts = receipts.where((r) => r['message_id'] == id).toList();
       message['attachments'] = attachments.where((a) => a['message_id'] == id).toList();
+      message['is_starred'] = stars.any((s) => s['message_id'] == id);
+      message['is_pinned'] = pins.any((p) => p['message_id'] == id);
+      message['deleted_by_name'] = deletedNames[message['deleted_by']];
       message['reactions'] = reactions.where((r) => r['message_id'] == id).toList();
       message['read_count'] = ownReceipts.where((r) =>
           r['user_id'] != message['sender_id'] && r['read_at'] != null).length;
@@ -555,9 +569,36 @@ class MessagingService {
   }
 
   static Future<void> deleteMessage(String messageId) async {
-    await _client.from('messages').update({
-      'deleted_at': DateTime.now().toUtc().toIso8601String(),
-    }).eq('id', messageId);
+    await _client.rpc('delete_conversation_message', params: {'p_message_id': messageId});
+  }
+
+  static Future<void> toggleMessageStar(String messageId) async {
+    await _client.rpc('toggle_message_star', params: {'p_message_id': messageId});
+  }
+
+  static Future<void> pinMessage(String messageId) async {
+    await _client.rpc('pin_conversation_message', params: {'p_message_id': messageId});
+  }
+
+  static Future<void> unpinMessage(String messageId) async {
+    await _client.rpc('unpin_conversation_message', params: {'p_message_id': messageId});
+  }
+
+  static Future<void> forwardTextMessage(String messageId, String targetConversationId) async {
+    await _client.rpc('forward_text_message', params: {
+      'p_message_id': messageId,
+      'p_target_conversation_id': targetConversationId,
+    });
+  }
+
+  static Future<List<Map<String, dynamic>>> loadStarredMessages(String conversationId) async {
+    final rows = await _client.from('message_stars')
+      .select('message_id,messages(id,sender_id,body,message_type,created_at,deleted_at)')
+      .eq('user_id', _userId);
+    return rows.map((row) => Map<String, dynamic>.from(row)).where((row) {
+      final message = row['messages'];
+      return message is Map && message['deleted_at'] == null;
+    }).toList();
   }
 
   static Future<void> markConversationRead(String conversationId) async {
