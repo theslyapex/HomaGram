@@ -1772,7 +1772,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (bytes == null) return;
       final name = (attachment['file_name'] as String?)?.trim();
       final fileName = name == null || name.isEmpty ? 'HomaGram-video.mp4' : name;
-      final savedPath = await FilePicker.platform.saveFile(
+      final savedPath = await FilePicker.saveFile(
         fileName: fileName,
         bytes: bytes,
       );
@@ -1795,7 +1795,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (bytes == null) return;
       final name = (attachment['file_name'] as String?)?.trim();
       final fileName = name == null || name.isEmpty ? 'HomaGram-file' : name;
-      final savedPath = await FilePicker.platform.saveFile(
+      final savedPath = await FilePicker.saveFile(
         fileName: fileName,
         bytes: bytes,
       );
