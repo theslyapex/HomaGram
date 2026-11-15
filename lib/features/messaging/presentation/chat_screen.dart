@@ -366,7 +366,7 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     }
     if (body.startsWith(profileMarker)) {
-      final userId = body.substring(profileMarker.length).trim().split(RegExp(r'\\s')).first;
+      final userId = body.substring(profileMarker.length).trim();
       if (userId.isNotEmpty && userId.length <= 64) {
         return InkWell(
           borderRadius: BorderRadius.circular(14),
