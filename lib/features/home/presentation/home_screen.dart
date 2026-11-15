@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/presentation/homagram_branding.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/data/auth_service.dart';
+import '../../auth/data/multi_account_service.dart';
+import '../../auth/presentation/add_account_screen.dart';
 import '../../admin/data/admin_service.dart';
 import '../../admin/presentation/admin_dashboard_screen.dart';
 import 'feed_screen.dart';
@@ -82,6 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
     required String label,
     required IconData icon,
     required IconData selectedIcon,
+    VoidCallback? onLongPress,
   }) {
     final selected = _tab == index;
     final scheme = Theme.of(context).colorScheme;
@@ -95,6 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: InkWell(
             borderRadius: BorderRadius.circular(25),
             onTap: () => setState(() => _tab = index),
+            onLongPress: onLongPress,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 220),
               curve: Curves.easeOutCubic,
@@ -134,6 +138,93 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _showAccountSwitcher() async {
+    await MultiAccountService.rememberCurrentSession();
+    final accounts = await MultiAccountService.listAccounts();
+    if (!mounted) return;
+    final currentUserId = AuthService.client.auth.currentUser?.id;
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        final colors = Theme.of(sheetContext).colorScheme;
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 8, 18, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(_t.accountSwitcherTitle,
+                  style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 5),
+                Text(_t.accountSwitcherHint,
+                  style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12)),
+                const SizedBox(height: 12),
+                if (accounts.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Text(_t.noSavedAccounts, textAlign: TextAlign.center),
+                  ),
+                ...accounts.map((account) {
+                  final active = account.userId == currentUserId;
+                  final label = account.displayName.trim().isEmpty
+                      ? account.email : account.displayName;
+                  final initial = label.isEmpty ? 'H' : label.characters.first.toUpperCase();
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: CircleAvatar(
+                      backgroundColor: active ? colors.primaryContainer : colors.surfaceContainerHighest,
+                      child: Text(initial, style: TextStyle(
+                        color: active ? colors.onPrimaryContainer : colors.onSurfaceVariant,
+                        fontWeight: FontWeight.w800)),
+                    ),
+                    title: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w800)),
+                    subtitle: Text(account.email, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    trailing: active
+                        ? Icon(Icons.check_circle_rounded, color: colors.primary)
+                        : const Icon(Icons.swap_horiz_rounded),
+                    onTap: () => Navigator.pop(sheetContext, account.userId),
+                  );
+                }),
+                const Divider(height: 18),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    backgroundColor: colors.primaryContainer,
+                    child: Icon(Icons.person_add_alt_1_rounded, color: colors.onPrimaryContainer),
+                  ),
+                  title: Text(_t.addAnotherAccount,
+                    style: const TextStyle(fontWeight: FontWeight.w800)),
+                  subtitle: Text(_t.addAccountSubtitle),
+                  onTap: () => Navigator.pop(sheetContext, '__add_account__'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    if (!mounted || selected == null) return;
+    if (selected == '__add_account__') {
+      await Navigator.of(context).push(MaterialPageRoute<bool>(
+        builder: (_) => const AddAccountScreen(),
+      ));
+      return;
+    }
+    if (selected == currentUserId) return;
+    try {
+      await MultiAccountService.switchTo(selected);
+    } catch (error) {
+      debugPrint('Account switch failed: $error');
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_t.accountSwitchFailed)),
+      );
+    }
   }
 
   @override
@@ -268,6 +359,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       label: _t.homeProfile,
                       icon: Icons.person_outline_rounded,
                       selectedIcon: Icons.person_rounded,
+                      onLongPress: _showAccountSwitcher,
                     ),
                   ],
                 ),
