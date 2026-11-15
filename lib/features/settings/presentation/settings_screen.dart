@@ -92,7 +92,7 @@ class SettingsScreen extends StatelessWidget {
       _SettingEntry(Icons.copyright_rounded, _t(context).contentOwnershipAndCopyright, _t(context).userRightsAndCopyrightClaims,
         () => _open(context, _t(context).contentOwnershipAndCopyright, _copyright)),
       _SettingEntry(Icons.info_outline_rounded, _t(context).aboutHomagram, _t(context).productStoryVisionAndRoadmap,
-        () => _open(context, _t(context).aboutHomagram, const [
+        () => _open(context, _t(context).aboutHomagram, [
           _PolicySection(_t(context).aboutMissionTitle, _t(context).aboutMissionBody),
           _PolicySection(_t(context).aboutFeaturesTitle, _t(context).aboutFeaturesBody),
           _PolicySection(_t(context).aboutExperienceTitle, _t(context).aboutExperienceBody),
