@@ -26,5 +26,39 @@
   "verificationResent": "درخواست ارسال دوباره ایمیل تأیید ثبت شد.",
   "passwordRecovery": "بازیابی رمز عبور",
   "accountEmail": "ایمیل حساب",
-  "settings": "تنظیمات"
+  "settings": "تنظیمات",
+  "resendFailed": "ارسال دوباره ایمیل ممکن نشد. کمی بعد تلاش کنید.",
+  "recoveryIfExists": "اگر حسابی با این ایمیل وجود داشته باشد، لینک بازیابی ارسال می‌شود.",
+  "recoveryFailed": "ارسال درخواست بازیابی ممکن نشد. کمی بعد تلاش کنید.",
+  "checkYourEmail": "ایمیل خود را بررسی کنید",
+  "afterVerification": "پس از تأیید، به برنامه برگردید و وارد شوید.",
+  "sending": "در حال ارسال…",
+  "resendEmail": "ارسال دوباره ایمیل",
+  "backToSignIn": "بازگشت به ورود",
+  "createNewAccount": "ساخت حساب جدید",
+  "signInTitle": "ورود به حساب",
+  "joinCommunity": "به جامعه هماگرام بپیوندید.",
+  "signInToContinue": "برای ادامه وارد حساب خود شوید.",
+  "emailAddress": "آدرس ایمیل",
+  "enterDisplayName": "نام نمایشی را وارد کنید.",
+  "max50Characters": "حداکثر ۵۰ نویسه مجاز است.",
+  "enterValidEmail": "یک آدرس ایمیل معتبر وارد کنید.",
+  "passwordMinLength": "رمز عبور باید حداقل ۱۰ نویسه باشد.",
+  "passwordTooLong": "رمز عبور بیش از حد طولانی است.",
+  "confirmPasswordRequired": "تکرار رمز عبور را وارد کنید.",
+  "passwordsDoNotMatch": "رمزهای عبور با یکدیگر مطابقت ندارند.",
+  "usernameCannotChange": "نام کاربری پس از ساخت حساب فعلاً قابل تغییر نیست؛ در انتخاب آن دقت کنید.",
+  "pleaseWait": "لطفاً صبر کنید…",
+  "createAccount": "ساخت حساب",
+  "alreadyHaveAccount": "از قبل حساب دارید؟ ورود",
+  "noAccountSignUp": "حساب ندارید؟ ثبت‌نام کنید",
+  "termsNotice": "با ادامه، موافقت با قوانین و سیاست حریم خصوصی هماگرام لازم است.",
+  "tagline": "ارتباطی فراتر از مرزها",
+  "yourEmail": "ایمیل شما",
+  "verificationSentTo": "پیوند تأیید به {email} ارسال شده است. پس از تأیید، به برنامه برگردید و وارد شوید.",
+  "@verificationSentTo": {
+    "placeholders": {
+      "email": {}
+    }
+  }
 }
