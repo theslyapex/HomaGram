@@ -107,23 +107,24 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
       final bytes = await BugReportPreferences.captureScreen();
       final dialogContext = homagramNavigatorKey.currentContext;
       if (!mounted || dialogContext == null || bytes == null) return;
+      final t = AppLocalizations.of(dialogContext)!;
       final send = await showDialog<bool>(
         context: dialogContext,
         builder: (ctx) => AlertDialog(
-          title: Text(_t.quickBugReportTitle),
+          title: Text(t.quickBugReportTitle),
           content: SizedBox(
             width: 360,
             child: SingleChildScrollView(child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(_t.quickBugReportScreenshotPrivacy,
+                Text(t.quickBugReportScreenshotPrivacy,
                   style: TextStyle(fontSize: 12, height: 1.7)),
                 const SizedBox(height: 10),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(13),
                   child: Image.memory(bytes, height: 190, fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => Text(_t.quickBugReportPreviewUnavailable)),
+                    errorBuilder: (_, __, ___) => Text(t.quickBugReportPreviewUnavailable)),
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -132,8 +133,8 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
                   maxLines: 4,
                   maxLength: 1200,
                   decoration: InputDecoration(
-                    labelText: _t.quickBugReportDescriptionLabel,
-                    hintText: _t.quickBugReportDescriptionHint,
+                    labelText: t.quickBugReportDescriptionLabel,
+                    hintText: t.quickBugReportDescriptionHint,
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -141,11 +142,11 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
             )),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(_t.cancel)),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t.cancel)),
             FilledButton.icon(
               onPressed: () => Navigator.pop(ctx, true),
               icon: const Icon(Icons.send_rounded),
-              label: Text(_t.quickBugReportSend),
+              label: Text(t.quickBugReportSend),
             ),
           ],
         ),
@@ -158,8 +159,8 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
         fileName: 'homagram-bug-report.png',
         mimeType: 'image/png',
         caption: controller.text.trim().isEmpty
-            ? _t.quickBugReportCaptionDefault
-            : _t.quickBugReportCaptionDetails(controller.text.trim()),
+            ? t.quickBugReportCaptionDefault
+            : t.quickBugReportCaptionDetails(controller.text.trim()),
       );
       if (!mounted) return;
       homagramNavigatorKey.currentState?.push(MaterialPageRoute<void>(
@@ -168,7 +169,7 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
     } catch (_) {
       final context = homagramNavigatorKey.currentContext;
       if (context != null && mounted) ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-        SnackBar(content: Text(_t.quickBugReportSubmitFailed)),
+        SnackBar(content: Text(t.quickBugReportSubmitFailed)),
       );
     } finally {
       controller.dispose();
