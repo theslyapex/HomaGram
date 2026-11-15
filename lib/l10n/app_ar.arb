@@ -1467,5 +1467,16 @@
   },
   "storyOpenLinkFailed": "تعذّر فتح الرابط.",
   "storyVideoPlaybackFailed": "تعذّر تشغيل الفيديو. تحقق من اتصال الإنترنت وحاول مرة أخرى.",
-  "storyVideoLoading": "جارٍ تحميل الفيديو…"
+  "storyVideoLoading": "جارٍ تحميل الفيديو…",
+  "storyPublishedAt": "نُشرت في {date}، الساعة {time}",
+  "@storyPublishedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }
