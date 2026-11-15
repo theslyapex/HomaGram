@@ -1469,8 +1469,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                       final data = Map<String, dynamic>.from(draft['draft_data'] as Map);
                       final textMode = data['text_mode'] == true;
                       final title = (data['caption'] as String? ?? '').trim();
-                      final type = data['media_type'] == 'video' ? 'ویدئو' :
-                        data['media_type'] == 'image' ? 'تصویر' : 'متنی';
+                      final type = data['media_type'] == 'video' ? _t.storyVideo :
+                        data['media_type'] == 'image' ? _t.storyImage : _t.storyText;
                       final date = DateTime.tryParse(draft['updated_at'] as String? ?? '');
                       return ListTile(
                         leading: CircleAvatar(
@@ -1607,25 +1607,25 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     if (_busy) return;
     if (_textMode) {
       if (_caption.text.trim().isEmpty || _caption.text.trim().length > 1000) {
-        _notice('متن استوری باید بین ۱ تا ۱۰۰۰ نویسه باشد.', true);
+        _notice(_t.storyTextLengthInvalid, true);
         return;
       }
     } else {
       if (file == null || type == null) {
-        _notice('ابتدا تصویر یا ویدئو انتخاب کنید.', true);
+        _notice(_t.storyChooseMediaFirst, true);
         return;
       }
       if (_caption.text.trim().length > 500) {
-        _notice('متن استوری حداکثر ۵۰۰ نویسه است.', true);
+        _notice(_t.storyTextMaxLength, true);
         return;
       }
       if (_questionBoxEnabled && (_questionBoxPrompt.text.trim().isEmpty || _questionBoxPrompt.text.trim().length > 180)) {
-        _notice('متن باکس پرسش را بین ۱ تا ۱۸۰ نویسه وارد کنید.', true);
+        _notice(_t.storyQuestionLengthInvalid, true);
         return;
       }
       if (_countdownEnabled && (_countdownTitle.text.trim().isEmpty || _countdownTitle.text.trim().length > 100 ||
           !_countdownTarget.isAfter(DateTime.now().add(const Duration(seconds: 10))))) {
-        _notice('عنوان و زمان شمارش معکوس را درست وارد کنید.', true);
+        _notice(_t.storyCountdownInvalid, true);
         return;
       }
       if (_pollEnabled) {
@@ -1633,7 +1633,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         final options = _pollOptions.map((item) => item.text.trim()).toList();
         if (question.isEmpty || question.length > 160 || options.any((item) => item.isEmpty || item.length > 60) ||
             options.map((item) => item.toLowerCase()).toSet().length != options.length) {
-          _notice('سؤال و گزینه‌های نظرسنجی را کامل و بدون تکرار وارد کنید.', true);
+          _notice(_t.storyPollInvalid, true);
           return;
         }
       }
@@ -1681,7 +1681,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (_) {
-      _notice('انتشار استوری انجام نشد. اتصال یا فرمت رسانه را بررسی کنید.', true);
+      _notice(_t.storyPublishFailed, true);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
