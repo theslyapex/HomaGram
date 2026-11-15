@@ -649,7 +649,16 @@ class _NewChatSheetState extends State<_NewChatSheet> {
                 itemBuilder: (context, index) {
                   final user = _users[index];
                   return ListTile(
-                    leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
+                    leading: CircleAvatar(
+                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                      backgroundImage: user['avatar_url'] is String
+                          ? NetworkImage(user['avatar_url'] as String)
+                          : null,
+                      child: user['avatar_url'] is String
+                          ? null
+                          : Icon(Icons.person_outline_rounded,
+                              color: Theme.of(context).colorScheme.onPrimaryContainer),
+                    ),
                     title: Row(mainAxisSize: MainAxisSize.min, children: [
                       Flexible(child: Text(user['display_name'] as String? ?? user['username'] as String,
                         maxLines: 1, overflow: TextOverflow.ellipsis)),
