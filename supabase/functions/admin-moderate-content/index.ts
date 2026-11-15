@@ -60,6 +60,25 @@ Deno.serve(async (req: Request) => {
   const { data: protectedAccount, error: protectedError } = await adminClient.rpc("admin_is_protected_account", { p_user_id: targetUserId });
   if (protectedError) return json(500, { error: "protection_check_failed" });
   if (protectedAccount === true) return json(403, { error: "protected_admin_account" });
+  if (action === "remove_profile_content") {
+    const { data: profile, error: profileReadError } = await adminClient.from("profiles")
+      .select("avatar_path").eq("id", targetUserId).maybeSingle();
+    if (profileReadError || !profile) return json(404, { error: "profile_not_found" });
+    const { error: profileUpdateError } = await adminClient.from("profiles")
+      .update({ bio: null, website_url: null, avatar_path: null, updated_at: new Date().toISOString() })
+      .eq("id", targetUserId);
+    if (profileUpdateError) return json(500, { error: "profile_cleanup_failed" });
+    let avatarCleanup = true;
+    if (typeof profile.avatar_path === "string" && profile.avatar_path.length > 0) {
+      const { error } = await adminClient.storage.from("avatars").remove([profile.avatar_path]);
+      avatarCleanup = !error;
+    }
+    const notificationSent = await notify(targetUserId,
+      "اطلاعات نمایشی پروفایل شما پس از بررسی مدیران، به دلیل مغایرت با مقررات هماگرام پاک‌سازی شد. می‌توانید اطلاعات مجاز را دوباره ثبت کنید.");
+    await audit(targetUserId, "profile_content_removed_by_admin", { avatar_cleanup: avatarCleanup });
+    return json(200, { success: true, avatar_cleanup: avatarCleanup, notification_sent: notificationSent });
+  }
+
   if (action === "warn_user") {
     const message = typeof payload.message === "string" ? payload.message.trim() : "";
     if (message.length < 8 || message.length > 900) return json(400, { error: "invalid_warning_message" });
