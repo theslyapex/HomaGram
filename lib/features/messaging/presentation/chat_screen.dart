@@ -689,16 +689,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
     String actionTitle(String action) {
       switch (action) {
-        case 'channel_created': return 'ایجاد کانال';
-        case 'member_added': return 'افزودن عضو';
-        case 'member_removed': return 'حذف عضو';
-        case 'member_role_changed': return 'تغییر نقش عضو';
-        case 'channel_permissions_changed': return 'تغییر دسترسی اعضا';
-        case 'channel_details_changed': return 'ویرایش اطلاعات کانال';
-        case 'ownership_transferred': return 'انتقال مالکیت';
-        case 'invite_created': return 'ساخت کد دعوت';
-        case 'invite_revoked': return 'لغو کد دعوت';
-        default: return 'فعالیت مدیریتی';
+        case 'channel_created': return _t.channelCreated;
+        case 'member_added': return _t.memberAdded;
+        case 'member_removed': return _t.memberRemoved;
+        case 'member_role_changed': return _t.memberRoleChanged;
+        case 'channel_permissions_changed': return _t.channelPermissionsChanged;
+        case 'channel_details_changed': return _t.channelDetailsChanged;
+        case 'ownership_transferred': return _t.ownershipTransferred;
+        case 'invite_created': return _t.inviteCreated;
+        case 'invite_revoked': return _t.inviteRevoked;
+        default: return _t.adminActivity;
       }
     }
 
@@ -708,18 +708,18 @@ class _ChatScreenState extends State<ChatScreen> {
           : <String, dynamic>{};
       final target = row['target_label'] as String?;
       switch (row['action']) {
-        case 'member_added': return target == null ? 'عضو جدید به کانال اضافه شد.' : '$target به کانال اضافه شد.';
-        case 'member_removed': return target == null ? 'یک عضو از کانال حذف شد.' : '$target از کانال حذف شد.';
+        case 'member_added': return target == null ? _t.newMemberAddedToChannel : _t.memberAddedToChannel(target);
+        case 'member_removed': return target == null ? _t.memberRemovedFromChannel : _t.namedMemberRemovedFromChannel(target);
         case 'member_role_changed':
           return '${metadata['old_role'] ?? '—'} ← ${metadata['new_role'] ?? '—'}';
-        case 'ownership_transferred': return target == null ? 'مالکیت کانال منتقل شد.' : 'مالک جدید: $target';
+        case 'ownership_transferred': return target == null ? _t.channelOwnershipTransferred : _t.newChannelOwner(target);
         case 'channel_permissions_changed':
-          return 'ارسال متن: ${metadata['members_can_post'] == true ? 'فعال' : 'غیرفعال'} • رسانه: ${metadata['members_can_send_media'] == true ? 'فعال' : 'غیرفعال'}';
+          return _t.textAndMediaPermissions(metadata['members_can_post'] == true ? _t.active : _t.revoked, metadata['members_can_send_media'] == true ? _t.active : _t.revoked);
         case 'invite_created': return 'اعتبار: ${metadata['expires_at'] ?? '—'} • سقف استفاده: ${metadata['max_uses'] ?? '—'}';
-        case 'invite_revoked': return 'یک کد دعوت غیرفعال شد.';
+        case 'invite_revoked': return _t.inviteCodeDisabledActivity;
         case 'channel_details_changed':
-          return metadata['title'] is String ? 'نام کانال: ${metadata['title']}' : 'اطلاعات کانال به‌روزرسانی شد.';
-        case 'channel_created': return 'کانال ایجاد شد.';
+          return metadata['title'] is String ? _t.channelNameActivity(metadata['title'] as String) : _t.channelDetailsUpdatedActivity;
+        case 'channel_created': return _t.channelCreatedActivity;
         default: return '';
       }
     }
@@ -774,7 +774,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         children: [
                                           Text(actionDetail(row)),
                                           const SizedBox(height: 4),
-                                          Text('${row['actor_label'] ?? 'مدیر سیستم'} • $dateLabel',
+                                          Text('${row['actor_label'] ?? _t.systemAdmin} • $dateLabel',
                                             style: Theme.of(ctx).textTheme.bodySmall),
                                         ],
                                       ),
@@ -978,7 +978,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 padding: const EdgeInsets.fromLTRB(18, 4, 18, 12),
                 child: Align(
                   alignment: Alignment.centerRight,
-                  child: Text(isGroup ? 'مدیریت لینک‌های دعوت گروه' : 'مدیریت کدهای دعوت کانال', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                  child: Text(isGroup ? _t.manageGroupInviteLinks : _t.manageChannelInviteCodes, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                 ),
               ),
               Padding(
@@ -986,7 +986,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: SizedBox(width: double.infinity, child: FilledButton.icon(
                   onPressed: createInvite,
                   icon: const Icon(Icons.add_link_rounded),
-                  label: Text(isGroup ? 'ساخت لینک دعوت گروه' : 'ساخت کد دعوت کانال'),
+                  label: Text(isGroup ? _t.createGroupInviteLink : _t.createChannelInviteCode),
                 )),
               ),
               const SizedBox(height: 8),
