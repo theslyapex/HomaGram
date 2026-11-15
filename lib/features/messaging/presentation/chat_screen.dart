@@ -301,8 +301,11 @@ class _ChatScreenState extends State<ChatScreen> {
       }
       final ext = file.name.toLowerCase().split('.').last;
       final mime = (choice == 'image' || choice == 'timed_image')
-          ? (ext == 'png' ? 'image/png' : ext == 'webp' ? 'image/webp' : 'image/jpeg')
-          : (ext == 'mov' ? 'video/quicktime' : ext == 'webm' ? 'video/webm' : 'video/mp4');
+          ? (ext == 'png' ? 'image/png' : ext == 'webp' ? 'image/webp' :
+              (ext == 'heic' ? 'image/heic' : ext == 'heif' ? 'image/heif' : 'image/jpeg'))
+          : (ext == 'mov' ? 'video/quicktime' : ext == 'webm' ? 'video/webm' :
+              (ext == '3gp' ? 'video/3gpp' : ext == '3g2' ? 'video/3gpp2' :
+              ext == 'm4v' ? 'video/x-m4v' : 'video/mp4'));
       setState(() => _sending = true);
       await MessagingService.sendMediaMessage(
         conversationId: widget.conversationId,
