@@ -2773,7 +2773,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
       final index = latin.indexOf(char);
       return index < 0 ? char : persian[index];
     }).join();
-    return 'ارسال‌شده در ${persianDate(date)}  $localizedTime';
+    return _t.storyPublishedAt(persianDate(date), localizedTime);
   }
 
   Map<String, double> _storyWidgetLayout(String key) {
