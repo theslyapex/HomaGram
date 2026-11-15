@@ -229,6 +229,12 @@ class MessagingService {
     );
   }
 
+  static Future<void> deleteOwnedCommunity(String conversationId) async {
+    await _client.rpc('delete_owned_community', params: {
+      'p_conversation_id': conversationId,
+    });
+  }
+
   static Future<List<Map<String, dynamic>>> loadMessages(
     String conversationId,
   ) async {
