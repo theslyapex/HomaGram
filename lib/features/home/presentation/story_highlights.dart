@@ -101,7 +101,7 @@ class StoryHighlightService {
     for (final row in storyRows) {
       final story = Map<String, dynamic>.from(row);
       story['display_name'] = profile?['display_name'];
-      story['username'] = profile?['username'] ?? 'user';
+      story['username'] = profile?['username'] ?? '';
       story['avatar_path'] = avatarPath;
       story['avatar_url'] = avatarUrl;
       story['media_url'] = story['media_path'] == null ? null : mediaUrls[story['media_path']];
