@@ -897,8 +897,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   title: Text(_t.inviteCodeReady),
                   content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(isGroup
-                        ? 'این لینک فقط تا زمان انقضا یا تکمیل ظرفیت فعال است. آن را برای افراد موردنظر بفرستید.'
-                        : 'این کد فقط همین بار نمایش داده می‌شود. آن را در جای امن نگه دارید و برای افراد موردنظر بفرستید.'),
+                        ? _t.inviteLinkExpiryHint
+                        : _t.inviteCodeOneTimeHint),
                     const SizedBox(height: 12),
                     SelectableText(
                       isGroup ? 'homagram://group/$token' : token,
@@ -1008,15 +1008,15 @@ class _ChatScreenState extends State<ChatScreen> {
                                   final status = invite['invite_status'] as String? ?? '';
                                   final expires = DateTime.tryParse(invite['expires_at'] as String? ?? '');
                                   final expiryText = expires == null
-                                      ? 'زمان انقضا نامشخص'
-                                      : 'انقضا: ${expires.toLocal().toString().substring(0, 16)}';
+                                      ? _t.expirationUnknown
+                                      : _t.expirationLabel(expires.toLocal().toString().substring(0, 16));
                                   return ListTile(
                                     leading: Icon(
                                       status == 'active' ? Icons.key_rounded : Icons.key_off_rounded,
                                       color: status == 'active' ? Theme.of(ctx).colorScheme.primary : Theme.of(ctx).colorScheme.onSurfaceVariant,
                                     ),
                                     title: Text(statusLabel(status), style: const TextStyle(fontWeight: FontWeight.w800)),
-                                    subtitle: Text('${invite['use_count']} از ${invite['max_uses']} استفاده • $expiryText'),
+                                    subtitle: Text(_t.usesOfLimit('${invite['use_count']}', '$expiryText')),
                                     trailing: status == 'active'
                                         ? IconButton(
                                             tooltip: _t.revokeTooltip,
@@ -1054,38 +1054,38 @@ class _ChatScreenState extends State<ChatScreen> {
             child: SingleChildScrollView(
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 const Align(alignment: Alignment.centerRight,
-                  child: Text('دسترسی اعضا', style: TextStyle(fontWeight: FontWeight.w900))),
+                  child: Text(_t.memberPermissions, style: TextStyle(fontWeight: FontWeight.w900))),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('ارسال پیام متنی'),
+                  title: const Text(_t.sendTextMessages),
                   value: membersCanSendMessages,
                   onChanged: (v) => setDialogState(() => membersCanSendMessages = v),
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('ارسال تصویر و فایل'),
+                  title: const Text(_t.sendImagesFiles),
                   value: membersCanSendMedia,
                   onChanged: (v) => setDialogState(() => membersCanSendMedia = v),
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('افزودن اعضای جدید'),
-                  subtitle: const Text('در صورت فعال بودن، اعضای عادی هم می‌توانند افراد را دعوت کنند.'),
+                  title: const Text(_t.addNewMembers),
+                  subtitle: const Text(_t.membersCanInviteHint),
                   value: membersCanAddMembers,
                   onChanged: (v) => setDialogState(() => membersCanAddMembers = v),
                 ),
                 const Divider(height: 22),
                 const Align(alignment: Alignment.centerRight,
-                  child: Text('اختیارات مدیران', style: TextStyle(fontWeight: FontWeight.w900))),
+                  child: Text(_t.adminPrivileges, style: TextStyle(fontWeight: FontWeight.w900))),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('ویرایش نام، توضیحات و تصویر'),
+                  title: const Text(_t.editGroupNameDescriptionPhoto),
                   value: adminsCanChangeInfo,
                   onChanged: (v) => setDialogState(() => adminsCanChangeInfo = v),
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('مدیریت اعضا و لینک‌های دعوت'),
+                  title: const Text(_t.manageMembersInviteLinks),
                   value: adminsCanManageMembers,
                   onChanged: (v) => setDialogState(() => adminsCanManageMembers = v),
                 ),
@@ -1249,7 +1249,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                   if ((isGroup || isChannel) && canChangeInfo)
                     IconButton(
-                      tooltip: isChannel ? 'تغییر تصویر کانال' : 'تغییر تصویر گروه',
+                      tooltip: isChannel ? _t.changeChannelPhoto : _t.changeGroupPhoto,
                       icon: const Icon(Icons.camera_alt_outlined),
                       onPressed: () async {
                         try {
@@ -1279,20 +1279,20 @@ class _ChatScreenState extends State<ChatScreen> {
                           if (sheetContext.mounted) setSheetState(() {});
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(isChannel
-                                ? 'تصویر کانال تغییر کرد.'
-                                : 'تصویر گروه تغییر کرد.')),
+                                ? _t.channelPhotoUpdated
+                                : _t.groupPhotoUpdated)),
                           );
                         } catch (error) {
                           debugPrint('Conversation photo update failed: $error');
                           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('تغییر تصویر انجام نشد. دسترسی مدیر را بررسی کنید.')),
+                            const SnackBar(content: Text(_t.photoChangeFailed)),
                           );
                         }
                       },
                     ),
                   if (isGroup && myRole == 'owner')
                     IconButton(
-                      tooltip: 'تنظیمات عمومی گروه',
+                      tooltip: _t.groupPublicSettings,
                       icon: const Icon(Icons.public_rounded),
                       onPressed: () async {
                         final slugController = TextEditingController(text: info['public_slug'] as String? ?? '');
@@ -1302,7 +1302,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           context: context,
                           builder: (dialogContext) => StatefulBuilder(
                             builder: (dialogContext, setDialogState) => AlertDialog(
-                              title: const Text('قابلیت کشف گروه'),
+                              title: const Text(_t.groupDiscoverability),
                               content: SingleChildScrollView(child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -1312,8 +1312,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                     onChanged: (value) => setDialogState(() => isPublic = value),
                                     title: Text(isPublic ? 'گروه عمومی' : 'گروه خصوصی'),
                                     subtitle: Text(isPublic
-                                      ? 'در بخش کشف نمایش داده می‌شود و کاربران می‌توانند عضو شوند.'
-                                      : 'از نتایج کشف حذف می‌شود و فقط اعضا و دعوت‌شدگان دسترسی دارند.'),
+                                      ? _t.groupPublicDiscoverable
+                                      : _t.groupPrivateAccessHint),
                                   ),
                                   if (isPublic) ...[
                                     TextField(
@@ -1321,7 +1321,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       maxLength: 32,
                                       textDirection: TextDirection.ltr,
                                       decoration: const InputDecoration(
-                                        labelText: 'شناسه عمومی',
+                                        labelText: _t.publicId,
                                         prefixText: '@',
                                         helperText: '۳ تا ۳۲ حرف انگلیسی، عدد یا زیرخط',
                                       ),
@@ -1330,7 +1330,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       controller: descriptionController,
                                       maxLength: 500,
                                       maxLines: 3,
-                                      decoration: const InputDecoration(labelText: 'توضیحات عمومی'),
+                                      decoration: const InputDecoration(labelText: _t.publicDescription),
                                     ),
                                   ],
                                 ],
@@ -1341,7 +1341,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   onPressed: () {
                                     if (isPublic && !RegExp(r'^[a-zA-Z0-9_]{3,32}$').hasMatch(slugController.text.trim())) {
                                       ScaffoldMessenger.of(dialogContext).showSnackBar(
-                                        const SnackBar(content: Text('شناسه باید ۳ تا ۳۲ حرف انگلیسی، عدد یا زیرخط باشد.')),
+                                        const SnackBar(content: Text(_t.publicIdRulesError)),
                                       );
                                       return;
                                     }
@@ -1372,19 +1372,19 @@ class _ChatScreenState extends State<ChatScreen> {
                           if (sheetContext.mounted) Navigator.pop(sheetContext);
                           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(values['isPublic'] == true
-                              ? 'گروه در بخش کشف عمومی قرار گرفت.'
-                              : 'گروه از فهرست عمومی خارج شد.')),
+                              ? _t.groupPublishedToDiscovery
+                              : _t.groupRemovedFromDiscovery)),
                           );
                         } catch (_) {
                           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('ذخیره تنظیمات عمومی گروه انجام نشد؛ شناسه را بررسی کنید.')),
+                            const SnackBar(content: Text(_t.groupPublicSettingsSaveFailed)),
                           );
                         }
                       },
                     ),
                   if ((isGroup || isChannel) && canChangeInfo)
                     IconButton(
-                      tooltip: isChannel ? 'ویرایش اطلاعات کانال' : 'ویرایش اطلاعات گروه',
+                      tooltip: isChannel ? _t.editChannelDetails : _t.editGroupInfo,
                       icon: const Icon(Icons.edit_outlined),
                       onPressed: () async {
                         final titleController = TextEditingController(text: info['title'] as String? ?? '');
@@ -1393,7 +1393,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         final values = await showDialog<List<String>>(
                           context: context,
                           builder: (ctx) => AlertDialog(
-                            title: Text(isChannel ? 'اطلاعات کانال' : 'اطلاعات گروه'),
+                            title: Text(isChannel ? _t.channelInfo : _t.groupInfo),
                             content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
                               TextField(controller: titleController, maxLength: 100,
                                 decoration: const InputDecoration(labelText: 'نام')),
@@ -1403,7 +1403,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               TextField(controller: descriptionController, maxLength: 500, maxLines: 3,
                                 decoration: const InputDecoration(
                                   labelText: 'توضیحات',
-                                  hintText: 'درباره این گروه یا کانال بنویسید',
+                                  hintText: _t.writeAboutGroupChannel,
                                 )),
                             ])),
                             actions: [
@@ -1421,7 +1421,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         if (isChannel) {
                           if (!RegExp(r'^[a-zA-Z0-9_]{3,32}$').hasMatch(values[1].trim())) {
                             if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('شناسه باید ۳ تا ۳۲ حرف انگلیسی، عدد یا زیرخط باشد.')),
+                              const SnackBar(content: Text(_t.publicIdRulesError)),
                             );
                             return;
                           }
@@ -1443,7 +1443,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   if (isChannel && canManage)
                     IconButton(
-                      tooltip: 'تنظیمات دسترسی اعضا',
+                      tooltip: _t.memberPermissionSettings,
                       icon: const Icon(Icons.tune_rounded),
                       onPressed: () async {
                         var canPost = channelData['members_can_post'] as bool? ?? true;
@@ -1452,24 +1452,24 @@ class _ChatScreenState extends State<ChatScreen> {
                           context: context,
                           builder: (dialogContext) => StatefulBuilder(
                             builder: (dialogContext, setDialogState) => AlertDialog(
-                              title: const Text('دسترسی اعضای عادی'),
+                              title: const Text(_t.regularMemberPermissions),
                               content: Column(mainAxisSize: MainAxisSize.min, children: [
                                 SwitchListTile(
                                   contentPadding: EdgeInsets.zero,
-                                  title: const Text('ارسال پیام متنی'),
-                                  subtitle: const Text('اعضای عادی بتوانند پیام متنی بفرستند.'),
+                                  title: const Text(_t.sendTextMessages),
+                                  subtitle: const Text(_t.regularMembersCanSendText),
                                   value: canPost,
                                   onChanged: (value) => setDialogState(() => canPost = value),
                                 ),
                                 SwitchListTile(
                                   contentPadding: EdgeInsets.zero,
-                                  title: const Text('ارسال رسانه و فایل'),
-                                  subtitle: const Text('اعضای عادی بتوانند تصویر، ویدئو و فایل بفرستند.'),
+                                  title: const Text(_t.sendMediaFiles),
+                                  subtitle: const Text(_t.regularMembersCanSendMedia),
                                   value: canSendMedia,
                                   onChanged: (value) => setDialogState(() => canSendMedia = value),
                                 ),
                                 const SizedBox(height: 4),
-                                const Text('مالک و مدیران کانال همیشه امکان ارسال دارند.',
+                                const Text(_t.channelAdminsAlwaysCanSend,
                                   style: TextStyle(fontSize: 12)),
                               ]),
                               actions: [
@@ -1491,11 +1491,11 @@ class _ChatScreenState extends State<ChatScreen> {
                           channelData['members_can_send_media'] = values[1];
                           if (sheetContext.mounted) setSheetState(() {});
                           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('دسترسی اعضا به‌روزرسانی شد.')),
+                            const SnackBar(content: Text(_t.memberPermissionsUpdated)),
                           );
                         } catch (_) {
                           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('ذخیره تنظیمات دسترسی انجام نشد.')),
+                            const SnackBar(content: Text(_t.memberPermissionsSaveFailed)),
                           );
                         }
                       },
