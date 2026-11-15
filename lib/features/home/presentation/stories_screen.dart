@@ -2890,7 +2890,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(_story['display_name'] as String,
+                  Text(_story['display_name'] as String? ?? _t.storyUserFallback,
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 2),
                   Text(_storyTimestamp(_story['created_at']),
