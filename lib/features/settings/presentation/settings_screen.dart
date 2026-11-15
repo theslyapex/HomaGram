@@ -51,7 +51,7 @@ class SettingsScreen extends StatelessWidget {
     if (confirmed != true || !context.mounted) return;
     Navigator.of(context).push(MaterialPageRoute<void>(
       builder: (_) => const SupportChatScreen(
-        initialMessage: 'درخواست رسمی حذف حساب کاربری هماگرام: لطفاً مالکیت حساب را بررسی کنید، مراحل حذف و پیامدهای آن را توضیح دهید و پس از احراز هویت، درخواست حذف اطلاعات قابل حذف را مطابق قوانین لازم‌الاجرا پیگیری کنید.',
+        initialMessage: _t(context).formalAccountDeletionMessage,
       ),
     ));
   }
@@ -68,10 +68,10 @@ class SettingsScreen extends StatelessWidget {
         () => _requestAccountDeletion(context)),
       _SettingEntry(Icons.folder_shared_outlined, _t(context).dataAndAccountRequests, _t(context).dataCopyOrDeletion,
         () => _open(context, _t(context).dataAndAccountRequests, [
-          _PolicySection('دسترسی و دریافت نسخه', 'برای درخواست نسخه‌ای از اطلاعات مرتبط با حساب، از گفت‌وگوی پشتیبانی داخل برنامه پیام دهید. درخواست باید از همان حساب ثبت شود تا امکان بررسی مالکیت حساب فراهم باشد.'),
-          _PolicySection('اصلاح اطلاعات', 'نام نمایشی، نام کاربری و اطلاعاتی را که در بخش ویرایش نمایه قابل تغییر است، از همان بخش اصلاح کنید. برای داده‌هایی که امکان ویرایش مستقیم ندارند، درخواست خود را به پشتیبانی ارسال کنید.'),
-          _PolicySection(_t(context).deleteAccountRequest, 'برای ثبت درخواست حذف حساب، از گفت‌وگوی پشتیبانی داخل برنامه استفاده کنید. پیش از اجرای حذف، پیامدهای آن، مواردی که ممکن است طبق قانون یا برای رسیدگی به گزارش‌ها و اختلاف‌ها نگهداری شوند، و وضعیت محتوای منتشرشده باید به شما توضیح داده شود. این صفحه به‌تنهایی حساب را حذف نمی‌کند.'),
-          _PolicySection('رسیدگی و پیگیری', 'درخواست‌ها پس از بررسی هویت و دامنه درخواست رسیدگی می‌شوند. اطلاعات ورود، رمز عبور یا کد یک‌بارمصرف را برای هیچ‌کس ارسال نکنید.'),
+          _PolicySection(_t(context).dataAccessTitle, _t(context).dataAccessBody),
+          _PolicySection(_t(context).dataCorrectionTitle, _t(context).dataCorrectionBody),
+          _PolicySection(_t(context).deleteAccountRequest, _t(context).dataDeletionBody),
+          _PolicySection(_t(context).dataRequestReviewTitle, _t(context).dataRequestReviewBody),
         ])),
       _SettingEntry(Icons.verified_user_outlined, _t(context).verificationRequest, _t(context).submitVerificationDocuments,
         () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const VerificationRequestScreen()))),
@@ -93,14 +93,14 @@ class SettingsScreen extends StatelessWidget {
         () => _open(context, _t(context).contentOwnershipAndCopyright, _copyright)),
       _SettingEntry(Icons.info_outline_rounded, _t(context).aboutHomagram, _t(context).productStoryVisionAndRoadmap,
         () => _open(context, _t(context).aboutHomagram, const [
-          _PolicySection('هماگرام؛ ارتباطی فراتر از مرزها', 'هماگرام یک فضای اجتماعی و پیام‌رسان چندرسانه‌ای است که برای نزدیک‌تر کردن آدم‌ها، ایده‌ها و تجربه‌ها ساخته می‌شود؛ جایی برای گفت‌وگو، کشف محتوا و ساختن ارتباط‌های معنادار.'),
-          _PolicySection('یک خانه برای ارتباط و خلاقیت', 'در هماگرام می‌توانید محتوای تصویری و ویدئویی منتشر کنید، ریلز و استوری ببینید، با دیگران گفت‌وگو کنید، گروه و کانال بسازید، دیدگاه بگذارید و محتوای مورد علاقه‌تان را دنبال کنید. هدف این است که تجربه‌های روزمره ارتباطی در محیطی منسجم و خوش‌ساخت کنار هم قرار بگیرند.'),
-          _PolicySection('طراحی‌شده برای تجربه‌ای روان', 'از هویت بصری تا حرکت اجزای رابط کاربری، تلاش می‌کنیم تجربه‌ای سریع، خوانا و دلنشین ارائه کنیم. هماگرام به‌صورت پیوسته بهبود می‌یابد و قابلیت‌های تازه پس از آزمون و بررسی مرحله‌ای در اختیار کاربران قرار می‌گیرند.'),
-          _PolicySection('حریم خصوصی و اختیار کاربر', 'کنترل حساب خصوصی، تنظیمات نمایش اطلاعات، مدیریت نشست‌ها، گزارش محتوا و ارتباط با پشتیبانی بخشی از مسیر اعتمادسازی هستند. هیچ‌گاه رمز عبور یا کد ورود خود را در اختیار دیگران قرار ندهید. جزئیات پردازش اطلاعات در بخش «حریم خصوصی و امنیت» توضیح داده شده است.'),
-          _PolicySection('جامعه‌ای بر پایه احترام', 'هماگرام برای گفت‌وگوی محترمانه و مشارکت خلاقانه ساخته می‌شود. امنیت، کرامت و حقوق دیگران باید در انتشار محتوا و ارتباط‌ها رعایت شود؛ گزارش‌های معتبر بررسی می‌شوند و امکان پیگیری از مسیر پشتیبانی وجود دارد.'),
-          _PolicySection('چشم‌انداز توسعه', 'مسیر توسعه هماگرام بر بهبود پیام‌رسانی، تجربه پروفایل، ابزارهای تولید محتوا، امنیت حساب، دسترس‌پذیری و کیفیت عملکرد متمرکز است. قابلیت‌های در حال توسعه تا زمان انتشار و آزمون نهایی، وعده قطعی محصول محسوب نمی‌شوند.'),
-          _PolicySection('ارتباط با تیم هماگرام', 'برای پیشنهاد، گزارش خطا، درخواست بررسی یا پرسش درباره حساب، از گفت‌وگوی پشتیبانی داخل برنامه استفاده کنید. اگر گزارش شما شامل تصویر یا اطلاعات خصوصی است، فقط اطلاعات ضروری را ارسال کنید.'),
-          _PolicySection('هویت محصول', 'HomaGram • Connection Beyond Boundaries\nهماگرام؛ ارتباطی فراتر از مرزها.'),
+          _PolicySection(_t(context).aboutMissionTitle, _t(context).aboutMissionBody),
+          _PolicySection(_t(context).aboutFeaturesTitle, _t(context).aboutFeaturesBody),
+          _PolicySection(_t(context).aboutExperienceTitle, _t(context).aboutExperienceBody),
+          _PolicySection(_t(context).aboutPrivacyTitle, _t(context).aboutPrivacyBody),
+          _PolicySection(_t(context).aboutCommunityTitle, _t(context).aboutCommunityBody),
+          _PolicySection(_t(context).aboutRoadmapTitle, _t(context).aboutRoadmapBody),
+          _PolicySection(_t(context).aboutContactTitle, _t(context).aboutContactBody),
+          _PolicySection(_t(context).aboutIdentityTitle, _t(context).aboutIdentityBody),
         ])),
     ];
     return Scaffold(
