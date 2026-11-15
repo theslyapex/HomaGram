@@ -697,5 +697,12 @@
   "saveSettings": "ذخیره تنظیمات",
   "save": "ذخیره",
   "replyFallback": "پیام",
-  "userFallback": "کاربر"
+  "userFallback": "کاربر",
+  "noMessagesYet": "هنوز پیامی ارسال نشده",
+  "deletedMessagePreview": "پیام حذف شده است",
+  "imagePreview": "تصویر",
+  "videoPreview": "ویدئو",
+  "audioFilePreview": "فایل صوتی",
+  "filePreview": "فایل",
+  "formerAdmin": "مدیر سابق"
 }
