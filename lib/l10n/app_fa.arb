@@ -1597,5 +1597,213 @@
   "adminVerificationStartReview": "شروع بررسی",
   "adminVerificationRequestInfo": "اطلاعات بیشتر",
   "adminVerificationApprove": "تأیید",
-  "adminVerificationReject": "رد درخواست"
+  "adminVerificationReject": "رد درخواست",
+  "adminTitle": "مدیریت هماگرام",
+  "adminOverview": "نمای کلی",
+  "adminUsers": "کاربران",
+  "adminContentModeration": "نظارت محتوا",
+  "adminPostReports": "گزارش پست‌ها",
+  "adminMessageReports": "گزارش پیام‌ها",
+  "adminAuditLogs": "سوابق مدیران",
+  "adminVerificationTab": "تأیید هویت",
+  "adminCommunities": "گروه‌ها و کانال‌ها",
+  "adminVerificationHeading": "بررسی درخواست‌های نشان تأیید",
+  "adminVerificationDescription": "مدارک اشخاص حقیقی و حقوقی را بررسی و وضعیت درخواست را مدیریت کنید.",
+  "adminVerificationOpenRequests": "باز کردن درخواست‌ها",
+  "adminStatsLoadFailed": "دریافت آمار مدیریتی انجام نشد.",
+  "adminMetricUsers": "کاربران",
+  "adminMetricPosts": "پست‌ها",
+  "adminMetricStories": "استوری‌ها",
+  "adminMetricReels": "ریلز",
+  "adminMetricMessages": "پیام‌ها",
+  "adminMetricGroups": "گروه‌ها",
+  "adminMetricChannels": "کانال‌ها",
+  "adminMetricPendingReports": "گزارش‌های در انتظار",
+  "adminMetricOpenSupport": "پشتیبانی باز",
+  "adminControlCenter": "مرکز کنترل هماگرام",
+  "adminControlCenterSubtitle": "مدیریت کاربران، محتوا و گزارش‌ها",
+  "adminOverallStats": "آمار کلی",
+  "adminStatsSecurityNote": "آمار مستقیماً از دیتابیس خوانده می‌شود؛ مجوزها در سمت سرور کنترل می‌شوند.",
+  "adminUsersLoadFailed": "دریافت فهرست کاربران انجام نشد.",
+  "adminSearchUsersHint": "جست‌وجوی نام یا نام کاربری",
+  "adminClearSearch": "پاک‌کردن",
+  "adminNoUsersFound": "کاربری پیدا نشد.",
+  "adminUnknownUser": "کاربر هماگرام",
+  "adminNoUsername": "بدون نام کاربری",
+  "adminUserIdJoined": "شناسه: {id}… • عضویت: {date}",
+  "adminReportsLoadFailed": "دریافت گزارش‌ها انجام نشد.",
+  "adminReportReviewFailed": "ثبت نتیجه بررسی گزارش انجام نشد.",
+  "adminPendingCount": "بررسی‌نشده: {count}",
+  "adminFilterPending": "بررسی‌نشده",
+  "adminFilterReviewed": "بررسی‌شده",
+  "adminFilterAll": "همه",
+  "adminNoPostReports": "گزارش ثبت‌شده‌ای وجود ندارد.",
+  "adminPostWithoutCaption": "پست بدون توضیح",
+  "adminReportDetails": "توضیح گزارش: {details}",
+  "adminReporterClaimsOwnership": "گزارش‌دهنده مدعی مالکیت اثر است",
+  "adminThirdPartyOwnsWork": "اثر متعلق به شخص دیگری است",
+  "adminRightsOwner": "مالکیت اثر: {value}",
+  "adminRightsHolderName": "نام صاحب اثر: {name}",
+  "adminUnknown": "نامشخص",
+  "adminContentOwner": "صاحب محتوا: {name} • @{username}",
+  "adminPostIdDate": "شناسه پست: {id}… • {date}",
+  "adminReporterId": "شناسه گزارش‌دهنده: {id}",
+  "adminManagerNote": "یادداشت مدیر: {note}",
+  "adminDismissReport": "رد گزارش",
+  "adminMarkReviewed": "بررسی شد",
+  "adminActionCompleted": "اقدام انجام شد",
+  "adminMessageReportsLoadFailed": "دریافت گزارش پیام‌ها انجام نشد.",
+  "adminNoMessageReports": "گزارش پیام ثبت نشده است.",
+  "adminMessageWithoutText": "پیام بدون متن یا دارای پیوست",
+  "adminMessageReportDetails": "توضیح: {details}",
+  "adminMessageId": "شناسه پیام: {id}",
+  "adminReasonSpam": "هرزنامه یا تبلیغات مزاحم",
+  "adminReasonHarassment": "توهین، آزار و تهدید",
+  "adminReasonThreat": "تهدید",
+  "adminReasonPrivacy": "نقض حریم خصوصی",
+  "adminReasonInappropriate": "محتوای نامناسب",
+  "adminReasonOther": "سایر موارد",
+  "adminReasonMisinformation": "اطلاعات نادرست",
+  "adminReasonCopiedContent": "محتوای کپی‌شده",
+  "adminReasonCopyright": "نقض حقوق مالکیت اثر",
+  "adminReasonViolence": "محتوای خشونت‌آمیز",
+  "adminReasonPoliticalInsult": "محتوای سیاسیِ توهین‌آمیز",
+  "adminReasonIllegal": "محتوای مغایر با قوانین",
+  "adminStatusDismissed": "رد شده",
+  "adminStatusActioned": "اقدام شده",
+  "adminAuditLoadFailed": "دریافت سوابق مدیریتی انجام نشد.",
+  "adminUnknownTime": "زمان نامشخص",
+  "adminAuditPostReportReviewed": "بررسی گزارش پست",
+  "adminAuditMessageReportReviewed": "بررسی گزارش پیام",
+  "adminAuditUserSuspended": "محدودسازی حساب",
+  "adminAuditUserUnsuspended": "رفع محدودیت حساب",
+  "adminAuditEmpty": "هنوز سابقه مدیریتی ثبت نشده است.",
+  "adminManager": "مدیر",
+  "adminAuditActor": "مدیر اجراکننده: {name}",
+  "adminAuditTarget": "کاربر مرتبط: {name}",
+  "adminAuditDetails": "جزئیات: {details}",
+  "adminAuditActorId": "شناسه مدیر: {id}",
+  "adminAuditTargetId": "شناسه کاربر: {id}",
+  "adminRetry": "تلاش دوباره",
+  "@adminPendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminUserIdJoined": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminReportDetails": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminRightsOwner": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminRightsHolderName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminContentOwner": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminPostIdDate": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminReporterId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminManagerNote": {
+    "placeholders": {
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMessageReportDetails": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMessageId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminAuditActor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminAuditTarget": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminAuditDetails": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminAuditActorId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminAuditTargetId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  }
 }
