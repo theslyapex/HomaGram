@@ -302,7 +302,6 @@
   "joinPublicChannelFailed": "عضویت در کانال عمومی انجام نشد.",
   "joinPrivateChannel": "ورود به کانال خصوصی",
   "inviteCode": "کد دعوت",
-  "64CharCode": "کد ۶۴ کاراکتری",
   "enterValid64CharInvite": "کد دعوت معتبر ۶۴ کاراکتری وارد کنید.",
   "joinMembership": "عضویت",
   "inviteInvalidExpiredRevoked": "کد دعوت نامعتبر، منقضی یا غیرفعال است.",
@@ -704,5 +703,6 @@
   "videoPreview": "ویدئو",
   "audioFilePreview": "فایل صوتی",
   "filePreview": "فایل",
-  "formerAdmin": "مدیر سابق"
+  "formerAdmin": "مدیر سابق",
+  "inviteCode64CharHint": "کد ۶۴ کاراکتری"
 }
