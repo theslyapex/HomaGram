@@ -809,14 +809,19 @@ class _ChatScreenState extends State<ChatScreen> {
                 builder: (dialogContext) => AlertDialog(
                   title: const Text('کد دعوت آماده است'),
                   content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Text('این کد فقط همین بار نمایش داده می‌شود. آن را در جای امن نگه دارید و برای افراد موردنظر بفرستید.'),
+                    Text(isGroup
+                        ? 'این لینک فقط تا زمان انقضا یا تکمیل ظرفیت فعال است. آن را برای افراد موردنظر بفرستید.'
+                        : 'این کد فقط همین بار نمایش داده می‌شود. آن را در جای امن نگه دارید و برای افراد موردنظر بفرستید.'),
                     const SizedBox(height: 12),
-                    SelectableText(token, textDirection: TextDirection.ltr,
-                      style: const TextStyle(fontFamily: 'monospace', fontSize: 12, fontWeight: FontWeight.w800)),
+                    SelectableText(
+                      isGroup ? 'homagram://group/$token' : token,
+                      textDirection: TextDirection.ltr,
+                      style: const TextStyle(fontFamily: 'monospace', fontSize: 12, fontWeight: FontWeight.w800),
+                    ),
                     const SizedBox(height: 12),
                     SizedBox(width: double.infinity, child: OutlinedButton.icon(
                       onPressed: () async {
-                        await Clipboard.setData(ClipboardData(text: token));
+                        await Clipboard.setData(ClipboardData(text: isGroup ? 'homagram://group/$token' : token));
                         if (dialogContext.mounted) {
                           ScaffoldMessenger.of(dialogContext).showSnackBar(
                             const SnackBar(content: Text('کد دعوت کپی شد.')),
@@ -824,7 +829,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         }
                       },
                       icon: const Icon(Icons.copy_rounded),
-                      label: const Text('کپی کد'),
+                      label: Text(isGroup ? 'کپی لینک دعوت' : 'کپی کد'),
                     )),
                   ]),
                   actions: [
