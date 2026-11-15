@@ -2248,5 +2248,12 @@
   "termsNoticeMiddle": " and ",
   "termsNoticeSuffix": ".",
   "termsLinkLabel": "Terms of Use",
-  "privacyLinkLabel": "Privacy Policy"
+  "privacyLinkLabel": "Privacy Policy",
+
+  "accountSwitcherTitle": "Your accounts",
+  "accountSwitcherHint": "Choose an account to switch to",
+  "noSavedAccounts": "No saved accounts yet",
+  "addAnotherAccount": "Add another account",
+  "addAccountSubtitle": "Sign in to another account and keep it securely on this device",
+  "accountSwitchFailed": "Could not switch accounts. Please try again."
 }
