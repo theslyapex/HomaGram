@@ -1,3 +1,4 @@
+import 'app/app_language.dart';
 import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -35,5 +36,6 @@ Future<void> main() async {
     }
   }
 
+  await AppLanguage.instance.load();
   runApp(HomaGramApp(supabaseConfigured: configured));
 }
