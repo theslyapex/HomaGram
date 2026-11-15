@@ -6,6 +6,7 @@ import '../../../app/theme/app_theme.dart';
 import '../../../app/presentation/homagram_branding.dart';
 import '../data/auth_service.dart';
 import '../domain/auth_constants.dart';
+import 'legal_document_screen.dart';
 
 enum _Mode { signIn, signUp }
 
@@ -152,8 +153,32 @@ class _AuthScreenState extends State<AuthScreen> {
               const SizedBox(height: 18),
               HomaGramEntrance(
                 delay: const Duration(milliseconds: 360),
-                child: Text(_strings.termsNotice,
-                  textAlign: TextAlign.center, style: TextStyle(color: Color(0xFFCAD5E3), fontSize: 11, height: 1.7)),
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(_strings.termsNoticePrefix,
+                      style: const TextStyle(color: Color(0xFFCAD5E3), fontSize: 11, height: 1.8)),
+                    InkWell(
+                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => const LegalDocumentScreen(document: LegalDocumentType.terms))),
+                      child: Text(_strings.termsLinkLabel,
+                        style: const TextStyle(color: Color(0xFF70E0D5), fontSize: 11,
+                          height: 1.8, fontWeight: FontWeight.w800, decoration: TextDecoration.underline)),
+                    ),
+                    Text(_strings.termsNoticeMiddle,
+                      style: const TextStyle(color: Color(0xFFCAD5E3), fontSize: 11, height: 1.8)),
+                    InkWell(
+                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => const LegalDocumentScreen(document: LegalDocumentType.privacy))),
+                      child: Text(_strings.privacyLinkLabel,
+                        style: const TextStyle(color: Color(0xFF70E0D5), fontSize: 11,
+                          height: 1.8, fontWeight: FontWeight.w800, decoration: TextDecoration.underline)),
+                    ),
+                    Text(_strings.termsNoticeSuffix,
+                      style: const TextStyle(color: Color(0xFFCAD5E3), fontSize: 11, height: 1.8)),
+                  ],
+                ),
               ),
             ]),
           ),
