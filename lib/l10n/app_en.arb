@@ -1498,5 +1498,51 @@
     }
   },
   "sharedPostTitle": "Post on HomaGram",
-  "sharedPostUnavailable": "This post is unavailable. It may have been deleted or the author's account may be private."
+  "sharedPostUnavailable": "This post is unavailable. It may have been deleted or the author's account may be private.",
+  "verificationRequestTitle": "Verification badge request",
+  "verificationStep": "Step {current} of {total}",
+  "verificationAccountType": "Account type",
+  "verificationIndividual": "Individual",
+  "verificationOrganization": "Organization",
+  "verificationCategory": "Field / category",
+  "verificationFullName": "Full name",
+  "verificationOrganizationName": "Official company or organization name",
+  "verificationRequired": "This field is required.",
+  "verificationPhoneOptional": "Phone number (optional)",
+  "verificationRegistrationNumber": "Company registration number",
+  "verificationNationalId": "National ID",
+  "verificationPublicLinks": "Website and other verified account links",
+  "verificationLinksHint": "Enter one link per line",
+  "verificationAddEvidence": "Add evidence or press coverage ({count}/{maximum})",
+  "verificationEvidenceInstructions": "Upload press coverage, an introduction, registration documents, or relevant public evidence. Only administrators can view these documents.",
+  "verificationExplanation": "Additional details and reason for the request",
+  "verificationExplanationRequired": "Please provide at least 20 characters.",
+  "verificationDisclaimer": "Submitting a request does not guarantee verification. Incorrect information may result in rejection.",
+  "verificationPrevious": "Previous",
+  "verificationSubmitForReview": "Submit for review",
+  "verificationContinue": "Continue",
+  "verificationSubmitted": "Your verification request was submitted and is awaiting review.",
+  "verificationSubmitFailed": "Couldn't submit the request. Please check your connection and try again.",
+  "verificationFileTooLarge": "Each document must be 10 MB or smaller.",
+  "verificationFileFormatInvalid": "Only JPG, PNG, or WebP images are accepted.",
+  "@verificationStep": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@verificationAddEvidence": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "maximum": {
+        "type": "int"
+      }
+    }
+  }
 }
