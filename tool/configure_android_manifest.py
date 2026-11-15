@@ -18,12 +18,15 @@ def main() -> int:
     required_permissions = (
         "android.permission.INTERNET",
         "android.permission.POST_NOTIFICATIONS",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
     )
     for permission_name in required_permissions:
         if not any(item.get(android + "name") == permission_name
                    for item in root.findall("uses-permission")):
             permission = ET.Element("uses-permission")
             permission.set(android + "name", permission_name)
+            if permission_name == "android.permission.WRITE_EXTERNAL_STORAGE":
+                permission.set(android + "maxSdkVersion", "29")
             root.insert(0, permission)
     activity = next((item for item in root.iter("activity")
                      if item.get(android + "name", "").endswith("MainActivity")), None)
