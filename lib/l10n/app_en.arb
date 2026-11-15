@@ -1974,5 +1974,87 @@
         "type": "String"
       }
     }
+  },
+  "adminDeleteAccountConfirmTitle": "Delete user account?",
+  "adminDeleteAccountQuestion": "Are you sure you want to delete the account for {name}? This cannot be undone, and related data will be deleted according to database relationships.",
+  "adminContinueDelete": "Yes, continue",
+  "adminFinalDeleteConfirm": "Final deletion confirmation",
+  "adminDeleteAccountInstruction": "To prevent accidental deletion, enter “{phrase}” exactly.",
+  "adminDeleteAccountPhrase": "delete account",
+  "adminDeleteAccountField": "Confirmation phrase",
+  "adminDeleteAccountPermanent": "Permanently delete account",
+  "adminUserDeleted": "User account deleted.",
+  "adminDeleteAccountFailed": "Couldn't delete the account. It may be an administrator account or protected.",
+  "adminVerificationEnabled": "Verification badge enabled.",
+  "adminVerificationDisabled": "Verification badge revoked.",
+  "adminVerificationToggleFailed": "Couldn't update verification status.",
+  "adminUserSupportTitle": "User support",
+  "adminUserSupportFailed": "Couldn't create a support conversation.",
+  "adminDurationHoursAndMinutes": "{hours} hours and {minutes} minutes",
+  "adminUserFileTitle": "User file",
+  "adminUserDataLoadFailed": "Couldn't load user information.",
+  "adminMetricComments": "Comments",
+  "adminMetricLikesReceived": "Likes received",
+  "adminMetricFollowers": "Followers",
+  "adminMetricFollowing": "Following",
+  "adminMetricReportsSubmitted": "Reports submitted",
+  "adminMetricPostReportsReceived": "Post reports received",
+  "adminMetricMessageReportsSubmitted": "Message reports submitted",
+  "adminMetricMessageReportsReceived": "Message reports received",
+  "adminUniqueAccountId": "Unique account ID",
+  "adminJoinedAt": "Joined",
+  "adminLastSignIn": "Last recorded sign-in",
+  "adminUserBio": "User bio",
+  "adminWebsite": "Website",
+  "adminActivityTotal": "Total recorded activity time",
+  "adminActivityTrackingNote": "Calculated from the version that records activity; historical statistics aren't available.",
+  "adminAccountPerformance": "Account activity",
+  "adminUserSubmittedReports": "Reports submitted by this user",
+  "adminReportsAgainstUser": "Reports against this user's content",
+  "adminRevokeVerification": "Revoke verification badge",
+  "adminGrantVerification": "Grant verification badge",
+  "adminSendSupportMessage": "Send support message to user",
+  "adminDeletingAccount": "Deleting account…",
+  "adminDeleteUserAccount": "Delete user account",
+  "adminNoReports": "No records found.",
+  "adminReportedContent": "Reported content: {content}",
+  "adminReportDate": "Date: {date}",
+  "@adminDeleteAccountQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminDeleteAccountInstruction": {
+    "placeholders": {
+      "phrase": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminDurationHoursAndMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminReportedContent": {
+    "placeholders": {
+      "content": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminReportDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   }
 }
