@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/data/auth_service.dart';
 import '../data/story_service.dart';
 import 'stories_screen.dart';
@@ -286,6 +287,7 @@ class StoryHighlightsStrip extends StatefulWidget {
 }
 
 class _StoryHighlightsStripState extends State<StoryHighlightsStrip> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   late Future<List<Map<String, dynamic>>> _future;
 
   @override
@@ -333,16 +335,16 @@ class _StoryHighlightsStripState extends State<StoryHighlightsStrip> {
             ListTile(
               title: Text(highlight['title'] as String,
                   style: const TextStyle(fontWeight: FontWeight.w800)),
-              subtitle: const Text('مدیریت مجموعه هایلایت'),
+              subtitle: Text(_t.highlightManageCollection),
             ),
             ListTile(
               leading: const Icon(Icons.edit_outlined),
-              title: const Text('ویرایش عنوان و استوری‌ها'),
+              title: Text(_t.highlightEditTitleStories),
               onTap: () => Navigator.pop(sheetContext, 'edit'),
             ),
             ListTile(
               leading: const Icon(Icons.delete_outline_rounded, color: Colors.red),
-              title: const Text('حذف هایلایت', style: TextStyle(color: Colors.red)),
+              title: Text(_t.highlightDelete, style: const TextStyle(color: Colors.red)),
               onTap: () => Navigator.pop(sheetContext, 'delete'),
             ),
           ],
@@ -364,11 +366,11 @@ class _StoryHighlightsStripState extends State<StoryHighlightsStrip> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('حذف هایلایت'),
-        content: Text('هایلایت «${highlight['title']}» حذف شود؟ استوری‌های آرشیو شما حذف نمی‌شوند.'),
+        title: Text(_t.highlightDelete),
+        content: Text(_t.highlightDeleteConfirm(highlight['title'] as String)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('حذف')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(_t.feedCancel)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(_t.feedDelete)),
         ],
       ),
     );
@@ -379,7 +381,7 @@ class _StoryHighlightsStripState extends State<StoryHighlightsStrip> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('حذف هایلایت انجام نشد.')),
+          SnackBar(content: Text(_t.highlightDeleteFailed)),
         );
       }
     }
@@ -418,7 +420,7 @@ class _StoryHighlightsStripState extends State<StoryHighlightsStrip> {
             } catch (_) {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('مرتب‌سازی هایلایت‌ها انجام نشد.')),
+                  SnackBar(content: Text(_t.highlightReorderFailed)),
                 );
               }
             }
@@ -428,7 +430,7 @@ class _StoryHighlightsStripState extends State<StoryHighlightsStrip> {
               return SizedBox(
                 key: const ValueKey('new-story-highlight'),
                 width: 78,
-                child: _HighlightAvatar(title: 'جدید', add: true, onTap: _create),
+                child: _HighlightAvatar(title: _t.highlightNew, add: true, onTap: _create),
               );
             }
             final highlight = highlights[index - (widget.isOwner ? 1 : 0)];
@@ -570,6 +572,7 @@ class StoryHighlightEditorScreen extends StatefulWidget {
 }
 
 class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final _title = TextEditingController();
   late Future<List<Map<String, dynamic>>> _availableStories;
   final Set<String> _selected = {};
@@ -625,7 +628,7 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
       final ext = ['jpg', 'jpeg', 'png', 'webp'].contains(extension) ? extension : 'jpg';
       final bytes = await picked.readAsBytes();
       if (bytes.isEmpty || bytes.length > 5 * 1024 * 1024) {
-        _message('تصویر کاور باید کمتر از ۵ مگابایت باشد.');
+        _message(_t.highlightCoverTooLarge);
         return;
       }
       final ownerId = AuthService.client.auth.currentUser!.id;
@@ -635,18 +638,18 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
       if (!mounted) return;
       setState(() { _coverImagePath = path; _coverImageUrl = url; });
     } catch (_) {
-      _message('انتخاب یا بارگذاری تصویر کاور انجام نشد.');
+      _message(_t.highlightCoverFailed);
     }
   }
 
   Future<void> _save() async {
     if (_saving) return;
     if (_title.text.trim().isEmpty || _title.text.trim().length > 30) {
-      _message('عنوان هایلایت باید ۱ تا ۳۰ نویسه باشد.');
+      _message(_t.highlightTitleLength);
       return;
     }
     if (_selected.isEmpty) {
-      _message('حداقل یک استوری انتخاب کنید.');
+      _message(_t.highlightSelectStory);
       return;
     }
     setState(() => _saving = true);
@@ -668,7 +671,7 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
       }
       if (mounted) Navigator.of(context).pop(true);
     } catch (_) {
-      _message('ساخت هایلایت انجام نشد. دوباره تلاش کنید.');
+      _message(_t.highlightSaveFailed);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -682,12 +685,12 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text(widget.highlight == null ? 'ساخت هایلایت' : 'ویرایش هایلایت',
+      title: Text(widget.highlight == null ? _t.highlightCreate : _t.highlightEdit,
         style: const TextStyle(fontFamily: 'Estedad', fontWeight: FontWeight.w800)),
       actions: [
         TextButton(
           onPressed: _saving ? null : _save,
-          child: Text(_saving ? '...' : (widget.highlight == null ? 'ذخیره' : 'ذخیره تغییرات'),
+          child: Text(_saving ? '...' : (widget.highlight == null ? _t.feedSaveChanges : _t.feedSaveChanges),
             style: const TextStyle(fontFamily: 'Estedad', fontWeight: FontWeight.w700)),
         ),
       ],
@@ -699,7 +702,7 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return const Center(child: Text('آرشیو استوری‌ها بارگذاری نشد.'));
+          return Center(child: Text(_t.highlightArchiveLoadFailed));
         }
         final itemsById = <String, Map<String, dynamic>>{};
         for (final story in snapshot.data ?? <Map<String, dynamic>>[]) {
@@ -714,7 +717,7 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
           ..sort((a, b) => (b['created_at'] as String)
               .compareTo(a['created_at'] as String));
         if (items.isEmpty) {
-          return const Center(child: Text('هنوز استوری فعالی یا آرشیوشده‌ای برای هایلایت ندارید.'));
+          return Center(child: Text(_t.highlightNoStories));
         }
         return Column(
           children: [
@@ -723,9 +726,9 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
               child: TextField(
                 controller: _title,
                 maxLength: 30,
-                decoration: const InputDecoration(
-                  labelText: 'عنوان هایلایت',
-                  hintText: 'مثلاً سفرها، پروژه‌ها، لحظه‌ها',
+                decoration: InputDecoration(
+                  labelText: _t.highlightTitleLabel,
+                  hintText: _t.highlightTitleHint,
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -743,18 +746,18 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
                 ),
                 const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('کاور اختصاصی هایلایت', style: TextStyle(fontWeight: FontWeight.w800, fontFamily: 'Estedad')),
+                  Text(_t.highlightCustomCover, style: TextStyle(fontWeight: FontWeight.w800, fontFamily: 'Estedad')),
                   const SizedBox(height: 3),
-                  const Text('یک تصویر از گالری انتخاب کن یا کاور یکی از استوری‌ها را نگه دار.',
+                  Text(_t.highlightCoverDescription,
                     style: TextStyle(fontSize: 10, height: 1.5)),
                   TextButton.icon(
                     onPressed: _saving ? null : _pickCustomCover,
                     icon: const Icon(Icons.photo_library_outlined, size: 17),
-                    label: const Text('انتخاب از گالری', style: TextStyle(fontFamily: 'Estedad')),
+                    label: Text(_t.highlightChooseGallery, style: const TextStyle(fontFamily: 'Estedad')),
                   ),
                 ])),
                 if (_coverImagePath != null)
-                  IconButton(tooltip: 'حذف تصویر انتخابی',
+                  IconButton(tooltip: _t.highlightRemoveCover,
                     onPressed: () => setState(() { _coverImagePath = null; _coverImageUrl = null; }),
                     icon: const Icon(Icons.close_rounded)),
               ]),
@@ -763,7 +766,7 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: Align(
                 alignment: Alignment.centerRight,
-                child: Text('استوری‌های فعال و آرشیوشده • ${_selected.length}  |  ★ انتخاب کاور',
+                child: Text(_t.highlightSelectedStories(_selected.length),
                   style: const TextStyle(fontWeight: FontWeight.w700)),
               ),
             ),
@@ -856,8 +859,8 @@ class _StoryHighlightEditorScreenState extends State<StoryHighlightEditorScreen>
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: _saving ? null : _save,
-                  child: Text(_saving ? 'در حال ذخیره...' :
-                      (widget.highlight == null ? 'ساخت هایلایت (${_selected.length})' : 'ذخیره تغییرات (${_selected.length})')),
+                  child: Text(_saving ? _t.highlightSaving :
+                      (widget.highlight == null ? _t.highlightCreateCount(_selected.length) : _t.highlightSaveCount(_selected.length))),
                 ),
               ),
             ),
