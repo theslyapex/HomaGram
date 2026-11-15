@@ -219,7 +219,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               child: CustomScrollView(slivers: [
                 if (_communities.isNotEmpty) SliverToBoxAdapter(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Padding(padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                       child: Text(_t.exploreCommunities, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900))),
                     ..._communities.map((community) {
                       final isChannel = community['kind'] == 'channel';
@@ -244,7 +244,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                 ChatScreen(conversationId: community['conversation_id'] as String, title: title)));
                             } catch (_) {
                               if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text(_t.exploreJoinFailed)));
+                                SnackBar(content: Text(_t.exploreJoinFailed)));
                             }
                           },
                           child: Text(isMember ? _t.exploreOpen : _t.exploreJoin),
@@ -255,7 +255,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 ),
                 if (_users.isNotEmpty) SliverToBoxAdapter(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Padding(padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                       child: Text(_t.explorePeople, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900))),
                     SizedBox(height: 90, child: ListView.separated(
                       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -293,7 +293,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
                 )),
                 if (_posts.isEmpty)
-                  const SliverFillRemaining(hasScrollBody: false,
+                  SliverFillRemaining(hasScrollBody: false,
                     child: Center(child: Text(_t.exploreNoContent)))
                 else
                   SliverPadding(
@@ -484,7 +484,7 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
       });
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t.exploreLikeFailed)));
+        SnackBar(content: Text(_t.exploreLikeFailed)));
     } finally { if (mounted) setState(() => _busy = false); }
   }
 
@@ -505,7 +505,7 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
     final choice = await showModalBottomSheet<String>(
       context: context, showDragHandle: true, useSafeArea: true,
       builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Padding(padding: EdgeInsets.all(16), child: Text(_t.exploreSharePost,
+        Padding(padding: const EdgeInsets.all(16), child: Text(_t.exploreSharePost,
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900))),
         ListTile(leading: const Icon(Icons.send_rounded),
           title: Text(_t.exploreSendToUsers),
@@ -521,7 +521,7 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
     if (choice == 'copy') {
       await Clipboard.setData(ClipboardData(text: link.toString()));
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t.explorePostCopied)));
+        SnackBar(content: Text(_t.explorePostCopied)));
     } else if (choice == 'external') {
       await SharePlus.instance.share(ShareParams(
         text: _t.exploreShareText(link.toString()), subject: _t.exploreSharePost));
@@ -558,15 +558,15 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
           padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(ctx).bottom),
           child: SizedBox(height: MediaQuery.sizeOf(ctx).height * .68,
             child: Column(children: [
-              const Padding(padding: EdgeInsets.all(14), child: Text(_t.exploreSelectRecipients,
+              Padding(padding: const EdgeInsets.all(14), child: Text(_t.exploreSelectRecipients,
                 style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17))),
               Padding(padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: TextField(controller: controller, onChanged: search,
-                  decoration: const InputDecoration(prefixIcon: Icon(Icons.search),
+                  decoration: InputDecoration(prefixIcon: const Icon(Icons.search),
                     hintText: _t.exploreSearchUsersHint))),
               Expanded(child: loading ? const Center(child: CircularProgressIndicator())
                 : error != null ? Center(child: Text(error!))
-                : users.isEmpty ? const Center(child: Text(_t.exploreSearchUsersPrompt))
+                : users.isEmpty ? Center(child: Text(_t.exploreSearchUsersPrompt))
                 : ListView.builder(itemCount: users.length, itemBuilder: (_, i) {
                     final u = users[i]; final id = u['id'] as String;
                     final name = (u['display_name'] as String?)?.trim();
@@ -630,7 +630,7 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
         });
       } catch (_) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(_t.exploreActionFailed)));
+          SnackBar(content: Text(_t.exploreActionFailed)));
       }
       return;
     }
@@ -649,10 +649,10 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
             'post_id': _postId, 'reporter_id': _uid, 'reason': reason,
           });
           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text(_t.exploreReportSuccess)));
+            SnackBar(content: Text(_t.exploreReportSuccess)));
         } catch (_) {
           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text(_t.exploreReportFailed)));
+            SnackBar(content: Text(_t.exploreReportFailed)));
         }
       }
     }
