@@ -586,5 +586,56 @@
   "deleteForEveryone": "Delete for everyone",
   "deleteCommunityFailed": "Could not delete. Only the current owner can delete this group or channel.",
   "leaveConversation": "Leave conversation",
-  "conversationInfoLoadFailed": "Could not load conversation details. Check your connection or membership access."
+  "conversationInfoLoadFailed": "Could not load conversation details. Check your connection or membership access.",
+  "filePathUnavailable": "File path is unavailable.",
+  "imageSavedToGallery": "Image saved to your device gallery.",
+  "imageSaveFailed": "Could not save image. Check gallery permission and connection.",
+  "videoSaved": "Video saved successfully.",
+  "videoDownloadFailed": "Could not download video. Please try again.",
+  "fileSaved": "File saved successfully.",
+  "fileDownloadFailed": "Could not download file. Please try again.",
+  "imageCannotDisplay": "Image cannot be displayed.",
+  "secondsRemaining": "Time remaining: {seconds} seconds",
+  "@secondsRemaining": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "closeImage": "Close image",
+  "timedImageUnavailable": "This timed image is unavailable or has already been opened.",
+  "timedImage": "Timed image",
+  "viewOnce10Seconds": "One-time view · 10-second display",
+  "alreadyViewed": "Already viewed",
+  "viewImage": "View image",
+  "mediaUnavailable": "Media is unavailable.",
+  "downloadImage": "Download image",
+  "downloadVideo": "Download video",
+  "downloadFile": "Download file",
+  "file": "File",
+  "replyPrefix": "Reply to: {message}",
+  "@replyPrefix": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "forwardedFrom": "Forwarded from {name}",
+  "@forwardedFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "messageDeletedBy": "Message deleted by {name}",
+  "@messageDeletedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }
