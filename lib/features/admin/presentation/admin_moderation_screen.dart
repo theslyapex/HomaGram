@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:video_player/video_player.dart';
 
 import '../data/admin_service.dart';
@@ -11,6 +12,7 @@ class AdminModerationScreen extends StatefulWidget {
 }
 
 class _AdminModerationScreenState extends State<AdminModerationScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   String _type = 'all';
   final List<AdminModerationItem> _items = [];
   bool _loading = true;
@@ -49,7 +51,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = 'دریافت فهرست محتوا انجام نشد. دسترسی مدیریتی و اتصال را بررسی کنید.';
+        _error = _t.adminModerationLoadFailed;
       });
     }
   }
@@ -60,7 +62,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
         (isVideo ? item.mediaUrl : (item.mediaUrl ?? item.coverUrl));
     if (url == null || url.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('برای این محتوا پیش‌نمایش رسانه‌ای در دسترس نیست.')));
+        const SnackBar(content: Text(_t.adminModerationPreviewUnavailable)));
       return;
     }
     if (isVideo) {
@@ -87,7 +89,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
                     onPressed: () => controller.value.isPlaying ? controller.pause() : controller.play(),
                     icon: Icon(controller.value.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
                   ),
-                  const Expanded(child: Text('پیش‌نمایش ریلز', style: TextStyle(fontWeight: FontWeight.w800))),
+                  const Expanded(child: Text(_t.adminModerationReelPreview, style: TextStyle(fontWeight: FontWeight.w800))),
                   TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('بستن')),
                 ]),
               ]),
@@ -96,7 +98,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
         );
       } catch (_) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('پخش پیش‌نمایش ویدئو ممکن نشد.')));
+          const SnackBar(content: Text(_t.adminModerationVideoPreviewFailed)));
       } finally {
         await controller.dispose();
       }
@@ -113,7 +115,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
               borderRadius: BorderRadius.circular(14),
               child: Image.network(url, fit: BoxFit.contain,
                 errorBuilder: (_, __, ___) => const SizedBox(
-                  height: 160, child: Center(child: Text('بارگذاری تصویر ممکن نشد.')))),
+                  height: 160, child: Center(child: Text(_t.adminModerationImageLoadFailed)))),
             ),
             const SizedBox(height: 10),
             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('بستن')),
@@ -125,19 +127,19 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
 
   Future<void> _warn(AdminModerationItem item) async {
     final controller = TextEditingController(
-      text: 'محتوای منتشرشده شما با بخشی از مقررات هماگرام مغایرت دارد. لطفاً پیش از انتشار محتوای بعدی، راهنمای جامعه و قوانین را مطالعه کنید.');
+      text: _t.adminModerationDefaultWarning);
     final message = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('ارسال اخطار به کاربر'),
+        title: const Text(_t.adminModerationWarnTitle),
         content: TextField(
           controller: controller, minLines: 3, maxLines: 6, maxLength: 900,
-          decoration: const InputDecoration(labelText: 'متن اخطار', border: OutlineInputBorder()),
+          decoration: const InputDecoration(labelText: _t.adminModerationWarningText, border: OutlineInputBorder()),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
           FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: const Text('ارسال اخطار')),
+            child: const Text(_t.adminModerationSendWarning)),
         ],
       ),
     );
@@ -145,7 +147,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
     if (message == null || message.length < 8) return;
     await _runAction(item, () => AdminService.moderateContent(
       action: 'warn_user', userId: item.authorId, message: message,
-    ), success: 'اخطار برای کاربر ارسال شد.');
+    ), success: _t.adminModerationWarningSent);
   }
 
   Future<void> _ban(AdminModerationItem item) async {
@@ -153,21 +155,21 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
     final selected = await showDialog<String>(
       context: context,
       builder: (ctx) => StatefulBuilder(builder: (ctx, update) => AlertDialog(
-        title: const Text('مسدودسازی حساب کاربر'),
+        title: const Text(_t.adminModerationBanTitle),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Text('مدت محدودیت را انتخاب کنید. حساب‌های مدیریتی از این اقدام محافظت می‌شوند.'),
+          const Text(_t.adminModerationBanInstruction),
           const SizedBox(height: 10),
-          RadioListTile<String>(value: '24h', groupValue: duration, onChanged: (v) => update(() => duration = v!), title: const Text('۲۴ ساعت')),
-          RadioListTile<String>(value: '168h', groupValue: duration, onChanged: (v) => update(() => duration = v!), title: const Text('۷ روز')),
-          RadioListTile<String>(value: '720h', groupValue: duration, onChanged: (v) => update(() => duration = v!), title: const Text('۳۰ روز')),
-          RadioListTile<String>(value: '876000h', groupValue: duration, onChanged: (v) => update(() => duration = v!), title: const Text('بلندمدت')),
+          RadioListTile<String>(value: '24h', groupValue: duration, onChanged: (v) => update(() => duration = v!), title: const Text(_t.adminDuration24Hours)),
+          RadioListTile<String>(value: '168h', groupValue: duration, onChanged: (v) => update(() => duration = v!), title: const Text(_t.adminDuration7Days)),
+          RadioListTile<String>(value: '720h', groupValue: duration, onChanged: (v) => update(() => duration = v!), title: const Text(_t.adminDuration30Days)),
+          RadioListTile<String>(value: '876000h', groupValue: duration, onChanged: (v) => update(() => duration = v!), title: const Text(_t.adminDurationLongTerm)),
         ]),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Theme.of(ctx).colorScheme.error),
             onPressed: () => Navigator.pop(ctx, duration),
-            child: const Text('تأیید مسدودسازی'),
+            child: const Text(_t.adminModerationConfirmBan),
           ),
         ],
       )),
@@ -175,21 +177,21 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
     if (selected == null) return;
     await _runAction(item, () => AdminService.moderateContent(
       action: 'ban_user', userId: item.authorId, duration: selected,
-    ), success: 'حساب کاربر مسدود شد.');
+    ), success: _t.adminModerationUserBanned);
   }
 
   Future<void> _removeProfileContent(AdminModerationItem item) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('پاک‌سازی محتوای پروفایل'),
-        content: const Text('متن معرفی، نشانی وب‌سایت و تصویر پروفایل حذف می‌شوند؛ حساب کاربر و نام کاربری او باقی می‌مانند. برای صاحب حساب نیز اعلان ارسال می‌شود.'),
+        title: const Text(_t.adminModerationProfileCleanupTitle),
+        content: const Text(_t.adminModerationProfileCleanupDescription),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Theme.of(ctx).colorScheme.error),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('پاک‌سازی پروفایل'),
+            child: const Text(_t.adminModerationProfileCleanup),
           ),
         ],
       ),
@@ -197,7 +199,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
     if (ok != true) return;
     await _runAction(item, () => AdminService.moderateContent(
       action: 'remove_profile_content', userId: item.authorId,
-    ), success: 'اطلاعات نمایشی پروفایل پاک‌سازی شد.', removeItem: true);
+    ), success: _t.adminModerationProfileCleaned, removeItem: true);
   }
 
   Future<void> _delete(AdminModerationItem item) async {
@@ -205,14 +207,14 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('حذف محتوا'),
-        content: const Text('این پست یا ریلز از هماگرام حذف می‌شود و برای صاحب حساب اخطار ارسال خواهد شد. این عملیات قابل بازگشت نیست.'),
+        title: const Text(_t.adminModerationDeleteTitle),
+        content: const Text(_t.adminModerationDeleteDescription),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Theme.of(ctx).colorScheme.error),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('حذف و ارسال اخطار'),
+            child: const Text(_t.adminModerationDeleteAndWarn),
           ),
         ],
       ),
@@ -220,7 +222,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
     if (ok != true) return;
     await _runAction(item, () => AdminService.moderateContent(
       action: 'delete_post', postId: item.id,
-    ), success: 'محتوا حذف شد و اخطار برای صاحب آن ارسال شد.', removeItem: true);
+    ), success: _t.adminModerationDeletedAndWarned, removeItem: true);
   }
 
   Future<void> _runAction(
@@ -239,18 +241,18 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
       setState(() {});
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('اقدام مدیریتی انجام نشد. نتیجه را بررسی و دوباره تلاش کنید.')));
+        const SnackBar(content: Text(_t.adminModerationActionFailed)));
     } finally {
       if (mounted) setState(() => _working = null);
     }
   }
 
   String _typeLabel(String type) => switch (type) {
-    'post' => 'پست', 'reel' => 'ریلز', 'profile' => 'پروفایل', _ => 'محتوا',
+    'post' => _t.adminTypePost, 'reel' => _t.adminTypeReel, 'profile' => _t.adminTypeProfile, _ => _t.adminTypeContent,
   };
 
   String _date(DateTime? value) {
-    if (value == null) return 'زمان نامشخص';
+    if (value == null) return _t.adminUnknownTime;
     final d = value.toLocal();
     return '${d.year}/${d.month.toString().padLeft(2, '0')}/${d.day.toString().padLeft(2, '0')}';
   }
@@ -260,14 +262,14 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
     Padding(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
       child: Row(children: [
-        const Expanded(child: Text('فهرست محتوای منتشرشده', style: TextStyle(fontWeight: FontWeight.w900))),
+        const Expanded(child: Text(_t.adminModerationPublishedContent, style: TextStyle(fontWeight: FontWeight.w900))),
         DropdownButton<String>(
           value: _type,
-          items: const [
-            DropdownMenuItem(value: 'all', child: Text('همه')),
-            DropdownMenuItem(value: 'post', child: Text('پست‌ها')),
-            DropdownMenuItem(value: 'reel', child: Text('ریلزها')),
-            DropdownMenuItem(value: 'profile', child: Text('پروفایل‌ها')),
+          items: [
+            DropdownMenuItem(value: 'all', child: Text(_t.adminFilterAll)),
+            DropdownMenuItem(value: 'post', child: Text(_t.adminContentTypePosts)),
+            DropdownMenuItem(value: 'reel', child: Text(_t.adminContentTypeReels)),
+            DropdownMenuItem(value: 'profile', child: Text(_t.adminContentTypeProfiles)),
           ],
           onChanged: (value) {
             if (value == null || value == _type) return;
@@ -281,7 +283,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
       Expanded(child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
         Text(_error!, textAlign: TextAlign.center),
         const SizedBox(height: 10),
-        FilledButton.tonal(onPressed: () => _load(reset: true), child: const Text('تلاش دوباره')),
+        FilledButton.tonal(onPressed: () => _load(reset: true), child: const Text(_t.adminRetry)),
       ])))
     else if (_loading && _items.isEmpty)
       const Expanded(child: Center(child: CircularProgressIndicator()))
@@ -298,14 +300,14 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
                 padding: const EdgeInsets.all(12),
                 child: OutlinedButton(
                   onPressed: _loading ? null : () => _load(),
-                  child: Text(_loading ? 'در حال دریافت…' : 'نمایش موارد بیشتر'),
+                  child: Text(_loading ? _t.adminModerationLoading : _t.adminModerationShowMore),
                 ),
               ));
             }
             final item = _items[index];
             final busy = _working == item.id;
             final name = item.displayName?.trim().isNotEmpty == true
-              ? item.displayName!.trim() : (item.username == null ? 'کاربر هماگرام' : '@${item.username}');
+              ? item.displayName!.trim() : (item.username == null ? _t.adminUnknownUser : '@${item.username}');
             final previewUrl = item.type == 'profile' ? item.avatarUrl :
               (item.mediaType == 'video' ? item.coverUrl : item.mediaUrl);
             return Card(
@@ -323,7 +325,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(name, maxLines: 1, overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontWeight: FontWeight.w900)),
-                      Text('@${item.username ?? 'بدون نام کاربری'}',
+                      Text('@${item.username ?? _t.adminNoUsername}',
                         style: Theme.of(context).textTheme.labelSmall,
                         textDirection: TextDirection.ltr),
                     ])),
@@ -371,27 +373,27 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
                       style: const TextStyle(fontSize: 12, height: 1.7)),
                   ],
                   const SizedBox(height: 7),
-                  Text('شناسه محتوا: ${item.id}  •  ${_date(item.createdAt)}',
+                  Text(_t.adminModerationContentId(item.id, _date(item.createdAt)),
                     style: Theme.of(context).textTheme.labelSmall),
-                  Text('شناسه صاحب محتوا: ${item.authorId}',
+                  Text(_t.adminModerationOwnerId(item.authorId),
                     style: Theme.of(context).textTheme.labelSmall),
                   const SizedBox(height: 10),
                   Wrap(spacing: 8, runSpacing: 8, children: [
                     OutlinedButton.icon(
                       onPressed: busy ? null : () => _warn(item),
                       icon: const Icon(Icons.warning_amber_rounded, size: 17),
-                      label: const Text('ارسال اخطار'),
+                      label: const Text(_t.adminModerationSendWarning),
                     ),
                     OutlinedButton.icon(
                       onPressed: busy ? null : () => _ban(item),
                       icon: const Icon(Icons.block_rounded, size: 17),
-                      label: const Text('مسدودسازی حساب'),
+                      label: const Text(_t.adminModerationBanTitle),
                     ),
                     if (item.type == 'profile')
                       FilledButton.tonalIcon(
                         onPressed: busy ? null : () => _removeProfileContent(item),
                         icon: const Icon(Icons.cleaning_services_outlined, size: 17),
-                        label: const Text('پاک‌سازی پروفایل'),
+                        label: const Text(_t.adminModerationProfileCleanup),
                       )
                     else
                       FilledButton.tonalIcon(
@@ -399,7 +401,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
                         icon: busy
                           ? const SizedBox(width: 15, height: 15, child: CircularProgressIndicator(strokeWidth: 2))
                           : const Icon(Icons.delete_outline_rounded, size: 17),
-                        label: const Text('حذف محتوا'),
+                        label: const Text(_t.adminModerationDeleteTitle),
                       ),
                   ]),
                 ]),
