@@ -2061,28 +2061,28 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             ListTile(
               leading: Icon(message['is_starred'] == true ? Icons.star_rounded : Icons.star_border_rounded),
-              title: Text(message['is_starred'] == true ? 'برداشتن از پیام‌های ستاره‌دار' : 'ستاره‌دار کردن پیام'),
+              title: Text(message['is_starred'] == true ? _t.starredRemove : _t.starMessage),
               onTap: () => Navigator.pop(context, 'star'),
             ),
             if (canPin) ListTile(
               leading: Icon(message['is_pinned'] == true ? Icons.push_pin_rounded : Icons.push_pin_outlined),
-              title: Text(message['is_pinned'] == true ? 'برداشتن سنجاق پیام' : 'سنجاق‌کردن پیام'),
+              title: Text(message['is_pinned'] == true ? _t.unpinMessage : _t.pinMessage),
               onTap: () => Navigator.pop(context, 'pin'),
             ),
             ListTile(
               leading: const Icon(Icons.copy_rounded),
-              title: const Text('کپی متن پیام'),
+              title: Text(_t.copyMessageText),
               onTap: () => Navigator.pop(context, 'copy'),
             ),
             if (message['message_type'] == 'text')
               ListTile(
                 leading: const Icon(Icons.forward_rounded),
-                title: const Text('فوروارد به گفتگو…'),
+                title: Text(_t.forwardToConversation),
                 onTap: () => Navigator.pop(context, 'forward'),
               ),
             ListTile(
               leading: const Icon(Icons.reply_rounded),
-              title: const Text('پاسخ به پیام'),
+              title: Text(_t.replyToMessage),
               onTap: () => Navigator.pop(context, 'reply'),
             ),
             Wrap(
@@ -2097,18 +2097,18 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             if (canEdit) ListTile(
               leading: const Icon(Icons.edit_outlined),
-              title: const Text('ویرایش پیام'),
+              title: Text(_t.editMessage),
               onTap: () => Navigator.pop(context, 'edit'),
             ),
             if (canModerate) ListTile(
               leading: const Icon(Icons.delete_outline_rounded, color: Colors.red),
-              title: const Text('حذف برای همه', style: TextStyle(color: Colors.red)),
+              title: Text(_t.deleteForEveryone, style: TextStyle(color: Colors.red)),
               onTap: () => Navigator.pop(context, 'delete'),
             ),
             if (!mine) ListTile(
               leading: const Icon(Icons.flag_outlined, color: Colors.orange),
-              title: const Text('گزارش این پیام'),
-              subtitle: const Text('ارسال محرمانه برای بررسی مدیران'),
+              title: Text(_t.reportThisMessage),
+              subtitle: Text(_t.privateAdminReview),
               onTap: () => Navigator.pop(context, 'report'),
             ),
           ],
@@ -2130,7 +2130,7 @@ class _ChatScreenState extends State<ChatScreen> {
       } else if (action == 'copy') {
         await Clipboard.setData(ClipboardData(text: message['body'] as String? ?? ''));
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('متن پیام کپی شد.')));
+          SnackBar(content: Text(_t.messageTextCopied)));
       } else if (action == 'forward') {
         final conversations = await MessagingService.loadInbox();
         final targets = conversations.where((item) => item.id != widget.conversationId).toList();
@@ -2139,7 +2139,7 @@ class _ChatScreenState extends State<ChatScreen> {
           builder: (sheetContext) => SafeArea(child: SizedBox(
             height: MediaQuery.sizeOf(sheetContext).height * .6,
             child: targets.isEmpty
-              ? const Center(child: Text('گفتگوی دیگری برای فوروارد وجود ندارد.'))
+              ? Center(child: Text(_t.noOtherConversationsToForward))
               : ListView.builder(
                   itemCount: targets.length,
                   itemBuilder: (context, index) {
@@ -2157,7 +2157,7 @@ class _ChatScreenState extends State<ChatScreen> {
         if (targetId != null) {
           await MessagingService.forwardTextMessage(message['id'] as String, targetId);
           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('پیام با نام فرستنده اصلی فوروارد شد.')));
+            SnackBar(content: Text(_t.messageForwarded)));
         }
       } else if (action == 'reply') {
         setState(() {
@@ -2172,7 +2172,7 @@ class _ChatScreenState extends State<ChatScreen> {
         final updated = await showDialog<String>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('ویرایش پیام'),
+            title: Text(_t.editMessage),
             content: TextField(controller: controller, autofocus: true, maxLines: 5, maxLength: 10000),
             actions: [
               TextButton(onPressed: () => Navigator.pop(context), child: const Text(_t.cancel)),
@@ -2193,14 +2193,14 @@ class _ChatScreenState extends State<ChatScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Padding(padding: EdgeInsets.all(16),
-                child: Text('دلیل گزارش پیام', style: TextStyle(fontWeight: FontWeight.w900))),
+                child: Text(_t.messageReportReason, style: TextStyle(fontWeight: FontWeight.w900))),
               for (final item in const [
-                ('spam','هرزنامه یا تبلیغات مزاحم'),
-                ('harassment','آزار و اذیت'),
-                ('threat','تهدید یا محتوای خطرناک'),
-                ('privacy','نقض حریم خصوصی'),
-                ('inappropriate','محتوای نامناسب'),
-                ('other','سایر موارد'),
+                ('spam',_t.spamOrAds),
+                ('harassment',_t.harassment),
+                ('threat',_t.threatOrDangerousContent),
+                ('privacy',_t.privacyViolation),
+                ('inappropriate',_t.inappropriateContent),
+                ('other',_t.other),
               ])
                 ListTile(title: Text(item.$2), onTap: () => Navigator.pop(sheetContext, item.$1)),
             ],
@@ -2211,14 +2211,14 @@ class _ChatScreenState extends State<ChatScreen> {
           final details = await showDialog<String>(
             context: context,
             builder: (dialogContext) => AlertDialog(
-              title: const Text('توضیحات تکمیلی'),
+              title: Text(_t.additionalDetails),
               content: TextField(controller: detailsController, maxLength: 1000,
                 minLines: 2, maxLines: 5, decoration: const InputDecoration(
-                  hintText: 'در صورت نیاز توضیح کوتاهی بنویسید.')),
+                  hintText: _t.optionalShortExplanation)),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(dialogContext, ''), child: const Text('رد کردن')),
+                TextButton(onPressed: () => Navigator.pop(dialogContext, ''), child: Text(_t.skip)),
                 FilledButton(onPressed: () => Navigator.pop(dialogContext, detailsController.text.trim()),
-                  child: const Text('ثبت گزارش')),
+                  child: Text(_t.submitReport)),
               ],
             ),
           );
@@ -2230,18 +2230,18 @@ class _ChatScreenState extends State<ChatScreen> {
               'p_details': details.isEmpty ? null : details,
             });
             if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('گزارش برای بررسی ارسال شد.')));
+              SnackBar(content: Text(_t.reportSubmitted)));
           }
         }
       } else if (action == 'delete') {
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('حذف پیام'),
-            content: const Text('این پیام برای همه اعضای گفتگو حذف شود؟'),
+            title: Text(_t.deleteMessage),
+            content: Text(_t.deleteMessageForEveryoneConfirm),
             actions: [
               TextButton(onPressed: () => Navigator.pop(context, false), child: const Text(_t.cancel)),
-              FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف')),
+              FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(_t.delete)),
             ],
           ),
         );
@@ -2253,7 +2253,7 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('عملیات انجام نشد. دوباره تلاش کنید.')),
+          SnackBar(content: Text(_t.actionFailedRetry)),
         );
       }
     }
@@ -2289,7 +2289,7 @@ class _ChatScreenState extends State<ChatScreen> {
         context: context, isScrollControlled: true, showDragHandle: true,
         builder: (sheetContext) => SafeArea(child: SizedBox(
           height: MediaQuery.sizeOf(sheetContext).height * .65,
-          child: rows.isEmpty ? const Center(child: Text('هنوز پیامی را ستاره‌دار نکرده‌اید.'))
+          child: rows.isEmpty ? Center(child: Text(_t.noStarredMessagesYet))
             : ListView.separated(
                 itemCount: rows.length,
                 separatorBuilder: (_, __) => const Divider(height: 1),
@@ -2306,7 +2306,7 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('دریافت پیام‌های ستاره‌دار انجام نشد.')));
+        SnackBar(content: Text(_t.starredMessagesLoadFailed)));
     }
   }
 
@@ -2332,11 +2332,11 @@ class _EmptyChat extends StatelessWidget {
     final isChannel = kind == 'channel';
     final isGroup = kind == 'group';
     final title = isChannel
-        ? 'هنوز پستی در این کانال منتشر نشده است.'
-        : isGroup ? 'گروه هنوز پیامی ندارد.' : 'گفتگو را شروع کنید';
+        ? _t.channelNoPostsYet
+        : isGroup ? _t.groupNoMessagesYet : _t.startConversation;
     final subtitle = isChannel
-        ? 'با انتشار نخستین پست، مطالب کانال اینجا نمایش داده می‌شوند.'
-        : isGroup ? 'اولین پیام گروه را ارسال کنید.' : 'اولین پیام این گفتگو را ارسال کنید.';
+        ? _t.channelFirstPostHint
+        : isGroup ? _t.groupFirstMessageHint : _t.conversationFirstMessageHint;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
