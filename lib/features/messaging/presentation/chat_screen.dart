@@ -1232,9 +1232,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       tooltip: 'تنظیمات عمومی گروه',
                       icon: const Icon(Icons.public_rounded),
                       onPressed: () async {
-                        final slugController = TextEditingController(
-                          text: info['public_slug'] as String? ?? '',
-                        );
+                        final slugController = TextEditingController(text: info['public_slug'] as String? ?? '');
                         final descriptionController = TextEditingController(text: description);
                         var isPublic = info['is_public'] == true;
                         final values = await showDialog<Map<String, dynamic>>(
@@ -1275,10 +1273,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 ],
                               )),
                               actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(dialogContext),
-                                  child: const Text('انصراف'),
-                                ),
+                                TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
                                 FilledButton(
                                   onPressed: () {
                                     if (isPublic && !RegExp(r'^[a-zA-Z0-9_]{3,32}
@@ -1859,8 +1854,7 @@ class _VideoMessagePreviewState extends State<_VideoMessagePreview> {
     );
   }
 }
-)
-                                        .hasMatch(slugController.text.trim())) {
+).hasMatch(slugController.text.trim())) {
                                       ScaffoldMessenger.of(dialogContext).showSnackBar(
                                         const SnackBar(content: Text('شناسه باید ۳ تا ۳۲ حرف انگلیسی، عدد یا زیرخط باشد.')),
                                       );
