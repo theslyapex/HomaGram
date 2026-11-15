@@ -344,5 +344,35 @@
         "type": "int"
       }
     }
-  }
+  },
+  "messagesLoadFailed": "دریافت پیام‌ها انجام نشد. اتصال را بررسی کنید.",
+  "searchMessages": "جست‌وجوی پیام‌ها",
+  "minimumTwoCharacters": "حداقل دو نویسه",
+  "search": "جست‌وجو",
+  "noMessagesFound": "پیامی پیدا نشد.",
+  "messageSearchFailed": "جست‌وجوی پیام‌ها انجام نشد.",
+  "chooseImage": "انتخاب تصویر",
+  "sendTimedImage": "ارسال تصویر زمان‌دار (۱۰ ثانیه)",
+  "viewOnceOnly": "فقط یک‌بار قابل مشاهده است",
+  "chooseVideo": "انتخاب ویدئو",
+  "chooseFile": "انتخاب فایل",
+  "fileSizeLimit": "حجم فایل نباید بیشتر از ۵۰ مگابایت باشد.",
+  "fileSendFailed": "ارسال فایل انجام نشد. دوباره تلاش کنید.",
+  "mediaSizeLimit": "حجم رسانه نباید بیشتر از ۵۰ مگابایت باشد.",
+  "mediaSendFailed": "ارسال رسانه انجام نشد. دوباره تلاش کنید.",
+  "messageSendFailed": "ارسال پیام انجام نشد. دوباره تلاش کنید.",
+  "homagramPost": "پست HomaGram",
+  "tapToViewPost": "برای مشاهده پست لمس کنید",
+  "online": "آنلاین",
+  "starredMessages": "پیام‌های ستاره‌دار",
+  "conversationInfo": "اطلاعات گفتگو",
+  "pinnedMessage": "پیام سنجاق‌شده",
+  "mediaMessage": "پیام رسانه‌ای",
+  "edited": "ویرایش‌شده",
+  "adminsOnlyMessaging": "ارسال پیام در این گروه فقط برای مدیران فعال است.",
+  "addMedia": "افزودن رسانه",
+  "mediaSendingDisabled": "ارسال رسانه در این گروه غیرفعال است",
+  "writeMessage": "پیام خود را بنویسید…",
+  "messagingDisabled": "ارسال پیام غیرفعال است",
+  "offline": "آفلاین"
 }
