@@ -409,6 +409,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                                     child: Text(item.subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
                                   ),
                                   trailing: Text(_date(item.updatedAt), style: Theme.of(context).textTheme.labelSmall),
+                                  onLongPress: () => _showConversationActions(item),
                                   onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
                                     builder: (_) => ChatScreen(conversationId: item.id, title: item.title),
                                   )),
@@ -421,6 +422,80 @@ class _MessagingScreenState extends State<MessagingScreen> {
         ],
       )),
     );
+  }
+
+  Future<void> _showConversationActions(ConversationPreview item) async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(
+            leading: Icon(_showArchived ? Icons.unarchive_rounded : Icons.archive_outlined),
+            title: Text(_showArchived ? 'بازگردانی به فهرست اصلی' : 'بایگانی گفتگو'),
+            onTap: () => Navigator.pop(sheetContext, 'archive'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+            title: Text(
+              item.kind == 'direct' ? 'حذف گفتگو' :
+              item.kind == 'group' ? 'خروج از گروه و حذف از فهرست' : 'خروج از کانال و حذف از فهرست',
+              style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w700),
+            ),
+            onTap: () => Navigator.pop(sheetContext, 'leave'),
+          ),
+          const SizedBox(height: 8),
+        ]),
+      ),
+    );
+    if (action == null || !mounted) return;
+
+    if (action == 'archive') {
+      try {
+        await MessagingService.setConversationArchived(item.id, archived: !_showArchived);
+        await _load();
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(_showArchived ? 'گفتگو به فهرست اصلی بازگردانده شد.' : 'گفتگو بایگانی شد.'),
+        ));
+      } catch (_) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تغییر وضعیت گفتگو انجام نشد.')),
+        );
+      }
+      return;
+    }
+
+    final label = item.kind == 'direct' ? 'حذف گفتگو' :
+        item.kind == 'group' ? 'خروج از گروه' : 'خروج از کانال';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(label),
+        content: Text(item.kind == 'direct'
+          ? 'این گفتگو از فهرست پیام‌های شما حذف می‌شود. پیام‌های طرف مقابل حذف نخواهند شد.'
+          : 'از این ${item.kind == 'group' ? 'گروه' : 'کانال'} خارج می‌شوید و دیگر در فهرست پیام‌های شما نمایش داده نمی‌شود.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('انصراف')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Theme.of(dialogContext).colorScheme.error),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(label),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await MessagingService.leaveConversation(item.id);
+      await _load();
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(item.kind == 'direct' ? 'گفتگو از فهرست شما حذف شد.' : 'از گفتگو خارج شدید.'),
+      ));
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('حذف گفتگو انجام نشد. دوباره تلاش کنید.')),
+      );
+    }
   }
 
   String _date(DateTime date) {
