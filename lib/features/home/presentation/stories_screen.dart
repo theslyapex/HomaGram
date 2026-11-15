@@ -1697,11 +1697,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('استودیو استوری', style: TextStyle(fontWeight: FontWeight.w900)),
+      title: Text(_t.storyStudioTitle, style: TextStyle(fontWeight: FontWeight.w900)),
       actions: [
-        HomaGramSpringPress(child: IconButton(tooltip: 'پیش‌نویس‌ها', onPressed: _busy ? null : _openDrafts,
+        HomaGramSpringPress(child: IconButton(tooltip: _t.storyDrafts, onPressed: _busy ? null : _openDrafts,
           icon: const Icon(Icons.drafts_outlined))),
-        HomaGramSpringPress(child: IconButton(tooltip: 'ذخیره پیش‌نویس', onPressed: _busy ? null : _saveDraft,
+        HomaGramSpringPress(child: IconButton(tooltip: _t.storySaveDraft, onPressed: _busy ? null : _saveDraft,
           icon: const Icon(Icons.save_outlined))),
         const SizedBox(width: 4),
       ],
@@ -1718,7 +1718,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             child: SizedBox(
               height: 380,
               child: StoryTextStoryView(
-                text: _caption.text.isEmpty ? 'متن استوری شما اینجا نمایش داده می‌شود' : _caption.text,
+                text: _caption.text.isEmpty ? _t.storyPreviewPlaceholder : _caption.text,
                 backgroundKey: _backgroundKey,
               ),
             ),
@@ -1759,8 +1759,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                         onChanged: (value) => _updateWidgetTransform('poll', value),
                         child: _StoryPollCard(
                           poll: {
-                            'question': _pollQuestion.text.trim().isEmpty ? 'سؤال نظرسنجی' : _pollQuestion.text.trim(),
-                            'options': _pollOptions.map((item) => item.text.trim().isEmpty ? 'گزینه' : item.text.trim()).toList(),
+                            'question': _pollQuestion.text.trim().isEmpty ? _t.storyPollQuestionDefault : _pollQuestion.text.trim(),
+                            'options': _pollOptions.map((item) => item.text.trim().isEmpty ? _t.storyPollOptionDefault : item.text.trim()).toList(),
                             'counts': List<int>.filled(_pollOptions.length, 0), 'total_votes': 0,
                           }, isOwner: true,
                         ),
@@ -1775,7 +1775,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                         }),
                         onChanged: (value) => _updateWidgetTransform('question', value),
                         child: _StoryQuestionBoxCard(
-                          question: {'prompt': _questionBoxPrompt.text.trim().isEmpty ? 'باکس پرسش' : _questionBoxPrompt.text.trim(), 'response_count': 0},
+                          question: {'prompt': _questionBoxPrompt.text.trim().isEmpty ? _t.storyQuestionBoxDefault : _questionBoxPrompt.text.trim(), 'response_count': 0},
                           isOwner: true,
                         ),
                       ),
@@ -1790,7 +1790,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                         onChanged: (value) => _updateWidgetTransform('countdown', value),
                         child: _StoryCountdownCard(
                           countdown: {
-                            'title': _countdownTitle.text.trim().isEmpty ? 'شمارش معکوس' : _countdownTitle.text.trim(),
+                            'title': _countdownTitle.text.trim().isEmpty ? _t.storyCountdownDefault : _countdownTitle.text.trim(),
                             'target_at': _countdownTarget.toIso8601String(),
                           },
                         ),
@@ -1862,32 +1862,32 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               runSpacing: 8,
               children: [
                 IconButton.filledTonal(
-                  tooltip: 'کوچک‌تر',
+                  tooltip: _t.storySmaller,
                   onPressed: () => _adjustSelectedStoryElement(scaleDelta: -.1),
                   icon: const Icon(Icons.remove),
                 ),
                 IconButton.filledTonal(
-                  tooltip: 'بزرگ‌تر',
+                  tooltip: _t.storyLarger,
                   onPressed: () => _adjustSelectedStoryElement(scaleDelta: .1),
                   icon: const Icon(Icons.add),
                 ),
                 IconButton.filledTonal(
-                  tooltip: 'چرخش به چپ',
+                  tooltip: _t.storyRotateLeft,
                   onPressed: () => _adjustSelectedStoryElement(rotationDelta: -.12),
                   icon: const Icon(Icons.rotate_left_rounded),
                 ),
                 IconButton.filledTonal(
-                  tooltip: 'چرخش به راست',
+                  tooltip: _t.storyRotateRight,
                   onPressed: () => _adjustSelectedStoryElement(rotationDelta: .12),
                   icon: const Icon(Icons.rotate_right_rounded),
                 ),
                 IconButton.filledTonal(
-                  tooltip: 'بازنشانی جایگاه و اندازه',
+                  tooltip: _t.storyResetElement,
                   onPressed: () => _adjustSelectedStoryElement(reset: true),
                   icon: const Icon(Icons.restart_alt_rounded),
                 ),
                 IconButton.filledTonal(
-                  tooltip: 'حذف عنصر انتخاب‌شده',
+                  tooltip: _t.storyRemoveElement,
                   onPressed: () => _adjustSelectedStoryElement(delete: true),
                   icon: const Icon(Icons.delete_outline_rounded),
                 ),
@@ -1903,15 +1903,15 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             _caption.clear();
           }),
           icon: const Icon(Icons.text_fields_rounded),
-          label: const Text('ساخت استوری متنی'),
+          label: Text(_t.storyCreateText),
         )),
         if (!_textMode) ...[
           const SizedBox(height: 8),
           HomaGramSpringPress(child: OutlinedButton.icon(onPressed: _busy ? null : () => _pick(false),
-            icon: const Icon(Icons.image_outlined), label: const Text('انتخاب تصویر'))),
+            icon: const Icon(Icons.image_outlined), label: Text(_t.storyChooseImage))),
           const SizedBox(height: 8),
           HomaGramSpringPress(child: OutlinedButton.icon(onPressed: _busy ? null : () => _pick(true),
-            icon: const Icon(Icons.video_library_outlined), label: const Text('انتخاب ویدئو (حداکثر ۶۰ ثانیه)'))),
+            icon: const Icon(Icons.video_library_outlined), label: Text(_t.storyChooseVideo))),
         ] else ...[
           const SizedBox(height: 8),
           Align(
@@ -1923,7 +1923,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                 _caption.clear();
               }),
               icon: const Icon(Icons.photo_library_outlined),
-              label: const Text('بازگشت به استوری تصویری'),
+              label: Text(_t.storyBackToMediaStory),
             )),
           ),
           const SizedBox(height: 8),
@@ -1951,37 +1951,37 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         if (!_textMode && _file != null) ...[
 
           const SizedBox(height: 10),
-          Align(alignment: Alignment.centerRight, child: Text('موسیقی استوری', style: Theme.of(context).textTheme.labelLarge)),
+          Align(alignment: Alignment.centerRight, child: Text(_t.storyMusicTitle, style: Theme.of(context).textTheme.labelLarge)),
           const SizedBox(height: 7),
           if (_musicFile == null)
-            HomaGramSpringPress(child: OutlinedButton.icon(onPressed: _busy ? null : _pickMusic, icon: const Icon(Icons.music_note_rounded), label: const Text('افزودن موسیقی از دستگاه')))
+            HomaGramSpringPress(child: OutlinedButton.icon(onPressed: _busy ? null : _pickMusic, icon: const Icon(Icons.music_note_rounded), label: Text(_t.storyAddMusic)))
           else ...[
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(color: Theme.of(context).cardTheme.color, borderRadius: BorderRadius.circular(14), border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: .2))),
               child: Row(children: [
                 const Icon(Icons.audio_file_rounded, color: HomaGramTheme.turquoise), const SizedBox(width: 9),
-                Expanded(child: Text(_musicFileName ?? 'موسیقی انتخاب‌شده', maxLines: 1, overflow: TextOverflow.ellipsis)),
-                ValueListenableBuilder<VideoPlayerValue>(valueListenable: _musicPreview!, builder: (context, value, _) => HomaGramSpringPress(child: IconButton(tooltip: value.isPlaying ? 'توقف پیش‌نمایش' : 'پخش پیش‌نمایش', onPressed: _busy ? null : _toggleMusicPreview, icon: Icon(value.isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill)))),
-                HomaGramSpringPress(child: IconButton(tooltip: 'حذف موسیقی', onPressed: _busy ? null : _removeMusic, icon: const Icon(Icons.close_rounded))),
+                Expanded(child: Text(_musicFileName ?? _t.storySelectedMusic, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                ValueListenableBuilder<VideoPlayerValue>(valueListenable: _musicPreview!, builder: (context, value, _) => HomaGramSpringPress(child: IconButton(tooltip: value.isPlaying ? _t.storyStopPreview : _t.storyPlayPreview, onPressed: _busy ? null : _toggleMusicPreview, icon: Icon(value.isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill)))),
+                HomaGramSpringPress(child: IconButton(tooltip: _t.storyRemoveMusic, onPressed: _busy ? null : _removeMusic, icon: const Icon(Icons.close_rounded))),
               ]),
             ),
             if (_musicDuration.inMilliseconds > 5000)
-              Row(children: [const Text('شروع از'), Expanded(child: Slider(min: 0, max: (_musicDuration.inMilliseconds - 5000).toDouble(), value: _musicStartMs.clamp(0, _musicDuration.inMilliseconds - 5000).toDouble(), onChanged: _busy ? null : (value) async { setState(() => _musicStartMs = value.round()); await _musicPreview?.pause(); await _musicPreview?.seekTo(Duration(milliseconds: _musicStartMs)); })), Text('${(_musicStartMs / 1000).toStringAsFixed(0)}ث')]),
+              Row(children: [Text(_t.storyStartAt), Expanded(child: Slider(min: 0, max: (_musicDuration.inMilliseconds - 5000).toDouble(), value: _musicStartMs.clamp(0, _musicDuration.inMilliseconds - 5000).toDouble(), onChanged: _busy ? null : (value) async { setState(() => _musicStartMs = value.round()); await _musicPreview?.pause(); await _musicPreview?.seekTo(Duration(milliseconds: _musicStartMs)); })), Text('${(_musicStartMs / 1000).toStringAsFixed(0)}ث')]),
             Row(children: [const Icon(Icons.volume_down_rounded, size: 19), Expanded(child: Slider(min: 0, max: 1, value: _musicVolume, onChanged: _busy ? null : (value) async { setState(() => _musicVolume = value); await _musicPreview?.setVolume(value); })), const Icon(Icons.volume_up_rounded, size: 19)]),
-            const Text('موسیقی همراه استوری پخش می‌شود؛ هنگام پخش موسیقی روی ویدئو، صدای اصلی ویدئو قطع می‌شود.', style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4))),
+            Text(_t.storyMusicPlaybackNote, style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4))),
           ],
           const SizedBox(height: 12),
           Align(
             alignment: Alignment.centerRight,
-            child: Text('استیکرها', style: Theme.of(context).textTheme.labelLarge),
+            child: Text(_t.storyStickersTitle, style: Theme.of(context).textTheme.labelLarge),
           ),
           const SizedBox(height: 7),
           Wrap(spacing: 8, runSpacing: 8, children: [
             HomaGramSpringPress(child: OutlinedButton.icon(
               onPressed: _busy || _stickers.length >= 20 ? null : _pickImageSticker,
               icon: const Icon(Icons.add_photo_alternate_outlined),
-              label: const Text('تصویر یا GIF'),
+              label: Text(_t.storyImageOrGif),
             )),
             for (final emoji in ['❤️', '😍', '😂', '🔥', '✨', '⭐', '🌈', '🌸', '🦋', '🎉', '☀️', '🌙', '💯', '👏', '🎈', '🍀', '☕', '🎧'])
               ActionChip(
@@ -1992,11 +1992,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               ),
             ActionChip(
               avatar: const Icon(Icons.delete_sweep_outlined, size: 18),
-              label: const Text('حذف همه'),
+              label: Text(_t.storyRemoveAll),
               onPressed: _stickers.isEmpty ? null : () => setState(_stickers.clear),
             ),
           ]),
-          const Text('استیکر را روی پیش‌نمایش بکشید؛ با دو انگشت اندازه و زاویه را تغییر دهید. برای حذف یک استیکر، آن را چند لحظه نگه دارید.',
+          Text(_t.storyStickerInstructions,
             style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4))),
           const SizedBox(height: 12),
           const SizedBox(height: 12),
@@ -2004,8 +2004,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             contentPadding: EdgeInsets.zero,
             value: _pollEnabled,
             onChanged: _busy ? null : (value) => setState(() => _pollEnabled = value),
-            title: const Text('افزودن نظرسنجی'),
-            subtitle: const Text('مخاطبان استوری می‌توانند رأی بدهند.'),
+            title: Text(_t.storyAddPoll),
+            subtitle: Text(_t.storyPollSubtitle),
             secondary: const Icon(Icons.poll_outlined),
           )),
           if (_pollEnabled) ...[
@@ -2015,8 +2015,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               maxLines: 2,
               onChanged: (_) => setState(() {}),
               decoration: const InputDecoration(
-                labelText: 'سؤال نظرسنجی',
-                hintText: 'مثلاً کدام طرح را بیشتر می‌پسندید؟',
+                labelText: _t.storyPollQuestionDefault,
+                hintText: _t.storyPollQuestionHint,
                 border: OutlineInputBorder(),
               ),
             ),
@@ -2030,7 +2030,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                       maxLength: 60,
                       onChanged: (_) => setState(() {}),
                       decoration: InputDecoration(
-                        labelText: 'گزینه ${i + 1}',
+                        labelText: _t.storyPollOptionLabel(i + 1),
                         counterText: '',
                         border: const OutlineInputBorder(),
                       ),
@@ -2038,7 +2038,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                   ),
                   if (_pollOptions.length > 2)
                     HomaGramSpringPress(child: IconButton(
-                      tooltip: 'حذف گزینه',
+                      tooltip: _t.storyRemoveOption,
                       onPressed: _busy ? null : () {
                         setState(() {
                           _pollOptions.removeAt(i).dispose();
@@ -2058,11 +2058,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                     _pollOptions.add(TextEditingController());
                   }),
                   icon: const Icon(Icons.add_rounded),
-                  label: const Text('افزودن گزینه'),
+                  label: Text(_t.storyAddOption),
                 )),
               ),
             const Text(
-              'هر نظرسنجی بین ۲ تا ۴ گزینه دارد. هر کاربر یک رأی ثبت می‌کند و پس از رأی دادن نیز می‌تواند انتخابش را تغییر دهد.',
+              _t.storyPollInstructions,
               style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4)),
             ),
           ],
@@ -2070,8 +2070,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             contentPadding: EdgeInsets.zero,
             value: _questionBoxEnabled,
             onChanged: _busy ? null : (value) => setState(() => _questionBoxEnabled = value),
-            title: const Text('افزودن باکس پرسش و پاسخ'),
-            subtitle: const Text('مخاطبان می‌توانند پاسخ متنی خصوصی برای شما بفرستند.'),
+            title: Text(_t.storyAddQuestionBox),
+            subtitle: Text(_t.storyQuestionBoxSubtitle),
             secondary: const Icon(Icons.question_answer_outlined),
           )),
           if (_questionBoxEnabled)
@@ -2081,8 +2081,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               maxLines: 2,
               onChanged: (_) => setState(() {}),
               decoration: const InputDecoration(
-                labelText: 'متن باکس پرسش',
-                hintText: 'مثلاً دوست دارید درباره چه چیزی بدانید؟',
+                labelText: _t.storyQuestionBoxLabel,
+                hintText: _t.storyQuestionBoxHint,
                 border: OutlineInputBorder(),
               ),
             ),
@@ -2090,8 +2090,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             contentPadding: EdgeInsets.zero,
             value: _countdownEnabled,
             onChanged: _busy ? null : (value) => setState(() => _countdownEnabled = value),
-            title: const Text('افزودن شمارش معکوس'),
-            subtitle: const Text('برای یک رویداد یا زمان مهم، شمارش معکوس نمایش دهید.'),
+            title: Text(_t.storyAddCountdown),
+            subtitle: Text(_t.storyCountdownSubtitle),
             secondary: const Icon(Icons.timer_outlined),
           )),
           if (_countdownEnabled) ...[
@@ -2100,8 +2100,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               maxLength: 100,
               onChanged: (_) => setState(() {}),
               decoration: const InputDecoration(
-                labelText: 'عنوان شمارش معکوس',
-                hintText: 'مثلاً شروع یک رویداد',
+                labelText: _t.storyCountdownLabel,
+                hintText: _t.storyCountdownHint,
                 border: OutlineInputBorder(),
               ),
             ),
@@ -2109,7 +2109,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               onPressed: _busy ? null : _pickCountdownTarget,
               icon: const Icon(Icons.calendar_month_outlined),
               label: Text(
-                'تاریخ و ساعت: ${_countdownTarget.year}/${_countdownTarget.month.toString().padLeft(2, '0')}/${_countdownTarget.day.toString().padLeft(2, '0')}  •  ${_countdownTarget.hour.toString().padLeft(2, '0')}:${_countdownTarget.minute.toString().padLeft(2, '0')}',
+                _t.storyDateAndTime(_countdownTarget.year, _countdownTarget.month.toString().padLeft(2, '0'), _countdownTarget.day.toString().padLeft(2, '0'), _countdownTarget.hour.toString().padLeft(2, '0'), _countdownTarget.minute.toString().padLeft(2, '0')),
               ),
             )),
           ],
@@ -2117,8 +2117,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             contentPadding: EdgeInsets.zero,
             value: _drawingMode,
             onChanged: _busy ? null : (value) => setState(() => _drawingMode = value),
-            title: const Text('ابزار نقاشی آزاد'),
-            subtitle: Text(_drawingMode ? 'روی رسانه بکشید' : 'برای طراحی فعال کنید'),
+            title: Text(_t.storyDrawingTool),
+            subtitle: Text(_drawingMode ? _t.storyDrawOnMedia : _t.storyEnableDrawing),
             secondary: const Icon(Icons.draw_rounded),
           )),
           if (_drawingMode) ...[
@@ -2137,21 +2137,21 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               HomaGramSpringPress(child: OutlinedButton.icon(
                 onPressed: () => setState(() => _eraserMode = !_eraserMode),
                 icon: Icon(_eraserMode ? Icons.brush_rounded : Icons.auto_fix_high_outlined),
-                label: Text(_eraserMode ? 'قلم' : 'پاک‌کن'),
+                label: Text(_eraserMode ? _t.storyPen : _t.storyEraser),
               )),
               HomaGramSpringPress(child: IconButton(
-                tooltip: 'بازگشت',
+                tooltip: _t.storyUndo,
                 onPressed: _drawingStrokes.isEmpty ? null : () => setState(() => _drawingStrokes.removeLast()),
                 icon: const Icon(Icons.undo_rounded),
               )),
               HomaGramSpringPress(child: IconButton(
-                tooltip: 'پاک‌کردن همه',
+                tooltip: _t.storyClearAll,
                 onPressed: _drawingStrokes.isEmpty ? null : () => setState(() => _drawingStrokes.clear()),
                 icon: const Icon(Icons.delete_sweep_outlined),
               )),
             ]),
             Row(children: [
-              const Text('ضخامت'),
+              Text(_t.storyBrushThickness),
               Expanded(child: Slider(value: _drawingWidth, min: 1, max: 24, onChanged: (v) => setState(() => _drawingWidth = v))),
             ]),
           ],
@@ -2166,8 +2166,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               if (mounted) setState(() {});
             },
             decoration: const InputDecoration(
-              labelText: 'متن روی تصویر یا ویدئو',
-              hintText: 'متن را بنویسید، سپس روی پیش‌نمایش جابه‌جا یا بزرگ‌نمایی کنید',
+              labelText: _t.storyOverlayTextLabel,
+              hintText: _t.storyOverlayTextHint,
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.text_fields_rounded),
             ),
@@ -2176,7 +2176,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           const SizedBox(height: 6),
           Align(
             alignment: Alignment.centerRight,
-            child: Text('رنگ متن', style: Theme.of(context).textTheme.labelMedium),
+            child: Text(_t.storyTextColor, style: Theme.of(context).textTheme.labelMedium),
           ),
           const SizedBox(height: 8),
           Wrap(
@@ -2207,7 +2207,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             )).toList(),
           ),
           const SizedBox(height: 12),
-          Text('قلم متن', style: Theme.of(context).textTheme.labelMedium),
+          Text(_t.storyTextFont, style: Theme.of(context).textTheme.labelMedium),
           const SizedBox(height: 7),
           Wrap(spacing: 8, runSpacing: 8, children: [
             ('estedad', 'استعداد'),
@@ -2224,7 +2224,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             onSelected: _busy ? null : (_) => setState(() => _overlayFont = item.$1),
           )).toList()),
           const SizedBox(height: 8),
-          const Text('برای جابه‌جایی، متن را روی پیش‌نمایش بکشید؛ برای تغییر اندازه از دو انگشت استفاده کنید.',
+          Text(_t.storyOverlayInstructions,
             style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4))),
         ],
         Card(
@@ -2236,7 +2236,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                 const Row(children: [
                   Icon(Icons.visibility_outlined, size: 20),
                   SizedBox(width: 8),
-                  Text('مخاطبان استوری', style: TextStyle(fontWeight: FontWeight.w800)),
+                  Text(_t.storyAudienceTitle, style: TextStyle(fontWeight: FontWeight.w800)),
                 ]),
                 const SizedBox(height: 10),
                 DropdownButtonFormField<String>(
@@ -2247,9 +2247,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                     contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   ),
                   items: const [
-                    DropdownMenuItem(value: 'everyone', child: Text('همه افراد مجاز')),
-                    DropdownMenuItem(value: 'followers', child: Text('فقط دنبال‌کنندگان')),
-                    DropdownMenuItem(value: 'close_friends', child: Text('فقط دوستان نزدیک')),
+                    DropdownMenuItem(value: 'everyone', child: Text(_t.storyAudienceEveryone)),
+                    DropdownMenuItem(value: 'followers', child: Text(_t.storyAudienceFollowers)),
+                    DropdownMenuItem(value: 'close_friends', child: Text(_t.storyAudienceCloseFriends)),
                   ],
                   onChanged: _busy ? null : (value) {
                     if (value != null) setState(() => _audience = value);
@@ -2258,10 +2258,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                 const SizedBox(height: 6),
                 Text(
                   _audience == 'everyone'
-                    ? 'حریم خصوصی حساب و مسدودسازی کاربران همچنان رعایت می‌شود.'
+                    ? _t.storyAudienceEveryoneNote
                     : _audience == 'followers'
-                      ? 'فقط افرادی که شما را دنبال می‌کنند و مجاز به دیدن حساب هستند.'
-                      : 'فقط افرادی که در فهرست دوستان نزدیکت قرار دارند؛ این فهرست خصوصی است.',
+                      ? _t.storyAudienceFollowersNote
+                      : _t.storyAudienceCloseFriendsNote,
                   style: const TextStyle(fontSize: 11, height: 1.6, color: Color(0xFF8490A4)),
                 ),
               ],
@@ -2279,13 +2279,13 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             if (mounted) setState(() {});
           },
           decoration: InputDecoration(
-            labelText: _textMode ? 'متن استوری' : 'توضیح تصویر یا ویدئو (اختیاری)',
+            labelText: _textMode ? _t.storyCaptionText : _t.storyMediaDescription,
             border: const OutlineInputBorder(),
           ),
         ),
         _mentionSuggestionPanel(_caption),
         const SizedBox(height: 10),
-        const Text('استوری پس از ۲۴ ساعت از نمایش عمومی خارج می‌شود و در آرشیو شخصی شما باقی می‌ماند.',
+        Text(_t.storyExpiryNote,
           textAlign: TextAlign.center, style: TextStyle(fontSize: 11, height: 1.8, color: Color(0xFF8490A4))),
         const SizedBox(height: 18),
         Row(
@@ -2294,7 +2294,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               child: HomaGramSpringPress(child: OutlinedButton.icon(
                 onPressed: _busy ? null : _openDrafts,
                 icon: const Icon(Icons.drafts_outlined),
-                label: const Text('پیش‌نویس‌ها'),
+                label: Text(_t.storyDrafts),
               )),
             ),
             const SizedBox(width: 10),
@@ -2302,7 +2302,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               child: HomaGramSpringPress(child: OutlinedButton.icon(
                 onPressed: _busy ? null : _saveDraft,
                 icon: const Icon(Icons.save_outlined),
-                label: const Text('ذخیره پیش‌نویس'),
+                label: Text(_t.storySaveDraft),
               )),
             ),
           ],
@@ -2312,7 +2312,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           onPressed: _busy ? null : _publish,
           icon: _busy ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
               : const Icon(Icons.send_rounded),
-          label: Text(_busy ? 'در حال انتشار...' : 'انتشار استوری'),
+          label: Text(_busy ? _t.storyPublishing : _t.storyPublish),
         )),
       ],
     ),
