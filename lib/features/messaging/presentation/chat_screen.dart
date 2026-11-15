@@ -514,7 +514,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                             border: Border(right: BorderSide(color: colors.primary, width: 3)),
                                           ),
                                           child: Text(
-                                            'پاسخ به: ${message['reply_to_body'] ?? 'پیام'}',
+                                            _t.replyPrefix(message['reply_to_body'] as String? ?? _t.replyFallback),
                                             maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(fontSize: 10, color: colors.onSurfaceVariant),
@@ -524,11 +524,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                         _attachmentPreview((message['attachments'] as List).first as Map<String, dynamic>),
                                       if (message['forwarded_from_display_name'] != null && !deleted)
                                         Align(alignment: Alignment.centerRight, child: Text(
-                                          'فوروارد از ${message['forwarded_from_display_name']}',
+                                          _t.forwardedFrom(message['forwarded_from_display_name'] as String),
                                           style: TextStyle(fontSize: 10, color: colors.primary, fontWeight: FontWeight.w700),
                                         )),
                                       if (deleted)
-                                        Text('پیام حذف شده توسط ${message['deleted_by_name'] ?? 'کاربر'}',
+                                        Text(_t.messageDeletedBy(message['deleted_by_name'] as String? ?? _t.userFallback),
                                           style: TextStyle(color: colors.onSurfaceVariant, height: 1.6))
                                       else
                                         _messageContent(message['body'] as String? ?? '', colors),
@@ -585,7 +585,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(children: [
-                        Expanded(child: Text('پاسخ به: ${_replyToBody ?? 'پیام'}', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                        Expanded(child: Text(_t.replyPrefix(_replyToBody ?? _t.replyFallback), maxLines: 1, overflow: TextOverflow.ellipsis)),
                         IconButton(onPressed: () => setState(() { _replyToId = null; _replyToBody = null; }), icon: const Icon(Icons.close, size: 18)),
                       ]),
                     ),
@@ -660,12 +660,12 @@ class _ChatScreenState extends State<ChatScreen> {
       }).length;
       String label;
       if (info['kind'] == 'group') {
-        label = online > 0 ? '$online نفر آنلاین' : _t.group;
+        label = online > 0 ? _t.onlinePeopleCount('$online') : _t.group;
       } else if (online > 0) {
         label = _t.online;
       } else if (rows.isNotEmpty && rows.first['last_seen_at'] != null) {
         final last = DateTime.tryParse(rows.first['last_seen_at'] as String);
-        label = last == null ? _t.offline : 'آخرین بازدید ${last.toLocal().hour.toString().padLeft(2, '0')}:${last.toLocal().minute.toString().padLeft(2, '0')}';
+        label = last == null ? _t.offline : _t.lastSeenAt('${last.toLocal().hour.toString().padLeft(2, '0')}:${last.toLocal().minute.toString().padLeft(2, '0')}');
       } else {
         label = _t.offline;
       }
@@ -715,7 +715,7 @@ class _ChatScreenState extends State<ChatScreen> {
         case 'ownership_transferred': return target == null ? _t.channelOwnershipTransferred : _t.newChannelOwner(target);
         case 'channel_permissions_changed':
           return _t.textAndMediaPermissions(metadata['members_can_post'] == true ? _t.active : _t.revoked, metadata['members_can_send_media'] == true ? _t.active : _t.revoked);
-        case 'invite_created': return 'اعتبار: ${metadata['expires_at'] ?? '—'} • سقف استفاده: ${metadata['max_uses'] ?? '—'}';
+        case 'invite_created': return _t.inviteValidityAndLimit('${metadata['expires_at'] ?? '—'}', '${metadata['max_uses'] ?? '—'}');
         case 'invite_revoked': return _t.inviteCodeDisabledActivity;
         case 'channel_details_changed':
           return metadata['title'] is String ? _t.channelNameActivity(metadata['title'] as String) : _t.channelDetailsUpdatedActivity;
@@ -1232,7 +1232,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   const SizedBox(width: 10),
                   Expanded(child: Text(
-                    (info['title'] as String?) ?? (isChannel ? 'کانال' : isGroup ? _t.group : widget.title),
+                    (info['title'] as String?) ?? (isChannel ? _t.channel : isGroup ? _t.group : widget.title),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
@@ -1310,7 +1310,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     contentPadding: EdgeInsets.zero,
                                     value: isPublic,
                                     onChanged: (value) => setDialogState(() => isPublic = value),
-                                    title: Text(isPublic ? 'گروه عمومی' : 'گروه خصوصی'),
+                                    title: Text(isPublic ? _t.publicGroup : _t.privateGroup),
                                     subtitle: Text(isPublic
                                       ? _t.groupPublicDiscoverable
                                       : _t.groupPrivateAccessHint),
@@ -1323,7 +1323,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       decoration: const InputDecoration(
                                         labelText: _t.publicId,
                                         prefixText: '@',
-                                        helperText: '۳ تا ۳۲ حرف انگلیسی، عدد یا زیرخط',
+                                        helperText: _t.publicIdHelper,
                                       ),
                                     ),
                                     TextField(
@@ -1351,7 +1351,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       'description': descriptionController.text,
                                     });
                                   },
-                                  child: const Text('ذخیره'),
+                                  child: Text(_t.save),
                                 ),
                               ],
                             ),
@@ -1396,13 +1396,13 @@ class _ChatScreenState extends State<ChatScreen> {
                             title: Text(isChannel ? _t.channelInfo : _t.groupInfo),
                             content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
                               TextField(controller: titleController, maxLength: 100,
-                                decoration: const InputDecoration(labelText: 'نام')),
+                                decoration: const InputDecoration(labelText: _t.name)),
                               if (isChannel)
                                 TextField(controller: slugController, maxLength: 32,
-                                  decoration: const InputDecoration(labelText: 'شناسه', prefixText: '@')),
+                                  decoration: const InputDecoration(labelText: _t.identifier, prefixText: '@')),
                               TextField(controller: descriptionController, maxLength: 500, maxLines: 3,
                                 decoration: const InputDecoration(
-                                  labelText: 'توضیحات',
+                                  labelText: _t.description,
                                   hintText: _t.writeAboutGroupChannel,
                                 )),
                             ])),
@@ -1410,7 +1410,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text(_t.cancel)),
                               FilledButton(onPressed: () => Navigator.pop(ctx, [
                                 titleController.text, slugController.text, descriptionController.text,
-                              ]), child: const Text('ذخیره')),
+                              ]), child: Text(_t.save)),
                             ],
                           ),
                         );
@@ -1475,7 +1475,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               actions: [
                                 TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text(_t.cancel)),
                                 FilledButton(onPressed: () => Navigator.pop(dialogContext, [canPost, canSendMedia]),
-                                  child: const Text('ذخیره تنظیمات')),
+                                  child: Text(_t.saveSettings)),
                               ],
                             ),
                           ),
@@ -2176,7 +2176,7 @@ class _ChatScreenState extends State<ChatScreen> {
             content: TextField(controller: controller, autofocus: true, maxLines: 5, maxLength: 10000),
             actions: [
               TextButton(onPressed: () => Navigator.pop(context), child: const Text(_t.cancel)),
-              FilledButton(onPressed: () => Navigator.pop(context, controller.text), child: const Text('ذخیره')),
+              FilledButton(onPressed: () => Navigator.pop(context, controller.text), child: Text(_t.save)),
             ],
           ),
         );
