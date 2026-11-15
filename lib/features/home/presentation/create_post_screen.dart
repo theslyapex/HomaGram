@@ -206,7 +206,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               Container(width: 42, height: 4, decoration: BoxDecoration(
                 color: Theme.of(context).dividerColor, borderRadius: BorderRadius.circular(9))),
               const SizedBox(height: 18),
-              const Text('انتخاب فریم کاور', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+              Text(_t.createSelectCoverFrame, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
               const SizedBox(height: 14),
               ClipRRect(borderRadius: BorderRadius.circular(18), child: AspectRatio(
                 aspectRatio: 9 / 16,
@@ -218,7 +218,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     : Image.memory(preview!, fit: BoxFit.cover))),
               const SizedBox(height: 8),
               Text(
-                isRendering ? _t.createFrameExtracting : '${(selectedMs / 1000).toStringAsFixed(2)} ثانیه از ویدئو',
+                isRendering ? _t.createFrameExtracting : _t.createVideoTime((selectedMs / 1000).toStringAsFixed(2)),
                 style: Theme.of(context).textTheme.labelSmall,
               ),
               if (renderError != null) ...[
@@ -248,7 +248,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       );
       requestId++;
       if (selected != null && mounted) setState(() => _coverBytes = selected);
-    } catch (error) { _notice('استخراج فریم انجام نشد: $error', error: true); }
+    } catch (error) { _notice(_t.createFrameExtractFailed(error.toString()), error: true); }
     finally {
       await controller?.dispose();
       if (mounted) setState(() => _editing = false);
@@ -307,9 +307,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       _notice(_t.createUploadFailed(error.message), error: true);
     } on PostgrestException catch (error) {
       await _removeUploaded(uploadedPath); await _removeUploaded(uploadedCoverPath);
-      final detail = [error.message, if (error.code != null) 'کد: ${error.code}',
+      final detail = [error.message, if (error.code != null) _t.createErrorCode(error.code!),
         if (error.details != null) error.details.toString()].join(' • ');
-      _notice('ثبت محتوا انجام نشد: $detail', error: true);
+      _notice(_t.createPublishFailed(detail), error: true);
     } catch (error) {
       await _removeUploaded(uploadedPath); await _removeUploaded(uploadedCoverPath);
       _notice(_t.createPublishFailed(error.toString()), error: true);
