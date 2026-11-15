@@ -761,5 +761,50 @@
     }
   },
   "newNotificationInHomagram": "یک اعلان تازه در هماگرام دارید.",
-  "viewNotification": "مشاهده"
+  "viewNotification": "مشاهده",
+  "supportInboxTitle": "صندوق پشتیبانی",
+  "supportInboxLoadFailed": "دریافت صندوق پشتیبانی ناموفق بود.",
+  "noSupportRequests": "درخواست پشتیبانی جدیدی وجود ندارد.",
+  "supportOpenStatus": "باز",
+  "supportClosedStatus": "بسته",
+  "supportConnectionFailed": "اتصال به پشتیبانی برقرار نشد. دوباره تلاش کنید.",
+  "supportMessagesLoadFailed": "دریافت پیام‌ها ناموفق بود.",
+  "supportInitialSendFailed": "ارسال درخواست انجام نشد؛ متن را در کادر پیام می‌توانید دوباره ارسال کنید.",
+  "supportMessageSendFailed": "ارسال پیام انجام نشد.",
+  "supportDeleteAccountTitle": "ثبت درخواست حذف حساب",
+  "supportDeleteAccountConfirm": "پیام درخواست حذف حساب برای پشتیبانی ارسال شود؟ این کار حساب را فوراً حذف نمی‌کند و فقط درخواست بررسی را ثبت می‌کند.",
+  "supportSendRequest": "ارسال درخواست",
+  "supportDeleteAccountRequestFailed": "ثبت درخواست حذف حساب انجام نشد. دوباره تلاش کنید.",
+  "supportDeleteAccountRequestBody": "درخواست رسمی حذف حساب کاربری هماگرام: لطفاً مالکیت حساب را بررسی کنید، مراحل حذف و پیامدهای آن را توضیح دهید و پس از احراز هویت، درخواست حذف اطلاعات قابل حذف را مطابق قوانین لازم‌الاجرا پیگیری کنید.",
+  "supportSendImage": "ارسال تصویر",
+  "supportSendFile": "ارسال فایل",
+  "supportFileMaxSize": "حداکثر حجم فایل ۵۰ مگابایت است.",
+  "supportFileSendFailed": "ارسال فایل انجام نشد. نوع یا حجم فایل را بررسی کنید.",
+  "supportStatusChangeFailed": "تغییر وضعیت درخواست انجام نشد.",
+  "supportActiveRequest": "درخواست فعال",
+  "supportClosedRequest": "درخواست بسته شده",
+  "supportCloseRequest": "بستن درخواست",
+  "supportReopenRequest": "بازگشایی درخواست",
+  "supportDirectTeamMessage": "پیام شما مستقیماً به تیم پشتیبانی هماگرام ارسال می‌شود.",
+  "supportDeleteAccountAction": "درخواست حذف حساب کاربری",
+  "supportWelcome": "به پشتیبانی هماگرام خوش آمدید",
+  "supportWelcomeHint": "سوال یا درخواست خود را بنویسید؛ تیم ما در همین گفتگو پاسخ می‌دهد.",
+  "supportReplyPrefix": "پاسخ به: {message}",
+  "supportImageUnavailable": "نمایش تصویر ممکن نیست.",
+  "supportAttachmentFallback": "فایل پیوست",
+  "supportClosedConversationHint": "این درخواست بسته شده است. برای ادامه گفتگو با پشتیبانی تماس بگیرید.",
+  "supportAddAttachment": "افزودن فایل یا تصویر",
+  "supportWriteMessage": "پیام خود را بنویسید…",
+  "supportGenericMessage": "پیام",
+  "supportGenericImage": "تصویر",
+  "supportGenericUser": "کاربر هماگرام",
+  "supportNoMessages": "هنوز پیامی ارسال نشده",
+  "supportPreviewFile": "فایل",
+  "@supportReplyPrefix": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  }
 }

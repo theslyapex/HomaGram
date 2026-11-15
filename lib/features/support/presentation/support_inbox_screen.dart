@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/support_service.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'support_chat_screen.dart';
 
 class SupportInboxScreen extends StatefulWidget {
@@ -13,6 +14,7 @@ class SupportInboxScreen extends StatefulWidget {
 }
 
 class _SupportInboxScreenState extends State<SupportInboxScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   List<SupportConversationPreview> _items = [];
   RealtimeChannel? _channel;
   bool _loading = true;
@@ -38,7 +40,7 @@ class _SupportInboxScreenState extends State<SupportInboxScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = 'دریافت صندوق پشتیبانی ناموفق بود.';
+        _error = _t.supportInboxLoadFailed;
       });
     }
   }
@@ -54,14 +56,14 @@ class _SupportInboxScreenState extends State<SupportInboxScreen> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('صندوق پشتیبانی',
+      appBar: AppBar(title: Text(_t.supportInboxTitle,
           style: TextStyle(fontWeight: FontWeight.w900))),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
               ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                   Text(_error!),
-                  HomaGramSpringPress(child: TextButton(onPressed: _load, child: const Text('تلاش دوباره'))),
+                  HomaGramSpringPress(child: TextButton(onPressed: _load, child: Text(_t.retry))),
                 ]))
               : RefreshIndicator(
                   onRefresh: _load,
@@ -70,7 +72,7 @@ class _SupportInboxScreenState extends State<SupportInboxScreen> {
                           SizedBox(height: 125),
                           Icon(Icons.mark_chat_unread_outlined, size: 56, color: Color(0xFF8B6CF6)),
                           SizedBox(height: 14),
-                          Center(child: Text('درخواست پشتیبانی جدیدی وجود ندارد.')),
+                          Center(child: Text(_t.noSupportRequests)),
                         ])
                       : ListView.separated(
                           physics: const AlwaysScrollableScrollPhysics(),
@@ -96,7 +98,7 @@ class _SupportInboxScreenState extends State<SupportInboxScreen> {
                                     style: const TextStyle(fontWeight: FontWeight.w800)),
                                 subtitle: Padding(
                                   padding: const EdgeInsets.only(top: 5),
-                                  child: Text(item.subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+                                  child: Text(_localizedPreview(item.subtitle), maxLines: 1, overflow: TextOverflow.ellipsis),
                                 ),
                                 trailing: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -109,7 +111,7 @@ class _SupportInboxScreenState extends State<SupportInboxScreen> {
                                             : colors.surface,
                                         borderRadius: BorderRadius.circular(20),
                                       ),
-                                      child: Text(isOpen ? 'باز' : 'بسته',
+                                      child: Text(isOpen ? _t.supportOpenStatus : _t.supportClosedStatus,
                                           style: TextStyle(fontSize: 10,
                                             color: isOpen ? const Color(0xFF24A879) : colors.onSurfaceVariant)),
                                     ),
@@ -120,7 +122,7 @@ class _SupportInboxScreenState extends State<SupportInboxScreen> {
                                 onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
                                   builder: (_) => SupportChatScreen(
                                     conversationId: item.id,
-                                    title: item.title,
+                                    title: item.title == 'کاربر هماگرام' ? _t.supportGenericUser : item.title,
                                     isAdmin: true,
                                   ),
                                 )),
@@ -131,6 +133,13 @@ class _SupportInboxScreenState extends State<SupportInboxScreen> {
                 ),
     );
   }
+
+  String _localizedPreview(String value) => switch (value) {
+    'هنوز پیامی ارسال نشده' => _t.supportNoMessages,
+    'تصویر' => _t.supportGenericImage,
+    'فایل' => _t.supportPreviewFile,
+    _ => value,
+  };
 
   String _date(DateTime date) {
     final local = date.toLocal();

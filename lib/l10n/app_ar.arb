@@ -761,5 +761,50 @@
     }
   },
   "newNotificationInHomagram": "لديك إشعار جديد في HomaGram.",
-  "viewNotification": "عرض"
+  "viewNotification": "عرض",
+  "supportInboxTitle": "صندوق الدعم",
+  "supportInboxLoadFailed": "تعذر تحميل صندوق الدعم.",
+  "noSupportRequests": "لا توجد طلبات دعم حتى الآن.",
+  "supportOpenStatus": "مفتوح",
+  "supportClosedStatus": "مغلق",
+  "supportConnectionFailed": "تعذر الاتصال بالدعم. حاول مرة أخرى.",
+  "supportMessagesLoadFailed": "تعذر تحميل الرسائل.",
+  "supportInitialSendFailed": "تعذر إرسال الطلب؛ يمكنك إعادة المحاولة من حقل الرسالة.",
+  "supportMessageSendFailed": "تعذر إرسال الرسالة.",
+  "supportDeleteAccountTitle": "طلب حذف الحساب",
+  "supportDeleteAccountConfirm": "هل تريد إرسال طلب حذف الحساب إلى الدعم؟ لن يؤدي ذلك إلى حذف حسابك فورًا، بل يرسل طلبًا للمراجعة فقط.",
+  "supportSendRequest": "إرسال الطلب",
+  "supportDeleteAccountRequestFailed": "تعذر إرسال طلب حذف الحساب. حاول مرة أخرى.",
+  "supportDeleteAccountRequestBody": "طلب رسمي لحذف حساب HomaGram: يرجى التحقق من ملكية الحساب وشرح خطوات الحذف وآثاره، ثم متابعة حذف البيانات المؤهلة بعد التحقق من الهوية ووفق القوانين المعمول بها.",
+  "supportSendImage": "إرسال صورة",
+  "supportSendFile": "إرسال ملف",
+  "supportFileMaxSize": "الحد الأقصى لحجم الملف 50 ميغابايت.",
+  "supportFileSendFailed": "تعذر إرسال الملف. تحقق من نوعه وحجمه.",
+  "supportStatusChangeFailed": "تعذر تغيير حالة الطلب.",
+  "supportActiveRequest": "طلب نشط",
+  "supportClosedRequest": "طلب مغلق",
+  "supportCloseRequest": "إغلاق الطلب",
+  "supportReopenRequest": "إعادة فتح الطلب",
+  "supportDirectTeamMessage": "تُرسل رسالتك مباشرةً إلى فريق دعم HomaGram.",
+  "supportDeleteAccountAction": "طلب حذف الحساب",
+  "supportWelcome": "مرحبًا بك في دعم HomaGram",
+  "supportWelcomeHint": "اكتب سؤالك أو طلبك؛ سيرد فريقنا في هذه المحادثة.",
+  "supportReplyPrefix": "الرد على: {message}",
+  "supportImageUnavailable": "تعذر عرض الصورة.",
+  "supportAttachmentFallback": "مرفق",
+  "supportClosedConversationHint": "هذا الطلب مغلق. تواصل مع الدعم لمتابعة المحادثة.",
+  "supportAddAttachment": "إضافة ملف أو صورة",
+  "supportWriteMessage": "اكتب رسالتك…",
+  "supportGenericMessage": "رسالة",
+  "supportGenericImage": "صورة",
+  "supportGenericUser": "مستخدم HomaGram",
+  "supportNoMessages": "لم يتم إرسال أي رسائل بعد",
+  "supportPreviewFile": "ملف",
+  "@supportReplyPrefix": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  }
 }

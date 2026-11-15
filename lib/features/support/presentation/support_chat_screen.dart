@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/support_service.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class SupportChatScreen extends StatefulWidget {
   const SupportChatScreen({
@@ -28,6 +29,7 @@ class SupportChatScreen extends StatefulWidget {
 }
 
 class _SupportChatScreenState extends State<SupportChatScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final _controller = TextEditingController();
   final _picker = ImagePicker();
   final _scroll = ScrollController();
@@ -70,7 +72,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
           await _loadMessages();
         } catch (_) {
           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('ارسال درخواست انجام نشد؛ متن را در کادر پیام می‌توانید دوباره ارسال کنید.')),
+            const SnackBar(content: Text(_t.supportInitialSendFailed)),
           );
         }
       }
@@ -78,7 +80,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = 'اتصال به پشتیبانی برقرار نشد. دوباره تلاش کنید.';
+        _error = _t.supportConnectionFailed;
       });
     }
   }
@@ -107,7 +109,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = 'دریافت پیام‌ها ناموفق بود.';
+        _error = _t.supportMessagesLoadFailed;
       });
     }
   }
@@ -126,7 +128,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
       if (mounted) {
         _controller.text = text;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ارسال پیام انجام نشد.')),
+          const SnackBar(content: Text(_t.supportMessageSendFailed)),
         );
       }
     } finally {
@@ -139,22 +141,22 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('ثبت درخواست حذف حساب'),
-        content: const Text('پیام درخواست حذف حساب برای پشتیبانی ارسال شود؟ این کار حساب را فوراً حذف نمی‌کند و فقط درخواست بررسی را ثبت می‌کند.'),
+        title: const Text(_t.supportDeleteAccountTitle),
+        content: const Text(_t.supportDeleteAccountConfirm),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('ارسال درخواست')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text(_t.cancel)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text(_t.supportSendRequest)),
         ],
       ),
     );
     if (confirmed != true || !mounted) return;
-    const request = 'درخواست رسمی حذف حساب کاربری هماگرام: لطفاً مالکیت حساب را بررسی کنید، مراحل حذف و پیامدهای آن را توضیح دهید و پس از احراز هویت، درخواست حذف اطلاعات قابل حذف را مطابق قوانین لازم‌الاجرا پیگیری کنید.';
+    final request = _t.supportDeleteAccountRequestBody;
     try {
       await SupportService.sendText(_conversationId!, request);
       await _loadMessages();
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ثبت درخواست حذف حساب انجام نشد. دوباره تلاش کنید.')),
+        const SnackBar(content: Text(_t.supportDeleteAccountRequestFailed)),
       );
     }
   }
@@ -168,12 +170,12 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           ListTile(
             leading: const Icon(Icons.image_outlined),
-            title: const Text('ارسال تصویر'),
+            title: const Text(_t.supportSendImage),
             onTap: () => Navigator.pop(context, 'image'),
           ),
           ListTile(
             leading: const Icon(Icons.attach_file_rounded),
-            title: const Text('ارسال فایل'),
+            title: const Text(_t.supportSendFile),
             onTap: () => Navigator.pop(context, 'file'),
           ),
         ]),
@@ -210,7 +212,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
       if (bytes == null || bytes.isEmpty) return;
       if (bytes.length > 52428800) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('حداکثر حجم فایل ۵۰ مگابایت است.')),
+          const SnackBar(content: Text(_t.supportFileMaxSize)),
         );
         return;
       }
@@ -225,7 +227,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ارسال فایل انجام نشد. نوع یا حجم فایل را بررسی کنید.')),
+          const SnackBar(content: Text(_t.supportFileSendFailed)),
         );
       }
     } finally {
@@ -259,7 +261,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تغییر وضعیت درخواست انجام نشد.')),
+          const SnackBar(content: Text(_t.supportStatusChangeFailed)),
         );
       }
     }
@@ -299,9 +301,9 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                Text(widget.title.isEmpty ? _t.supportChatTitle : widget.title, maxLines: 1, overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
-                Text(_status == 'open' ? 'درخواست فعال' : 'درخواست بسته شده',
+                Text(_status == 'open' ? _t.supportActiveRequest : _t.supportClosedRequest,
                     style: TextStyle(fontSize: 10, color: colors.onSurfaceVariant)),
               ],
             ),
@@ -310,7 +312,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
         actions: [
           if (widget.isAdmin)
             HomaGramSpringPress(child: IconButton(
-              tooltip: _status == 'open' ? 'بستن درخواست' : 'بازگشایی درخواست',
+              tooltip: _status == 'open' ? _t.supportCloseRequest : _t.supportReopenRequest,
               onPressed: _toggleStatus,
               icon: Icon(_status == 'open' ? Icons.lock_outline_rounded : Icons.lock_open_rounded),
             )),
@@ -328,10 +330,10 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
               border: Border.all(color: colors.primary.withValues(alpha: .12)),
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Row(children: [
+              Row(children: [
                 Icon(Icons.verified_user_outlined, size: 19),
                 SizedBox(width: 9),
-                Expanded(child: Text('پیام شما مستقیماً به تیم پشتیبانی هماگرام ارسال می‌شود.',
+                Expanded(child: Text(_t.supportDirectTeamMessage,
                     style: TextStyle(fontSize: 12, height: 1.6))),
               ]),
               const SizedBox(height: 5),
@@ -340,7 +342,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                 child: TextButton.icon(
                   onPressed: _sendAccountDeletionRequest,
                   icon: const Icon(Icons.person_remove_alt_1_rounded, size: 17),
-                  label: const Text('درخواست حذف حساب کاربری'),
+                  label: const Text(_t.supportDeleteAccountAction),
                 ),
               ),
             ]),
@@ -351,19 +353,19 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
               : _error != null
                   ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                       Text(_error!),
-                      HomaGramSpringPress(child: TextButton(onPressed: _loadMessages, child: const Text('تلاش دوباره'))),
+                      HomaGramSpringPress(child: TextButton(onPressed: _loadMessages, child: const Text(_t.retry))),
                     ]))
                   : _messages.isEmpty
                       ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
                           SizedBox(height: 110),
                           Icon(Icons.support_agent_rounded, size: 58, color: Color(0xFF8B6CF6)),
                           SizedBox(height: 14),
-                          Center(child: Text('به پشتیبانی هماگرام خوش آمدید',
+                          Center(child: Text(_t.supportWelcome,
                               style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16))),
                           SizedBox(height: 8),
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: 38),
-                            child: Text('سوال یا درخواست خود را بنویسید؛ تیم ما در همین گفتگو پاسخ می‌دهد.',
+                            child: Text(_t.supportWelcomeHint,
                                 textAlign: TextAlign.center, style: TextStyle(height: 1.8)),
                           ),
                         ])
@@ -394,7 +396,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                                         _replyToId = message['id'] as String;
                                         _replyToBody = (message['body'] as String? ?? '').isNotEmpty
                                             ? message['body'] as String
-                                            : (isImage ? 'تصویر' : 'پیام');
+                                            : (isImage ? _t.supportGenericImage : _t.supportGenericMessage);
                                       });
                                     }
                                   },
@@ -411,7 +413,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                                           borderRadius: BorderRadius.circular(9),
                                           border: Border(right: BorderSide(color: colors.primary, width: 3)),
                                         ),
-                                        child: Text('پاسخ به: ${message['reply_to_body'] ?? 'پیام'}',
+                                        child: Text(_t.supportReplyPrefix(message['reply_to_body'] as String? ?? _t.supportGenericMessage),
                                           maxLines: 2, overflow: TextOverflow.ellipsis,
                                           style: TextStyle(fontSize: 10, color: colors.onSurfaceVariant)),
                                       ),
@@ -419,7 +421,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(12),
                                         child: Image.network(url, width: 220, fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => const Text('نمایش تصویر ممکن نیست.')),
+                                          errorBuilder: (_, __, ___) => const Text(_t.supportImageUnavailable)),
                                       ),
                                     if (url != null && !isImage)
                                       InkWell(
@@ -427,7 +429,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                                         child: Row(mainAxisSize: MainAxisSize.min, children: [
                                           const Icon(Icons.insert_drive_file_outlined, size: 22),
                                           const SizedBox(width: 8),
-                                          Flexible(child: Text(message['file_name'] as String? ?? 'فایل پیوست',
+                                          Flexible(child: Text(message['file_name'] as String? ?? _t.supportAttachmentFallback,
                                               maxLines: 2, overflow: TextOverflow.ellipsis)),
                                           const SizedBox(width: 8),
                                           const Icon(Icons.open_in_new_rounded, size: 16),
@@ -451,7 +453,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(15),
             color: colors.surfaceContainerHighest,
-            child: const Text('این درخواست بسته شده است. برای ادامه گفتگو با پشتیبانی تماس بگیرید.',
+            child: Text(_t.supportClosedConversationHint,
                 textAlign: TextAlign.center),
           )
         else
@@ -470,7 +472,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                       borderRadius: BorderRadius.circular(11),
                     ),
                     child: Row(children: [
-                      Expanded(child: Text('پاسخ به: ${_replyToBody ?? 'پیام'}',
+                      Expanded(child: Text(_t.supportReplyPrefix(_replyToBody ?? _t.supportGenericMessage),
                         maxLines: 1, overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontSize: 11))),
                       IconButton(
@@ -484,7 +486,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                   HomaGramSpringPress(child: IconButton(
                     onPressed: _sending ? null : _pickAttachment,
                     icon: const Icon(Icons.add_circle_outline_rounded),
-                    tooltip: 'افزودن فایل یا تصویر',
+                    tooltip: _t.supportAddAttachment,
                   )),
                   Expanded(
                     child: TextField(
@@ -493,7 +495,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                       maxLines: 5,
                       textInputAction: TextInputAction.newline,
                       decoration: InputDecoration(
-                        hintText: 'پیام خود را بنویسید…',
+                        hintText: _t.supportWriteMessage,
                         filled: true,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         border: OutlineInputBorder(

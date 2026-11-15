@@ -761,5 +761,50 @@
     }
   },
   "newNotificationInHomagram": "You have a new notification on HomaGram.",
-  "viewNotification": "View"
+  "viewNotification": "View",
+  "supportInboxTitle": "Support inbox",
+  "supportInboxLoadFailed": "Could not load the support inbox.",
+  "noSupportRequests": "There are no support requests yet.",
+  "supportOpenStatus": "Open",
+  "supportClosedStatus": "Closed",
+  "supportConnectionFailed": "Could not connect to support. Please try again.",
+  "supportMessagesLoadFailed": "Could not load messages.",
+  "supportInitialSendFailed": "The request could not be sent. You can try again in the message field.",
+  "supportMessageSendFailed": "Message could not be sent.",
+  "supportDeleteAccountTitle": "Request account deletion",
+  "supportDeleteAccountConfirm": "Send an account deletion request to support? This does not delete your account immediately; it only submits a request for review.",
+  "supportSendRequest": "Send request",
+  "supportDeleteAccountRequestFailed": "Could not submit the account deletion request. Please try again.",
+  "supportDeleteAccountRequestBody": "Official HomaGram account deletion request: Please verify account ownership, explain the deletion steps and consequences, and after identity verification process the request to delete eligible data under applicable rules.",
+  "supportSendImage": "Send image",
+  "supportSendFile": "Send file",
+  "supportFileMaxSize": "Maximum file size is 50 MB.",
+  "supportFileSendFailed": "Could not send the file. Check its type and size.",
+  "supportStatusChangeFailed": "Could not change the request status.",
+  "supportActiveRequest": "Active request",
+  "supportClosedRequest": "Closed request",
+  "supportCloseRequest": "Close request",
+  "supportReopenRequest": "Reopen request",
+  "supportDirectTeamMessage": "Your message is sent directly to the HomaGram support team.",
+  "supportDeleteAccountAction": "Request account deletion",
+  "supportWelcome": "Welcome to HomaGram Support",
+  "supportWelcomeHint": "Write your question or request; our team will reply in this conversation.",
+  "supportReplyPrefix": "Reply to: {message}",
+  "supportImageUnavailable": "Image cannot be displayed.",
+  "supportAttachmentFallback": "Attachment",
+  "supportClosedConversationHint": "This request is closed. Contact support to continue the conversation.",
+  "supportAddAttachment": "Add file or image",
+  "supportWriteMessage": "Write your message…",
+  "supportGenericMessage": "Message",
+  "supportGenericImage": "Image",
+  "supportGenericUser": "HomaGram user",
+  "supportNoMessages": "No messages have been sent yet",
+  "supportPreviewFile": "File",
+  "@supportReplyPrefix": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  }
 }
