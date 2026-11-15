@@ -9,6 +9,7 @@ import '../../auth/data/auth_service.dart';
 import 'public_profile_screen.dart';
 import 'feed_screen.dart' show PostCommentsScreen;
 import '../../messaging/data/messaging_service.dart';
+import '../../messaging/presentation/chat_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key, this.initialQuery});
@@ -25,6 +26,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   bool _refreshInProgress = false;
   List<Map<String, dynamic>> _posts = [];
   List<Map<String, dynamic>> _users = [];
+  List<Map<String, dynamic>> _communities = [];
   List<String> _hashtags = [];
   bool _loading = true, _searching = false, _popular = false;
   String? _error;
@@ -121,6 +123,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
         }
         users = merged.values.take(20).toList();
       }
+      List<Map<String, dynamic>> communities = [];
+      try {
+        communities = await MessagingService.searchPublicCommunities(
+          query: query, kind: 'all', limit: 20,
+        );
+      } catch (error) {
+        debugPrint('Explore community search failed: $error');
+      }
       final tags = <String>{};
       for (final post in posts) {
         final caption = post['caption'] as String? ?? '';
@@ -129,7 +139,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         }
       }
       if (!mounted) return;
-      setState(() { _posts = posts; _users = users; _hashtags = tags.take(12).toList(); _loading = false; _error = null; });
+      setState(() { _posts = posts; _users = users; _communities = communities; _hashtags = tags.take(12).toList(); _loading = false; _error = null; });
     } catch (_) {
       if (!mounted) return;
       setState(() { _loading = false; _error = 'محتوای اکسپلور بارگذاری نشد. اتصال را بررسی و دوباره تلاش کنید.'; });
@@ -158,7 +168,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             textInputAction: TextInputAction.search,
             onSubmitted: (value) => _load(term: value),
             decoration: InputDecoration(
-              hintText: 'جست‌وجوی افراد، پست‌ها و هشتگ‌ها',
+              hintText: 'جست‌وجوی افراد، پست‌ها، گروه‌ها و کانال‌ها',
               prefixIcon: const Icon(Icons.search_rounded),
               suffixIcon: _search.text.isEmpty ? null : HomaGramSpringPress(child: IconButton(
                 onPressed: () { _search.clear(); _load(term: ''); },
@@ -205,6 +215,42 @@ class _ExploreScreenState extends State<ExploreScreen> {
             : RefreshIndicator(
               onRefresh: () => _load(),
               child: CustomScrollView(slivers: [
+                if (_communities.isNotEmpty) SliverToBoxAdapter(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Padding(padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
+                      child: Text('گروه‌ها و کانال‌های عمومی', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900))),
+                    ..._communities.map((community) {
+                      final isChannel = community['kind'] == 'channel';
+                      final isMember = community['is_member'] == true;
+                      final title = community['title'] as String? ?? (isChannel ? 'کانال' : 'گروه');
+                      return ListTile(
+                        leading: CircleAvatar(child: Icon(isChannel ? Icons.campaign_outlined : Icons.groups_outlined)),
+                        title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: Text('@${community['slug'] ?? ''} • ${community['member_count'] ?? 0} عضو'),
+                        trailing: TextButton(
+                          onPressed: () async {
+                            try {
+                              if (!isMember) {
+                                if (isChannel) {
+                                  await MessagingService.joinPublicChannel(community['conversation_id'] as String);
+                                } else {
+                                  await MessagingService.joinPublicGroup(community['conversation_id'] as String);
+                                }
+                              }
+                              if (!mounted) return;
+                              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) =>
+                                ChatScreen(conversationId: community['conversation_id'] as String, title: title)));
+                            } catch (_) {
+                              if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('پیوستن یا بازکردن گفتگو انجام نشد.')));
+                            }
+                          },
+                          child: Text(isMember ? 'ورود' : 'پیوستن'),
+                        ),
+                      );
+                    }),
+                  ]),
+                ),
                 if (_users.isNotEmpty) SliverToBoxAdapter(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     const Padding(padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
