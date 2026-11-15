@@ -1596,6 +1596,56 @@ class _ChatScreenState extends State<ChatScreen> {
                   },
                 ),
               ),
+              if ((isGroup || isChannel) && myRole == 'owner')
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Theme.of(sheetContext).colorScheme.error,
+                        side: BorderSide(color: Theme.of(sheetContext).colorScheme.error.withValues(alpha: .55)),
+                      ),
+                      icon: const Icon(Icons.delete_forever_outlined),
+                      label: Text(isGroup ? 'حذف کامل گروه برای همه اعضا' : 'حذف کامل کانال برای همه اعضا'),
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: sheetContext,
+                          builder: (dialogContext) => AlertDialog(
+                            title: Text(isGroup ? 'حذف کامل گروه' : 'حذف کامل کانال'),
+                            content: Text(
+                              'این عملیات ${isGroup ? 'گروه' : 'کانال'}، پیام‌ها و عضویت تمام اعضا را حذف می‌کند و قابل بازگشت نیست. ادامه می‌دهید؟',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(dialogContext, false),
+                                child: const Text('انصراف'),
+                              ),
+                              FilledButton(
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: Theme.of(dialogContext).colorScheme.error,
+                                ),
+                                onPressed: () => Navigator.pop(dialogContext, true),
+                                child: const Text('حذف برای همه'),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirmed != true) return;
+                        try {
+                          await MessagingService.deleteOwnedCommunity(widget.conversationId);
+                          if (sheetContext.mounted) Navigator.pop(sheetContext);
+                          if (mounted) Navigator.pop(context);
+                        } catch (error) {
+                          debugPrint('Delete owned community failed: $error');
+                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('حذف انجام نشد؛ فقط مالک فعلی می‌تواند این گروه یا کانال را حذف کند.')),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ),
               SafeArea(
                 top: false,
                 child: Padding(
