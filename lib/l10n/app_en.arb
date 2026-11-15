@@ -327,5 +327,22 @@
         "type": "int"
       }
     }
+  },
+  "channel": "Channel",
+  "leaveConversationExplanation": "You will leave this {conversationType} and it will no longer appear in your message list.",
+  "communityMemberSummary": "@{slug} • {kind} • {count} members",
+  "@leaveConversationExplanation": {
+    "placeholders": {
+      "conversationType": {}
+    }
+  },
+  "@communityMemberSummary": {
+    "placeholders": {
+      "slug": {},
+      "kind": {},
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }
