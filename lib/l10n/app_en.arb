@@ -806,5 +806,82 @@
         "type": "String"
       }
     }
+  },
+  "exploreTitle": "Explore HomaGram",
+  "refresh": "Refresh",
+  "exploreSearchHint": "Search people, posts, groups, and channels",
+  "exploreLatest": "Latest",
+  "explorePopular": "Popular",
+  "exploreRetry": "Try again",
+  "exploreCommunities": "Public groups and channels",
+  "exploreChannelFallback": "Channel",
+  "exploreGroupFallback": "Group",
+  "exploreMembersCount": "{count} members",
+  "exploreJoin": "Join",
+  "exploreOpen": "Open",
+  "exploreJoinFailed": "Could not join or open the conversation.",
+  "explorePeople": "People",
+  "explorePostResults": "Post results",
+  "explorePublicPosts": "Public posts",
+  "exploreNoContent": "No content to show.",
+  "exploreLoadFailed": "Explore content couldn't be loaded. Check your connection and try again.",
+  "exploreTab": "Explore",
+  "exploreLikeFailed": "Couldn't like this post.",
+  "exploreSharePost": "Share post",
+  "exploreSendToUsers": "Send to HomaGram users",
+  "exploreCopyPostLink": "Copy post link",
+  "exploreShareExternal": "Share outside the app",
+  "explorePostCopied": "Post link copied.",
+  "exploreShareText": "See this post on HomaGram:\n{link}",
+  "exploreSelectRecipients": "Select recipients",
+  "exploreSearchUsersHint": "Search by name or username",
+  "exploreSearchUsersPrompt": "Search to find people.",
+  "exploreSearchUsersFailed": "Couldn't search for users.",
+  "exploreSendToCount": "Send to {count} people",
+  "explorePostSendFailed": "Couldn't send the post.",
+  "explorePostSentCount": "Post sent to {count} people.",
+  "exploreSharePostMessage": "I shared this post with you.",
+  "exploreSavePost": "Save post",
+  "exploreUnsavePost": "Remove from saved",
+  "exploreRepost": "Repost to my profile",
+  "exploreUndoRepost": "Undo repost",
+  "exploreSendPost": "Send post",
+  "exploreReportPost": "Report post",
+  "exploreActionFailed": "This action couldn't be completed.",
+  "exploreReportConfirm": "Would you like to report this post for review?",
+  "exploreSubmitReport": "Submit report",
+  "exploreReportSuccess": "Your report was submitted.",
+  "exploreReportFailed": "Couldn't submit the report.",
+  "exploreCancel": "Cancel",
+  "exploreLikeAction": "Like",
+  "exploreCommentAction": "Comments",
+  "exploreSendAction": "Send",
+  "@exploreMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@exploreSendToCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@explorePostSentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@exploreShareText": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
   }
 }
