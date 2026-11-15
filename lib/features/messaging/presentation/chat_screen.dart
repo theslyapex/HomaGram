@@ -351,37 +351,29 @@ class _ChatScreenState extends State<ChatScreen> {
 
 
   Widget _messageContent(String body, ColorScheme colors) {
-    const marker = 'HOMAGRAM_POST:';
-    if (body.startsWith(marker)) {
-      final postId = body.substring(marker.length, marker.length + 36).trim();
+    const postMarker = 'HOMAGRAM_POST:';
+    const profileMarker = 'HOMAGRAM_PROFILE:';
+    if (body.startsWith(postMarker)) {
+      final postId = body.substring(postMarker.length, postMarker.length + 36).trim();
       if (postId.length == 36 && RegExp(r'^[0-9a-fA-F-]{36}').hasMatch(postId)) {
         return InkWell(
           borderRadius: BorderRadius.circular(14),
           onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
             builder: (_) => SharedPostScreen(postId: postId),
           )),
-          child: Container(
-            width: 245,
-            padding: const EdgeInsets.all(13),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              color: colors.surface.withValues(alpha: .7),
-              border: Border.all(color: colors.outlineVariant.withValues(alpha: .6)),
-            ),
-            child: Row(children: [
-              Container(width: 42, height: 42,
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(12),
-                  color: colors.primaryContainer),
-                child: Icon(Icons.article_rounded, color: colors.primary)),
-              const SizedBox(width: 10),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(_t.homagramPost, style: TextStyle(fontWeight: FontWeight.w900)),
-                SizedBox(height: 3),
-                Text(_t.tapToViewPost, style: TextStyle(fontSize: 11)),
-              ])),
-              Icon(Icons.open_in_new_rounded, size: 17, color: colors.primary),
-            ]),
-          ),
+          child: SharedPostMessagePreview(postId: postId),
+        );
+      }
+    }
+    if (body.startsWith(profileMarker)) {
+      final userId = body.substring(profileMarker.length).trim().split(RegExp(r'\\s')).first;
+      if (userId.isNotEmpty && userId.length <= 64) {
+        return InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+            builder: (_) => PublicProfileScreen(userId: userId),
+          )),
+          child: SharedProfileMessagePreview(userId: userId),
         );
       }
     }
