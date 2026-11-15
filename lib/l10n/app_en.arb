@@ -2056,5 +2056,26 @@
         "type": "String"
       }
     }
-  }
+  },
+  "accountPreferencesLoadFailed": "Couldn't load account settings. Check your connection.",
+  "accountPreferencesSaveFailed": "Couldn't save settings. Please try again.",
+  "accountPreferencesUnblockFailed": "Couldn't unblock the account.",
+  "accountPreferencesTitle": "Privacy and account display",
+  "accountAppearance": "Appearance",
+  "accountTheme": "App theme",
+  "accountThemeSystem": "Match device settings",
+  "accountThemeLight": "Light",
+  "accountThemeDark": "Dark",
+  "accountPrivacy": "Account privacy",
+  "accountPrivate": "Private account",
+  "accountPrivateDescription": "People must request to follow you.",
+  "accountShowFollowers": "Show followers",
+  "accountShowFollowing": "Show following",
+  "accountAllowForwarding": "Allow forwarding my messages",
+  "accountForwardingDescription": "When disabled, others can't forward your text messages to another conversation.",
+  "accountTrackVisitors": "Record profile visitors",
+  "accountVisitorsDescription": "When disabled, visits to your profile won't be recorded.",
+  "accountBlockedUsers": "Blocked accounts",
+  "accountNoBlockedUsers": "You haven't blocked any accounts.",
+  "accountUnblock": "Unblock"
 }
