@@ -1464,5 +1464,8 @@
         "type": "int"
       }
     }
-  }
+  },
+  "storyOpenLinkFailed": "بازکردن لینک ممکن نشد.",
+  "storyVideoPlaybackFailed": "پخش ویدئو انجام نشد. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.",
+  "storyVideoLoading": "در حال بارگذاری ویدئو…"
 }
