@@ -295,7 +295,10 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
       final title = await MessagingService.loadChannelTitle(id);
       if (!mounted) return;
       Navigator.of(context).push(MaterialPageRoute<void>(
-        builder: (_) => ChatScreen(conversationId: id, title: title),
+        builder: (_) => ChatScreen(
+          conversationId: id,
+          title: title.trim().isEmpty ? _t.privateChannel : title,
+        ),
       ));
     } catch (_) {
       if (mounted) {
