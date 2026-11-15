@@ -166,7 +166,7 @@ class _FeedScreenState extends State<FeedScreen> {
                 onRefresh: _refresh,
                 child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(28, 60, 28, 30),
+                  padding: const EdgeInsets.fromLTRB(28, 60, 28, 150),
                   children: [
                     const Icon(Icons.dynamic_feed_outlined, size: 62, color: HomaGramTheme.turquoise),
                     const SizedBox(height: 18),
@@ -186,7 +186,7 @@ class _FeedScreenState extends State<FeedScreen> {
               onRefresh: _refresh,
               child: ListView.separated(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(14, 8, 14, 28),
+                padding: const EdgeInsets.fromLTRB(14, 8, 14, 160),
                 itemCount: posts.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, index) => PostCard(post: posts[index], onDeleted: () => _refresh()),
