@@ -136,7 +136,7 @@ class _VerificationRequestScreenState extends State<VerificationRequestScreen> {
       if (_step == 0) ...[
         Text(_t.verificationAccountType, style: TextStyle(fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
-        SegmentedButton<String>(segments: const [
+        SegmentedButton<String>(segments: [
           ButtonSegment(value: 'individual', label: Text(_t.verificationIndividual), icon: Icon(Icons.person_outline)),
           ButtonSegment(value: 'organization', label: Text(_t.verificationOrganization), icon: Icon(Icons.business_outlined)),
         ], selected: {_type}, onSelectionChanged: (s) => setState(() => _type = s.first)),
