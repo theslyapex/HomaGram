@@ -565,13 +565,18 @@ class _NewGroupSheet extends StatefulWidget {
 class _NewGroupSheetState extends State<_NewGroupSheet> {
   final _title = TextEditingController();
   final _search = TextEditingController();
+  final _slug = TextEditingController();
+  final _description = TextEditingController();
   final Set<String> _selected = {};
   List<Map<String, dynamic>> _users = [];
-  bool _searching = false, _creating = false;
+  bool _searching = false, _creating = false, _isPublic = false;
   String? _error;
 
   Future<void> _find(String value) async {
-    if (value.trim().length < 2) { setState(() => _users = []); return; }
+    if (value.trim().length < 2) {
+      setState(() => _users = []);
+      return;
+    }
     setState(() => _searching = true);
     try {
       final users = await MessagingService.searchUsers(value);
@@ -589,17 +594,30 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
       setState(() => _error = 'نام گروه را وارد کنید.');
       return;
     }
+    if (_isPublic && !RegExp(r'^[a-zA-Z0-9_]{3,32}$').hasMatch(_slug.text.trim())) {
+      setState(() => _error = 'شناسه عمومی باید ۳ تا ۳۲ حرف انگلیسی، عدد یا زیرخط باشد.');
+      return;
+    }
     setState(() { _creating = true; _error = null; });
     try {
-      final id = await MessagingService.createGroupConversation(
-        title: _title.text,
-        memberIds: _selected.toList(),
-      );
+      final id = _isPublic
+          ? await MessagingService.createPublicGroup(
+              title: _title.text,
+              slug: _slug.text,
+              description: _description.text,
+              memberIds: _selected.toList(),
+            )
+          : await MessagingService.createGroupConversation(
+              title: _title.text,
+              memberIds: _selected.toList(),
+            );
       if (mounted) Navigator.pop(context, id);
     } catch (_) {
       if (mounted) setState(() {
         _creating = false;
-        _error = 'ساخت گروه انجام نشد. دوباره تلاش کنید.';
+        _error = _isPublic
+            ? 'ساخت گروه عمومی انجام نشد؛ شناسه ممکن است قبلاً استفاده شده باشد.'
+            : 'ساخت گروه انجام نشد. دوباره تلاش کنید.';
       });
     }
   }
@@ -608,6 +626,8 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
   void dispose() {
     _title.dispose();
     _search.dispose();
+    _slug.dispose();
+    _description.dispose();
     super.dispose();
   }
 
@@ -615,63 +635,93 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(18, 8, 18, 20 + MediaQuery.viewInsetsOf(context).bottom),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('ساخت گروه جدید', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 14),
-          TextField(controller: _title, maxLength: 100,
-            decoration: const InputDecoration(labelText: 'نام گروه', prefixIcon: Icon(Icons.groups_outlined))),
-          const SizedBox(height: 8),
-          TextField(controller: _search, autofocus: true, onChanged: _find,
-            decoration: const InputDecoration(hintText: 'جست‌وجوی اعضا با نام کاربری', prefixIcon: Icon(Icons.search_rounded))),
-          if (_searching) const LinearProgressIndicator(minHeight: 2),
-          if (_selected.isNotEmpty)
-            Padding(padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text('${_selected.length} عضو انتخاب شده‌اند')),
-          if (_users.isNotEmpty)
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 250),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: _users.length,
-                itemBuilder: (context, index) {
-                  final user = _users[index];
-                  final id = user['id'] as String;
-                  final selected = _selected.contains(id);
-                  return CheckboxListTile(
-                    value: selected,
-                    onChanged: (value) => setState(() {
-                      if (value == true) {
-                        if (_selected.length < 99) _selected.add(id);
-                      } else {
-                        _selected.remove(id);
-                      }
-                    }),
-                    secondary: const CircleAvatar(child: Icon(Icons.person_outline)),
-                    title: Text(user['display_name'] as String? ?? user['username'] as String),
-                    subtitle: Text('@${user['username']}'),
-                    controlAffinity: ListTileControlAffinity.leading,
-                  );
-                },
-              ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('ساخت گروه جدید', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 14),
+            TextField(controller: _title, maxLength: 100,
+              decoration: const InputDecoration(labelText: 'نام گروه', prefixIcon: Icon(Icons.groups_outlined))),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              value: _isPublic,
+              onChanged: _creating ? null : (value) => setState(() => _isPublic = value),
+              title: Text(_isPublic ? 'گروه عمومی' : 'گروه خصوصی'),
+              subtitle: Text(_isPublic
+                  ? 'در بخش کشف نمایش داده می‌شود و همه می‌توانند عضو شوند.'
+                  : 'فقط اعضای انتخاب‌شده و افراد دارای دعوت‌نامه به گروه دسترسی دارند.'),
+              secondary: Icon(_isPublic ? Icons.public_rounded : Icons.lock_outline_rounded),
             ),
-          if (_error != null)
-            Padding(padding: const EdgeInsets.only(top: 8),
-              child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error))),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: HomaGramSpringPress(child: FilledButton.icon(
-              onPressed: _creating ? null : _create,
-              icon: _creating
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Icons.group_add_rounded),
-              label: const Text('ایجاد گروه'),
-            )),
-          ),
-        ],
+            if (_isPublic) ...[
+              TextField(
+                controller: _slug,
+                maxLength: 32,
+                textDirection: TextDirection.ltr,
+                decoration: const InputDecoration(
+                  labelText: 'شناسه عمومی گروه',
+                  prefixText: '@',
+                  helperText: '۳ تا ۳۲ حرف انگلیسی، عدد یا زیرخط',
+                ),
+              ),
+              TextField(
+                controller: _description,
+                maxLength: 500,
+                maxLines: 2,
+                decoration: const InputDecoration(labelText: 'توضیحات گروه (اختیاری)'),
+              ),
+            ],
+            const SizedBox(height: 8),
+            TextField(controller: _search, onChanged: _find,
+              decoration: const InputDecoration(hintText: 'جست‌وجوی اعضا با نام کاربری', prefixIcon: Icon(Icons.search_rounded))),
+            if (_searching) const LinearProgressIndicator(minHeight: 2),
+            if (_selected.isNotEmpty)
+              Padding(padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text('${_selected.length} عضو انتخاب شده‌اند')),
+            if (_users.isNotEmpty)
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 210),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: _users.length,
+                  itemBuilder: (context, index) {
+                    final user = _users[index];
+                    final id = user['id'] as String;
+                    final selected = _selected.contains(id);
+                    return CheckboxListTile(
+                      value: selected,
+                      onChanged: (value) => setState(() {
+                        if (value == true) {
+                          if (_selected.length < 99) _selected.add(id);
+                        } else {
+                          _selected.remove(id);
+                        }
+                      }),
+                      secondary: const CircleAvatar(child: Icon(Icons.person_outline)),
+                      title: Text(user['display_name'] as String? ?? user['username'] as String),
+                      subtitle: Text('@${user['username']}'),
+                      controlAffinity: ListTileControlAffinity.leading,
+                    );
+                  },
+                ),
+              ),
+            if (_error != null)
+              Padding(padding: const EdgeInsets.only(top: 8),
+                child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error))),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: HomaGramSpringPress(child: FilledButton.icon(
+                onPressed: _creating ? null : _create,
+                icon: _creating
+                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.group_add_rounded),
+                label: Text(_isPublic ? 'ایجاد گروه عمومی' : 'ایجاد گروه خصوصی'),
+              )),
+            ),
+          ],
+        ),
       ),
     );
   }
