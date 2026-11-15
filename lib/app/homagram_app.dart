@@ -346,114 +346,25 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
     if (inboxTypes.contains(type)) _openNotificationsInbox();
   }
 
+
   void _handleUri(Uri? uri) {
     if (uri == null || uri.scheme != 'homagram') return;
     if (AuthService.client.auth.currentSession == null) return;
 
     if (uri.host == 'post') {
       final id = uri.pathSegments.isEmpty ? '' : uri.pathSegments.first;
-      if (!RegExp(r'^[0-9a-fA-F-]{36}
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _linkSubscription?.cancel();
-    _authSubscription?.cancel();
-    _pushOpenSubscription?.cancel();
-    _foregroundPushSubscription?.cancel();
-    _shakeSubscription?.cancel();
-    _presenceHeartbeat?.cancel();
-    if (widget.supabaseConfigured &&
-        AuthService.client.auth.currentUser != null) {
-      MessagingService.updatePresence(false).catchError((_) {});
-    }
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => ValueListenableBuilder<ThemeMode>(
-      valueListenable: HomaGramTheme.mode,
-      builder: (context, themeMode, _) => RepaintBoundary(
-        key: homagramScreenCaptureKey,
-        child: MaterialApp(
-        navigatorKey: homagramNavigatorKey,
-        title: 'HomaGram',
-        debugShowCheckedModeBanner: false,
-        locale: const Locale('fa'),
-        supportedLocales: const [Locale('fa'), Locale('en')],
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        theme: HomaGramTheme.light,
-        darkTheme: HomaGramTheme.dark,
-        themeMode: themeMode,
-        home: HomaGramLaunchScreen(
-          child: widget.supabaseConfigured
-              ? const AuthGate()
-              : const BootstrapScreen(supabaseConfigured: false),
-        ),
-      ),
-    ),
-  );
-}
-).hasMatch(id)) return;
+      if (!RegExp(r'^[0-9a-fA-F-]{36}$').hasMatch(id)) return;
       homagramNavigatorKey.currentState?.push(
-        MaterialPageRoute<void>(builder: (_) => SharedPostScreen(postId: id)),
+        MaterialPageRoute<void>(
+          builder: (_) => SharedPostScreen(postId: id),
+        ),
       );
       return;
     }
 
     if (uri.host == 'group') {
       final token = uri.pathSegments.isEmpty ? '' : uri.pathSegments.first;
-      if (!RegExp(r'^[0-9a-fA-F]{64}
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _linkSubscription?.cancel();
-    _authSubscription?.cancel();
-    _pushOpenSubscription?.cancel();
-    _foregroundPushSubscription?.cancel();
-    _shakeSubscription?.cancel();
-    _presenceHeartbeat?.cancel();
-    if (widget.supabaseConfigured &&
-        AuthService.client.auth.currentUser != null) {
-      MessagingService.updatePresence(false).catchError((_) {});
-    }
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => ValueListenableBuilder<ThemeMode>(
-      valueListenable: HomaGramTheme.mode,
-      builder: (context, themeMode, _) => RepaintBoundary(
-        key: homagramScreenCaptureKey,
-        child: MaterialApp(
-        navigatorKey: homagramNavigatorKey,
-        title: 'HomaGram',
-        debugShowCheckedModeBanner: false,
-        locale: const Locale('fa'),
-        supportedLocales: const [Locale('fa'), Locale('en')],
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        theme: HomaGramTheme.light,
-        darkTheme: HomaGramTheme.dark,
-        themeMode: themeMode,
-        home: HomaGramLaunchScreen(
-          child: widget.supabaseConfigured
-              ? const AuthGate()
-              : const BootstrapScreen(supabaseConfigured: false),
-        ),
-      ),
-    ),
-  );
-}
-).hasMatch(token)) return;
+      if (!RegExp(r'^[0-9a-fA-F]{64}$').hasMatch(token)) return;
       unawaited(_openGroupInvite(token));
     }
   }
@@ -462,19 +373,29 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
     try {
       final conversationId = await MessagingService.joinGroupByInvite(token);
       final row = await AuthService.client
-          .from('conversations').select('title').eq('id', conversationId).single();
+          .from('conversations')
+          .select('title')
+          .eq('id', conversationId)
+          .single();
       final title = row['title'] as String? ?? 'گروه';
       final navigator = homagramNavigatorKey.currentState;
       if (navigator == null) return;
-      navigator.push(MaterialPageRoute<void>(
-        builder: (_) => ChatScreen(conversationId: conversationId, title: title),
-      ));
+      navigator.push(
+        MaterialPageRoute<void>(
+          builder: (_) => ChatScreen(
+            conversationId: conversationId,
+            title: title,
+          ),
+        ),
+      );
     } catch (error) {
       debugPrint('Group invite deep link failed: $error');
       final context = homagramNavigatorKey.currentContext;
       if (context != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('لینک دعوت گروه معتبر نیست یا اعتبار آن پایان یافته است.')),
+          const SnackBar(
+            content: Text('لینک دعوت گروه معتبر نیست یا اعتبار آن پایان یافته است.'),
+          ),
         );
       }
     }
