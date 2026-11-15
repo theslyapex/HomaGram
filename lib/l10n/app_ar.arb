@@ -2056,5 +2056,26 @@
         "type": "String"
       }
     }
-  }
+  },
+  "accountPreferencesLoadFailed": "تعذّر تحميل إعدادات الحساب. تحقق من اتصالك.",
+  "accountPreferencesSaveFailed": "تعذّر حفظ الإعدادات. حاول مرة أخرى.",
+  "accountPreferencesUnblockFailed": "تعذّر إلغاء حظر الحساب.",
+  "accountPreferencesTitle": "الخصوصية وعرض الحساب",
+  "accountAppearance": "المظهر",
+  "accountTheme": "سمة التطبيق",
+  "accountThemeSystem": "مطابقة إعدادات الجهاز",
+  "accountThemeLight": "فاتح",
+  "accountThemeDark": "داكن",
+  "accountPrivacy": "خصوصية الحساب",
+  "accountPrivate": "حساب خاص",
+  "accountPrivateDescription": "يجب على الآخرين إرسال طلب متابعة لك.",
+  "accountShowFollowers": "عرض المتابعين",
+  "accountShowFollowing": "عرض قائمة المتابَعين",
+  "accountAllowForwarding": "السماح بإعادة توجيه رسائلي",
+  "accountForwardingDescription": "عند إيقاف هذا الخيار، لن يتمكن الآخرون من إعادة توجيه رسائلك النصية إلى محادثة أخرى.",
+  "accountTrackVisitors": "تسجيل زوار الملف الشخصي",
+  "accountVisitorsDescription": "عند إيقاف هذا الخيار، لن يتم تسجيل زيارات ملفك الشخصي.",
+  "accountBlockedUsers": "الحسابات المحظورة",
+  "accountNoBlockedUsers": "لم تحظر أي حسابات حاليًا.",
+  "accountUnblock": "إلغاء الحظر"
 }
