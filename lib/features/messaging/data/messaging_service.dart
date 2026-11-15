@@ -276,9 +276,20 @@ class MessagingService {
     final attachments = await _client.from('message_attachments')
         .select('id,message_id,storage_path,uploader_id,mime_type,file_name,size_bytes,is_view_once')
         .inFilter('message_id', ids);
+    final timedAttachmentIds = attachments
+        .where((item) => item['is_view_once'] == true)
+        .map((item) => item['id'] as String).toList();
+    final viewedTimedIds = timedAttachmentIds.isEmpty
+        ? <String>{}
+        : (await _client.from('message_attachment_views')
+            .select('attachment_id')
+            .eq('viewer_id', _userId)
+            .inFilter('attachment_id', timedAttachmentIds))
+            .map((row) => row['attachment_id'] as String).toSet();
     for (final item in attachments) {
       if (item['is_view_once'] == true) {
         item['signed_url'] = null;
+        item['viewed_by_me'] = viewedTimedIds.contains(item['id']);
         continue;
       }
       try {
