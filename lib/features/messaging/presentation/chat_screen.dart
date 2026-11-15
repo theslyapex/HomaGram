@@ -1941,6 +1941,8 @@ class _ChatScreenState extends State<ChatScreen> {
           )),
           if (attachment['uploader_id'] == Supabase.instance.client.auth.currentUser?.id)
             const Icon(Icons.lock_outline_rounded)
+          else if (attachment['viewed_by_me'] == true)
+            const Tooltip(message: 'قبلاً مشاهده شده', child: Icon(Icons.check_circle_outline_rounded))
           else
             IconButton(
               tooltip: 'مشاهده تصویر',
