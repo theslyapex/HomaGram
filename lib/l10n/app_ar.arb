@@ -2233,5 +2233,12 @@
   "quickBugReportSubmitFailed": "تعذر إرسال البلاغ عن المشكلة. يُرجى المحاولة مرة أخرى.",
   "groupInviteInvalid": "رابط دعوة المجموعة غير صالح أو انتهت صلاحيته.",
   "homagramLogoSemanticLabel": "شعار HomaGram",
-  "verifiedAccount": "حساب موثّق"
+  "verifiedAccount": "حساب موثّق",
+  "@quickBugReportCaptionDetails": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  }
 }
