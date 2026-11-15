@@ -191,7 +191,7 @@ class _AuthScreenState extends State<AuthScreen> {
         return null;
       }),
       const SizedBox(height: 14),
-      _field(_username, 'نام کاربری', Icons.alternate_email, direction: TextDirection.ltr,
+      _field(_username, _strings.username, Icons.alternate_email, direction: TextDirection.ltr,
         hint: 'your_name', validator: validateHomagramUsername),
       const SizedBox(height: 14),
     ],
