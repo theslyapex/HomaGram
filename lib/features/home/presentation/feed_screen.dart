@@ -640,7 +640,7 @@ class _PostCardState extends State<PostCard> {
                 const SizedBox(width: 4),
                 HomaGramVerifiedBadge(userId: post['author_id'] as String?),
               ]),
-              Text('@${post['author_username'] ?? 'user'} • $dateText', textDirection: TextDirection.ltr,
+              Text('@${post['author_username'] ?? _t.feedUserFallback} • $dateText', textDirection: TextDirection.ltr,
                 style: const TextStyle(fontSize: 10, color: Color(0xFF8490A4))),
             ]))),
           HomaGramSpringPress(child: IconButton(onPressed: _menu, icon: const Icon(Icons.more_horiz_rounded, color: Color(0xFF8490A4)))),
