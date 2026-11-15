@@ -824,7 +824,10 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
                           _selected.remove(id);
                         }
                       }),
-                      secondary: const CircleAvatar(child: Icon(Icons.person_outline)),
+                      secondary: CircleAvatar(
+                        backgroundImage: user['avatar_url'] is String ? NetworkImage(user['avatar_url'] as String) : null,
+                        child: user['avatar_url'] is String ? null : const Icon(Icons.person_outline),
+                      ),
                       title: Text(user['display_name'] as String? ?? user['username'] as String),
                       subtitle: Text('@${user['username']}'),
                       controlAffinity: ListTileControlAffinity.leading,
