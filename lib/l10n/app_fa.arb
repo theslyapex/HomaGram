@@ -806,5 +806,82 @@
         "type": "String"
       }
     }
+  },
+  "exploreTitle": "کشف در هماگرام",
+  "refresh": "تازه‌سازی",
+  "exploreSearchHint": "جست‌وجوی افراد، پست‌ها، گروه‌ها و کانال‌ها",
+  "exploreLatest": "جدیدترین",
+  "explorePopular": "محبوب‌ترین",
+  "exploreRetry": "تلاش دوباره",
+  "exploreCommunities": "گروه‌ها و کانال‌های عمومی",
+  "exploreChannelFallback": "کانال",
+  "exploreGroupFallback": "گروه",
+  "exploreMembersCount": "{count} عضو",
+  "exploreJoin": "پیوستن",
+  "exploreOpen": "ورود",
+  "exploreJoinFailed": "پیوستن یا بازکردن گفتگو انجام نشد.",
+  "explorePeople": "افراد",
+  "explorePostResults": "نتایج پست‌ها",
+  "explorePublicPosts": "پست‌های عمومی",
+  "exploreNoContent": "محتوایی برای نمایش پیدا نشد.",
+  "exploreLoadFailed": "محتوای اکسپلور بارگذاری نشد. اتصال را بررسی و دوباره تلاش کنید.",
+  "exploreTab": "کشف",
+  "exploreLikeFailed": "ثبت پسند پست انجام نشد.",
+  "exploreSharePost": "همرسانی پست",
+  "exploreSendToUsers": "ارسال برای کاربران HomaGram",
+  "exploreCopyPostLink": "کپی پیوند پست",
+  "exploreShareExternal": "اشتراک‌گذاری خارج از برنامه",
+  "explorePostCopied": "پیوند پست کپی شد.",
+  "exploreShareText": "این پست را در HomaGram ببین:\n{link}",
+  "exploreSelectRecipients": "انتخاب گیرندگان",
+  "exploreSearchUsersHint": "نام یا نام کاربری را جست‌وجو کنید",
+  "exploreSearchUsersPrompt": "برای یافتن کاربر جست‌وجو کنید.",
+  "exploreSearchUsersFailed": "جست‌وجوی کاربران انجام نشد.",
+  "exploreSendToCount": "ارسال برای {count} نفر",
+  "explorePostSendFailed": "ارسال پست انجام نشد.",
+  "explorePostSentCount": "پست برای {count} نفر ارسال شد.",
+  "exploreSharePostMessage": "این پست را برای شما فرستادم.",
+  "exploreSavePost": "ذخیره پست",
+  "exploreUnsavePost": "حذف از ذخیره‌شده‌ها",
+  "exploreRepost": "بازنشر در صفحه من",
+  "exploreUndoRepost": "لغو بازنشر",
+  "exploreSendPost": "ارسال پست",
+  "exploreReportPost": "گزارش پست",
+  "exploreActionFailed": "این عملیات انجام نشد.",
+  "exploreReportConfirm": "آیا می‌خواهید این پست را برای بررسی گزارش کنید؟",
+  "exploreSubmitReport": "ثبت گزارش",
+  "exploreReportSuccess": "گزارش شما ثبت شد.",
+  "exploreReportFailed": "ثبت گزارش انجام نشد.",
+  "exploreCancel": "انصراف",
+  "exploreLikeAction": "پسندیدن",
+  "exploreCommentAction": "دیدگاه‌ها",
+  "exploreSendAction": "ارسال",
+  "@exploreMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@exploreSendToCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@explorePostSentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@exploreShareText": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
   }
 }
