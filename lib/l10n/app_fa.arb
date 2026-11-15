@@ -2221,5 +2221,15 @@
   "bootstrapDescription": "این نسخه نقطه شروع توسعه مرحله‌ای هماگرام است. قابلیت‌های حساب کاربری، شبکه اجتماعی و پیام‌رسان در مراحل بعدی ساخته و آزمایش می‌شوند.",
   "bootstrapSupabaseConfigured": "پیکربندی اتصال Supabase بارگذاری شد",
   "bootstrapSupabaseNotConfigured": "اتصال Supabase هنوز پیکربندی نشده است",
-  "bootstrapStage": "مرحله صفر • آماده‌سازی پروژه"
+  "bootstrapStage": "مرحله صفر • آماده‌سازی پروژه",
+  "quickBugReportTitle": "گزارش سریع مشکل",
+  "quickBugReportScreenshotPrivacy": "تصویری از همین صفحه ثبت شده است. پیش از ارسال، پیش‌نمایش را بررسی کنید و مطمئن شوید اطلاعات خصوصی ناخواسته در آن وجود ندارد.",
+  "quickBugReportPreviewUnavailable": "پیش‌نمایش تصویر در دسترس نیست.",
+  "quickBugReportDescriptionLabel": "توضیح مشکل یا خطا",
+  "quickBugReportDescriptionHint": "چه اتفاقی افتاد؟",
+  "quickBugReportSend": "ارسال به پشتیبانی",
+  "quickBugReportCaptionDefault": "گزارش مشکل از طریق قابلیت گزارش با تکان‌دادن گوشی.",
+  "quickBugReportCaptionDetails": "گزارش مشکل: {details}",
+  "quickBugReportSubmitFailed": "ثبت گزارش مشکل انجام نشد. دوباره تلاش کنید.",
+  "groupInviteInvalid": "لینک دعوت گروه نامعتبر است یا اعتبار آن به پایان رسیده است."
 }
