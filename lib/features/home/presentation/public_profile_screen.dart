@@ -54,6 +54,11 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       final profile = await client.from('profiles')
           .select('id,username,display_name,bio,avatar_path,created_at')
           .eq('id', widget.userId).single();
+      final publicBirthday = await client.rpc(
+        'get_public_profile_birthday',
+        params: {'p_profile_id': widget.userId},
+      );
+      profile['public_birth_date'] = publicBirthday;
       if (!_isMe) {
         await client.from('profile_views').upsert({
           'profile_id': widget.userId,
@@ -274,6 +279,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     final p = _profile!;
     final displayName = (p['display_name'] as String?)?.trim();
     final username = p['username'] as String? ?? 'user';
+    final birthDate = p['public_birth_date'] as String?;
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 22, 18, 18),
       decoration: BoxDecoration(
@@ -317,6 +323,15 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         const SizedBox(height: 5),
         Text('@$username', textDirection: TextDirection.ltr,
           style: const TextStyle(color: Color(0xFFD6E8F0), fontSize: 12)),
+        if (birthDate != null && birthDate.isNotEmpty) ...[
+          const SizedBox(height: 11),
+          Row(mainAxisSize: MainAxisSize.min, children: [
+            const Icon(Icons.cake_outlined, size: 15, color: Color(0xFFB9DDE8)),
+            const SizedBox(width: 6),
+            Text('متولد ${persianDate(DateTime.parse(birthDate))}',
+              style: const TextStyle(color: Color(0xFFD6E8F0), fontSize: 12)),
+          ]),
+        ],
         if ((p['bio'] as String? ?? '').trim().isNotEmpty) ...[
           const SizedBox(height: 12),
           Text(p['bio'] as String, textAlign: TextAlign.center,
