@@ -1182,8 +1182,20 @@ class _ChatScreenState extends State<ChatScreen> {
                   const SizedBox(width: 10),
                   Expanded(child: Text(
                     (info['title'] as String?) ?? (isChannel ? 'کانال' : isGroup ? 'گروه' : widget.title),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
                   )),
+                ]),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    reverse: true,
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
                   if ((isGroup || isChannel) && canChangeInfo)
                     IconButton(
                       tooltip: isChannel ? 'تغییر تصویر کانال' : 'تغییر تصویر گروه',
@@ -1504,7 +1516,10 @@ class _ChatScreenState extends State<ChatScreen> {
                         }
                       },
                     ),
-                ]),
+
+                    ]),
+                  ),
+                ),
               ),
               if (description.trim().isNotEmpty)
                 Padding(
