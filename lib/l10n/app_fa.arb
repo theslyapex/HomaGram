@@ -327,5 +327,22 @@
         "type": "int"
       }
     }
+  },
+  "channel": "کانال",
+  "leaveConversationExplanation": "از این {conversationType} خارج می‌شوید و دیگر در فهرست پیام‌های شما نمایش داده نمی‌شود.",
+  "communityMemberSummary": "@{slug} • {kind} • {count} عضو",
+  "@leaveConversationExplanation": {
+    "placeholders": {
+      "conversationType": {}
+    }
+  },
+  "@communityMemberSummary": {
+    "placeholders": {
+      "slug": {},
+      "kind": {},
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }
