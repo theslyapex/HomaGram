@@ -1077,5 +1077,12 @@
         "type": "String"
       }
     }
-  }
+  },
+  "reelsLoadFailed": "تعذر تحميل مقاطع الفيديو.",
+  "reelsEmptyTitle": "لا توجد مقاطع ريلز بعد",
+  "reelsEmptyMessage": "انشر أول فيديو قصير لك، بمدة تصل إلى دقيقتين.",
+  "reelsCreateFirst": "إنشاء أول ريلز",
+  "reelsShareTitle": "ريلز على HomaGram",
+  "reelsReportTitle": "الإبلاغ عن مقطع الريلز",
+  "reelsReportSuccess": "تم إرسال بلاغ عن الريلز للمراجعة."
 }
