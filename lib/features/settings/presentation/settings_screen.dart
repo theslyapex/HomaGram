@@ -1,4 +1,5 @@
 import '../../../app/app_language.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -12,11 +13,12 @@ import 'account_preferences_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
+  AppLocalizations _t(BuildContext context) => AppLocalizations.of(context)!;
   Future<void> _sendPasswordReset(BuildContext context) async {
     final email = Supabase.instance.client.auth.currentUser?.email;
     if (email == null || email.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('برای این حساب ایمیل ثبت‌شده‌ای در دسترس نیست.')),
+        const SnackBar(content: Text(_t(context).emailUnavailable)),
       );
       return;
     }
@@ -24,12 +26,12 @@ class SettingsScreen extends StatelessWidget {
       await Supabase.instance.client.auth.resetPasswordForEmail(email);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('لینک بازیابی رمز عبور به ایمیل حساب ارسال شد.')),
+        const SnackBar(content: Text(_t(context).passwordResetSent)),
       );
     } catch (_) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ارسال لینک بازیابی انجام نشد؛ کمی بعد دوباره تلاش کنید.')),
+        const SnackBar(content: Text(_t(context).passwordResetFailed)),
       );
     }
   }
@@ -38,11 +40,11 @@ class SettingsScreen extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('درخواست حذف حساب'),
-        content: const Text('درخواست شما در گفت‌وگوی پشتیبانی ثبت می‌شود. حساب فوراً حذف نخواهد شد و پیش از اقدام، مالکیت حساب و موارد نگهداری قانونی بررسی می‌شود. ادامه می‌دهید؟'),
+        title: const Text(_t(context).deleteAccountRequest),
+        content: const Text(_t(context).deleteAccountExplanation),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('ادامه و ارسال')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(_t(context).cancel)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text(_t(context).continueAndSend)),
         ],
       ),
     );
@@ -60,37 +62,37 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final entries = <_SettingEntry>[
-      _SettingEntry(Icons.password_rounded, 'بازیابی رمز عبور', 'ارسال لینک امن به ایمیل حساب',
+      _SettingEntry(Icons.password_rounded, _t(context).passwordRecovery, _t(context).sendSecureResetLink,
         () => _sendPasswordReset(context)),
-      _SettingEntry(Icons.person_remove_alt_1_rounded, 'درخواست حذف حساب', 'ثبت درخواست رسمی از طریق پشتیبانی',
+      _SettingEntry(Icons.person_remove_alt_1_rounded, _t(context).deleteAccountRequest, _t(context).submitFormalSupportRequest,
         () => _requestAccountDeletion(context)),
-      _SettingEntry(Icons.folder_shared_outlined, 'درخواست‌های اطلاعات و حساب', 'دریافت نسخه اطلاعات یا درخواست حذف حساب',
-        () => _open(context, 'درخواست‌های اطلاعات و حساب', const [
+      _SettingEntry(Icons.folder_shared_outlined, _t(context).dataAndAccountRequests, _t(context).dataCopyOrDeletion,
+        () => _open(context, _t(context).dataAndAccountRequests, const [
           _PolicySection('دسترسی و دریافت نسخه', 'برای درخواست نسخه‌ای از اطلاعات مرتبط با حساب، از گفت‌وگوی پشتیبانی داخل برنامه پیام دهید. درخواست باید از همان حساب ثبت شود تا امکان بررسی مالکیت حساب فراهم باشد.'),
           _PolicySection('اصلاح اطلاعات', 'نام نمایشی، نام کاربری و اطلاعاتی را که در بخش ویرایش نمایه قابل تغییر است، از همان بخش اصلاح کنید. برای داده‌هایی که امکان ویرایش مستقیم ندارند، درخواست خود را به پشتیبانی ارسال کنید.'),
-          _PolicySection('درخواست حذف حساب', 'برای ثبت درخواست حذف حساب، از گفت‌وگوی پشتیبانی داخل برنامه استفاده کنید. پیش از اجرای حذف، پیامدهای آن، مواردی که ممکن است طبق قانون یا برای رسیدگی به گزارش‌ها و اختلاف‌ها نگهداری شوند، و وضعیت محتوای منتشرشده باید به شما توضیح داده شود. این صفحه به‌تنهایی حساب را حذف نمی‌کند.'),
+          _PolicySection(_t(context).deleteAccountRequest, 'برای ثبت درخواست حذف حساب، از گفت‌وگوی پشتیبانی داخل برنامه استفاده کنید. پیش از اجرای حذف، پیامدهای آن، مواردی که ممکن است طبق قانون یا برای رسیدگی به گزارش‌ها و اختلاف‌ها نگهداری شوند، و وضعیت محتوای منتشرشده باید به شما توضیح داده شود. این صفحه به‌تنهایی حساب را حذف نمی‌کند.'),
           _PolicySection('رسیدگی و پیگیری', 'درخواست‌ها پس از بررسی هویت و دامنه درخواست رسیدگی می‌شوند. اطلاعات ورود، رمز عبور یا کد یک‌بارمصرف را برای هیچ‌کس ارسال نکنید.'),
         ])),
-      _SettingEntry(Icons.verified_user_outlined, 'درخواست نشان تأیید', 'ارسال مدارک برای بررسی دریافت تیک آبی',
+      _SettingEntry(Icons.verified_user_outlined, _t(context).verificationRequest, _t(context).submitVerificationDocuments,
         () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const VerificationRequestScreen()))),
-      _SettingEntry(Icons.shield_moon_outlined, 'تأیید دومرحله‌ای', 'افزودن کد امنیتی هنگام ورود به حساب',
+      _SettingEntry(Icons.shield_moon_outlined, _t(context).twoStepVerification, _t(context).addLoginSecurityCode,
         () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const TwoStepVerificationScreen()))),
-      _SettingEntry(Icons.vibration_rounded, 'گزارش سریع مشکل', 'گرفتن تصویر صفحه با تکان گوشی و ارسال پس از تأیید',
+      _SettingEntry(Icons.vibration_rounded, _t(context).quickBugReport, _t(context).captureAndSubmitAfterReview,
         () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const ShakeBugReportSettingsScreen()))),
-      _SettingEntry(Icons.notifications_active_outlined, 'اعلان‌ها', 'مدیریت اعلان‌های دریافتی',
+      _SettingEntry(Icons.notifications_active_outlined, _t(context).notifications, _t(context).manageNotifications,
         () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()))),
-      _SettingEntry(Icons.tune_rounded, 'حریم خصوصی و نمایش حساب', 'پوسته، خصوصی‌بودن حساب و کاربران مسدودشده',
+      _SettingEntry(Icons.tune_rounded, _t(context).privacyAndAccountVisibility, _t(context).themePrivacyAndBlockedUsers,
         () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AccountPreferencesScreen()))),
-      _SettingEntry(Icons.lock_outline_rounded, 'سیاست حریم خصوصی', 'اصول حفاظت از حساب و اطلاعات',
+      _SettingEntry(Icons.lock_outline_rounded, _t(context).privacyPolicy, _t(context).accountAndDataProtection,
         () => _open(context, 'حریم خصوصی و امنیت', _privacy)),
-      _SettingEntry(Icons.gavel_rounded, 'قوانین و مقررات', 'شرایط استفاده از هماگرام',
-        () => _open(context, 'قوانین و مقررات', _terms)),
-      _SettingEntry(Icons.groups_2_outlined, 'راهنمای جامعه', 'رفتار مجاز و محتوای ممنوع',
-        () => _open(context, 'راهنمای جامعه', _community)),
-      _SettingEntry(Icons.copyright_rounded, 'مالکیت محتوا و حقوق نشر', 'حقوق کاربران و رسیدگی به تخلفات',
-        () => _open(context, 'مالکیت محتوا و حقوق نشر', _copyright)),
-      _SettingEntry(Icons.info_outline_rounded, 'درباره هماگرام', 'داستان، چشم‌انداز و مسیر رشد محصول',
-        () => _open(context, 'درباره هماگرام', const [
+      _SettingEntry(Icons.gavel_rounded, _t(context).termsAndConditions, _t(context).homagramTerms,
+        () => _open(context, _t(context).termsAndConditions, _terms)),
+      _SettingEntry(Icons.groups_2_outlined, _t(context).communityGuidelines, _t(context).allowedBehaviorAndProhibitedContent,
+        () => _open(context, _t(context).communityGuidelines, _community)),
+      _SettingEntry(Icons.copyright_rounded, _t(context).contentOwnershipAndCopyright, _t(context).userRightsAndCopyrightClaims,
+        () => _open(context, _t(context).contentOwnershipAndCopyright, _copyright)),
+      _SettingEntry(Icons.info_outline_rounded, _t(context).aboutHomagram, _t(context).productStoryVisionAndRoadmap,
+        () => _open(context, _t(context).aboutHomagram, const [
           _PolicySection('هماگرام؛ ارتباطی فراتر از مرزها', 'هماگرام یک فضای اجتماعی و پیام‌رسان چندرسانه‌ای است که برای نزدیک‌تر کردن آدم‌ها، ایده‌ها و تجربه‌ها ساخته می‌شود؛ جایی برای گفت‌وگو، کشف محتوا و ساختن ارتباط‌های معنادار.'),
           _PolicySection('یک خانه برای ارتباط و خلاقیت', 'در هماگرام می‌توانید محتوای تصویری و ویدئویی منتشر کنید، ریلز و استوری ببینید، با دیگران گفت‌وگو کنید، گروه و کانال بسازید، دیدگاه بگذارید و محتوای مورد علاقه‌تان را دنبال کنید. هدف این است که تجربه‌های روزمره ارتباطی در محیطی منسجم و خوش‌ساخت کنار هم قرار بگیرند.'),
           _PolicySection('طراحی‌شده برای تجربه‌ای روان', 'از هویت بصری تا حرکت اجزای رابط کاربری، تلاش می‌کنیم تجربه‌ای سریع، خوانا و دلنشین ارائه کنیم. هماگرام به‌صورت پیوسته بهبود می‌یابد و قابلیت‌های تازه پس از آزمون و بررسی مرحله‌ای در اختیار کاربران قرار می‌گیرند.'),
@@ -102,27 +104,27 @@ class SettingsScreen extends StatelessWidget {
         ])),
     ];
     return Scaffold(
-      appBar: AppBar(title: const Text('تنظیمات', style: TextStyle(fontWeight: FontWeight.w900))),
+      appBar: AppBar(title: Text(_t(context).settings, style: const TextStyle(fontWeight: FontWeight.w900))),
       body: HomaGramEntrance(child: ListView(padding: const EdgeInsets.fromLTRB(16, 12, 16, 28), children: [
         Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(borderRadius: BorderRadius.circular(24),
             gradient: const LinearGradient(begin: Alignment.topRight, end: Alignment.bottomLeft,
               colors: [Color(0xFF273B72), Color(0xFF174D60), Color(0xFF17233E)])),
-          child: const Row(children: [
+          child: Row(children: [
             CircleAvatar(radius: 25, backgroundColor: Color(0x33FFFFFF),
               child: Icon(Icons.tune_rounded, color: Colors.white, size: 27)),
             SizedBox(width: 13),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('مرکز تنظیمات', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+              Text(_t(context).settingsCenter, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
               SizedBox(height: 4),
-              Text('حساب، امنیت و چارچوب استفاده از هماگرام',
+              Text(_t(context).accountSecurityAndUsage,
                 style: TextStyle(color: Colors.white70, fontSize: 11, height: 1.6)),
             ])),
           ]),
         ),
         const SizedBox(height: 18),
-        const Card(child: LanguagePicker()),
+        Card(child: LanguagePicker()),
         const SizedBox(height: 10),
         for (final entry in entries)
           Padding(padding: const EdgeInsets.only(bottom: 9), child: Material(
@@ -141,20 +143,20 @@ class SettingsScreen extends StatelessWidget {
         HomaGramSpringPress(child: OutlinedButton.icon(
           onPressed: () async {
             final ok = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-              title: const Text('خروج از حساب'), content: const Text('از حساب هماگرام خارج شوید؟'),
+              title: Text(_t(context).signOut), content: Text(_t(context).confirmSignOut),
               actions: [
-                HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف'))),
-                HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('خروج'))),
+                HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text(_t(context).cancel))),
+                HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(_t(context).signOut))),
               ],
             ));
             if (ok == true) await Supabase.instance.client.auth.signOut();
           },
           icon: const Icon(Icons.logout_rounded),
-          label: const Text('خروج از حساب', style: TextStyle(fontFamily: 'Estedad')),
+          label: Text(_t(context).signOut, style: TextStyle(fontFamily: 'Estedad')),
           style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
         )),
         const SizedBox(height: 14),
-        const Text('نسخه ۱.۰ • بازبینی محتوایی: ۲۳ آبان ۱۴۰۵. استفاده از خدمات هماگرام تابع این مقررات و قوانین لازم‌الاجراست و هیچ‌یک از مفاد آن، حقوقی را که به موجب قانون قابل اسقاط نیستند، سلب یا محدود نمی‌کند.',
+        Text(_t(context).versionLegalNotice,
           textAlign: TextAlign.center, style: TextStyle(fontSize: 10, height: 1.7, color: Color(0xFF8490A4))),
       ])),
     );
