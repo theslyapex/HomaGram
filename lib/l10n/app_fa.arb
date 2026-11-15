@@ -1467,5 +1467,16 @@
   },
   "storyOpenLinkFailed": "بازکردن لینک ممکن نشد.",
   "storyVideoPlaybackFailed": "پخش ویدئو انجام نشد. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.",
-  "storyVideoLoading": "در حال بارگذاری ویدئو…"
+  "storyVideoLoading": "در حال بارگذاری ویدئو…",
+  "storyPublishedAt": "ارسال‌شده در {date}، ساعت {time}",
+  "@storyPublishedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }
