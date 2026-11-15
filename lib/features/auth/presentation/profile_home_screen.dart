@@ -204,7 +204,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
       _message(_t.profileNameBioValidation, error: true);
       return;
     }
-    if (!RegExp(r'^[a-z0-9_]{3,24}$').hasMatch(username)) {
+    if (validateHomagramUsername(username, accountEmail: AuthService.client.auth.currentUser?.email) != null) {
       _message(_t.profileUsernameValidation, error: true);
       return;
     }
