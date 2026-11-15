@@ -168,7 +168,8 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
       ));
     } catch (_) {
       final context = homagramNavigatorKey.currentContext;
-      if (context != null && mounted) ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      final t = context == null ? null : AppLocalizations.of(context);
+      if (context != null && t != null && mounted) ScaffoldMessenger.maybeOf(context)?.showSnackBar(
         SnackBar(content: Text(t.quickBugReportSubmitFailed)),
       );
     } finally {
