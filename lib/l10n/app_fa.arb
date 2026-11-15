@@ -103,7 +103,7 @@
   "avatarUploadStorageError": "بارگذاری تصویر انجام نشد: {message}",
   "avatarUploadFailed": "بارگذاری تصویر انجام نشد. دوباره تلاش کنید.",
   "profileNameBioValidation": "نام نمایشی باید ۱ تا ۵۰ و بیو حداکثر ۱۶۰ نویسه باشد.",
-  "profileUsernameValidation": "نام کاربری باید ۳ تا ۲۴ نویسه و فقط شامل حروف انگلیسی کوچک، عدد و زیرخط باشد.",
+  "profileUsernameValidation": "نام کاربری باید ۵ تا ۲۴ نویسه و فقط شامل حروف انگلیسی کوچک، عدد یا زیرخط باشد.",
   "invalidPersianBirthDate": "تاریخ تولد شمسی معتبر نیست. نمونه: ۱۳۸۳/۱۱/۱۴",
   "profileSaved": "پروفایل ذخیره شد.",
   "profileUsernameTaken": "این نام کاربری قبلاً انتخاب شده است.",
@@ -2242,6 +2242,6 @@
     }
   },
   "usernameRequired": "نام کاربری را وارد کنید.",
-  "usernameInvalid": "نام کاربری باید ۳ تا ۲۴ نویسه و شامل حروف انگلیسی کوچک، عدد یا زیرخط باشد.",
+  "usernameInvalid": "نام کاربری باید ۵ تا ۲۴ نویسه و فقط شامل حروف انگلیسی کوچک، عدد یا زیرخط باشد.",
   "adminCommunityUntitled": "بدون عنوان"
 }
