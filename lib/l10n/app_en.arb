@@ -2242,6 +2242,6 @@
   "homagramLogoSemanticLabel": "HomaGram logo",
   "verifiedAccount": "Verified account",
   "usernameRequired": "Enter a username.",
-  "usernameInvalid": "Use 3–24 lowercase English letters, numbers, or underscores.",
+  "usernameInvalid": "Use 5–24 lowercase English letters, numbers, or underscores.",
   "adminCommunityUntitled": "Untitled"
 }
