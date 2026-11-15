@@ -101,7 +101,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text('انصراف'),
+            child: Text(_t.feedCancel),
           ),
           FilledButton(
             onPressed: () {
@@ -109,7 +109,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
               if (requiredText && text.length < 8) return;
               Navigator.pop(dialogContext, text);
             },
-            child: Text('تأیید'),
+            child: Text(_t.adminVerificationSaveDecision),
           ),
         ],
       ),
@@ -136,7 +136,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text('انصراف'),
+            child: Text(_t.feedCancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -175,7 +175,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text('بازگشت'),
+            child: Text(_t.feedCancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
@@ -335,7 +335,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
                       child: _items.isEmpty
                           ? ListView(
                               physics: const AlwaysScrollableScrollPhysics(),
-                              children: const [
+                              children: [
                                 SizedBox(height: 100),
                                 Icon(Icons.groups_2_outlined, size: 48),
                                 SizedBox(height: 12),
