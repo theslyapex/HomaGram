@@ -1261,5 +1261,33 @@
         "type": "String"
       }
     }
+  },
+  "storySeconds": "{count} ثانیه",
+  "storyMinutes": "{count} دقیقه",
+  "storyMinutesAndSeconds": "{minutes} دقیقه و {seconds} ثانیه",
+  "storyWatchLabel": "تماشا",
+  "@storySeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyMinutesAndSeconds": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
   }
 }
