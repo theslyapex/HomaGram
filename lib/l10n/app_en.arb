@@ -1805,5 +1805,62 @@
   "adminReasonCopyright": "Copyright infringement",
   "adminReasonViolence": "Violent content",
   "adminReasonPoliticalInsult": "Political insult",
-  "adminReasonIllegal": "Illegal content"
+  "adminReasonIllegal": "Illegal content",
+  "adminModerationLoadFailed": "Couldn't load content. Check administrator access and your connection.",
+  "adminModerationPreviewUnavailable": "A media preview isn't available for this content.",
+  "adminModerationReelPreview": "Reel preview",
+  "adminClose": "Close",
+  "adminModerationVideoPreviewFailed": "Couldn't play the video preview.",
+  "adminModerationImageLoadFailed": "Couldn't load the image.",
+  "adminModerationDefaultWarning": "Your published content may violate part of HomaGram's rules. Please review the community guidelines before publishing more content.",
+  "adminModerationWarnTitle": "Send a warning to the user",
+  "adminModerationWarningText": "Warning message",
+  "adminModerationSendWarning": "Send warning",
+  "adminModerationWarningSent": "Warning sent to the user.",
+  "adminModerationBanTitle": "Suspend user account",
+  "adminModerationBanInstruction": "Choose the suspension duration. Administrator accounts are protected from this action.",
+  "adminDuration24Hours": "24 hours",
+  "adminDuration7Days": "7 days",
+  "adminDuration30Days": "30 days",
+  "adminDurationLongTerm": "Long term",
+  "adminModerationConfirmBan": "Confirm suspension",
+  "adminModerationUserBanned": "User account suspended.",
+  "adminModerationProfileCleanupTitle": "Remove profile content",
+  "adminModerationProfileCleanupDescription": "The bio, website address, and profile picture will be removed. The account and username will remain. The account owner will also be notified.",
+  "adminModerationProfileCleanup": "Clean up profile",
+  "adminModerationProfileCleaned": "Profile display information was removed.",
+  "adminModerationDeleteTitle": "Delete content",
+  "adminModerationDeleteDescription": "This post or reel will be removed from HomaGram and a warning will be sent to its owner. This action can't be undone.",
+  "adminModerationDeleteAndWarn": "Delete and send warning",
+  "adminModerationDeletedAndWarned": "Content deleted and a warning sent to its owner.",
+  "adminModerationActionFailed": "The moderation action failed. Check the result and try again.",
+  "adminTypePost": "Post",
+  "adminTypeReel": "Reel",
+  "adminTypeProfile": "Profile",
+  "adminTypeContent": "Content",
+  "adminModerationPublishedContent": "Published content",
+  "adminContentTypePosts": "Posts",
+  "adminContentTypeReels": "Reels",
+  "adminContentTypeProfiles": "Profiles",
+  "adminModerationLoading": "Loading…",
+  "adminModerationShowMore": "Show more",
+  "adminModerationContentId": "Content ID: {id} • {date}",
+  "adminModerationOwnerId": "Content owner ID: {id}",
+  "@adminModerationContentId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminModerationOwnerId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  }
 }
