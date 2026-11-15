@@ -274,9 +274,13 @@ class MessagingService {
       }
     }
     final attachments = await _client.from('message_attachments')
-        .select('message_id,storage_path,mime_type,file_name,size_bytes')
+        .select('id,message_id,storage_path,mime_type,file_name,size_bytes,is_view_once')
         .inFilter('message_id', ids);
     for (final item in attachments) {
+      if (item['is_view_once'] == true) {
+        item['signed_url'] = null;
+        continue;
+      }
       try {
         item['signed_url'] = await _client.storage.from('chat-media')
             .createSignedUrl(item['storage_path'] as String, 3600);
@@ -348,7 +352,11 @@ class MessagingService {
     required Uint8List bytes,
     required String fileName,
     required String mimeType,
+    bool viewOnce = false,
   }) async {
+    if (viewOnce && !mimeType.startsWith('image/')) {
+      throw ArgumentError('تصویر زمان‌دار فقط برای تصویر پشتیبانی می‌شود.');
+    }
     if (bytes.isEmpty || bytes.length > 52428800) {
       throw ArgumentError('حجم فایل باید کمتر از ۵۰ مگابایت باشد.');
     }
@@ -372,6 +380,7 @@ class MessagingService {
         'message_id': messageId, 'conversation_id': conversationId,
         'uploader_id': _userId, 'storage_path': path,
         'mime_type': mimeType, 'size_bytes': bytes.length, 'file_name': safeName,
+        'is_view_once': viewOnce,
       });
     } catch (_) {
       try { await _client.storage.from('chat-media').remove([path]); } catch (_) {}
