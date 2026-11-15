@@ -55,14 +55,15 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
   }
 
   Future<void> _preview(AdminModerationItem item) async {
+    final isVideo = item.type != 'profile' && item.mediaType == 'video' && item.mediaUrl != null;
     final url = item.type == 'profile' ? item.avatarUrl :
-        (item.mediaType == 'video' ? (item.mediaUrl ?? item.coverUrl) : (item.mediaUrl ?? item.coverUrl));
+        (isVideo ? item.mediaUrl : (item.mediaUrl ?? item.coverUrl));
     if (url == null || url.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('برای این محتوا پیش‌نمایش رسانه‌ای در دسترس نیست.')));
       return;
     }
-    if (item.type != 'profile' && item.mediaType == 'video') {
+    if (isVideo) {
       final controller = VideoPlayerController.networkUrl(Uri.parse(url));
       try {
         await controller.initialize();
