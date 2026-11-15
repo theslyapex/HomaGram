@@ -1544,5 +1544,37 @@
         "type": "int"
       }
     }
-  }
+  },
+  "verificationCategoryMedia": "خبرگزاری و رسانه",
+  "verificationCategoryJournalist": "روزنامه‌نگار",
+  "verificationCategoryReporter": "خبرنگار",
+  "verificationCategorySportsReporter": "گزارشگر ورزشی",
+  "verificationCategoryPresenter": "مجری",
+  "verificationCategoryActor": "بازیگر",
+  "verificationCategoryDirector": "کارگردان",
+  "verificationCategoryMusician": "خواننده و موسیقی‌دان",
+  "verificationCategoryWriter": "نویسنده و مترجم",
+  "verificationCategoryArtist": "هنرمند و عکاس",
+  "verificationCategoryAthlete": "ورزشکار",
+  "verificationCategoryCoach": "مربی ورزشی",
+  "verificationCategoryPolitician": "سیاستمدار",
+  "verificationCategoryDiplomat": "دیپلمات",
+  "verificationCategoryAcademic": "پژوهشگر و استاد دانشگاه",
+  "verificationCategoryHealthProfessional": "پزشک و متخصص سلامت",
+  "verificationCategoryLegal": "وکیل و حقوق‌دان",
+  "verificationCategoryEntrepreneur": "کارآفرین",
+  "verificationCategoryBusinessManager": "مدیر کسب‌وکار",
+  "verificationCategoryTechnology": "فناوری و استارتاپ",
+  "verificationCategoryEducation": "آموزش و مدرس",
+  "verificationCategoryActivist": "فعال اجتماعی",
+  "verificationCategoryRetail": "فروشگاه و خرده‌فروشی",
+  "verificationCategoryRestaurant": "رستوران و کافه",
+  "verificationCategoryClinic": "پزشکی و درمانگاه",
+  "verificationCategoryTechnical": "خدمات فنی و مکانیکی",
+  "verificationCategoryConstruction": "ساخت‌وساز و املاک",
+  "verificationCategoryTransport": "حمل‌ونقل",
+  "verificationCategoryTourism": "گردشگری و هتلداری",
+  "verificationCategoryNgo": "سازمان مردم‌نهاد",
+  "verificationCategoryCompany": "شرکت و مؤسسه",
+  "verificationCategoryOther": "سایر"
 }
