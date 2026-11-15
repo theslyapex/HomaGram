@@ -324,6 +324,7 @@ class _ReportsTabState extends State<_ReportsTab> {
   bool _loading = true;
   String? _error;
   String? _workingId;
+  String _filter = 'pending';
 
   @override
   void initState() { super.initState(); _load(); }
@@ -360,9 +361,32 @@ class _ReportsTabState extends State<_ReportsTab> {
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) return _RetryView(message: _error!, onRetry: _load);
-    return RefreshIndicator(
+    final visibleReports = _reports.where((report) {
+      if (_filter == 'all') return true;
+      if (_filter == 'pending') return report.status == 'pending';
+      return report.status != 'pending';
+    }).toList();
+    return Column(children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 2),
+        child: Row(children: [
+          Expanded(child: Text('بررسی‌نشده: ${_reports.where((r) => r.status == 'pending').length}',
+            style: const TextStyle(fontWeight: FontWeight.w800))),
+          SegmentedButton<String>(
+            segments: const [
+              ButtonSegment(value: 'pending', label: Text('بررسی‌نشده')),
+              ButtonSegment(value: 'reviewed', label: Text('بررسی‌شده')),
+              ButtonSegment(value: 'all', label: Text('همه')),
+            ],
+            selected: {_filter},
+            onSelectionChanged: (value) => setState(() => _filter = value.first),
+            showSelectedIcon: false,
+          ),
+        ]),
+      ),
+      Expanded(child: RefreshIndicator(
       onRefresh: _load,
-      child: _reports.isEmpty
+      child: visibleReports.isEmpty
         ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
             SizedBox(height: 110), Icon(Icons.task_alt_rounded, size: 48, color: Color(0xFF20A77A)),
             SizedBox(height: 12), Center(child: Text('گزارش ثبت‌شده‌ای وجود ندارد.')),
@@ -370,10 +394,10 @@ class _ReportsTabState extends State<_ReportsTab> {
         : ListView.separated(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(14),
-            itemCount: _reports.length,
+            itemCount: visibleReports.length,
             separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (context, i) {
-              final report = _reports[i];
+              final report = visibleReports[i];
               final pending = report.status == 'pending';
               return Card(
                 margin: EdgeInsets.zero,
@@ -448,7 +472,8 @@ class _ReportsTabState extends State<_ReportsTab> {
               );
             },
           ),
-    );
+      )),
+    ]);
   }
 }
 
@@ -569,7 +594,13 @@ class _ReportStatus extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(color: color.withValues(alpha: .12),
         borderRadius: BorderRadius.circular(20)),
-      child: Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        if (status == 'pending') const Icon(Icons.pending_outlined, size: 13, color: Color(0xFFE29A31)),
+        if (status == 'reviewed' || status == 'actioned') const Icon(Icons.check_circle_rounded, size: 13, color: Color(0xFF20A77A)),
+        if (status == 'dismissed') const Icon(Icons.remove_circle_outline_rounded, size: 13),
+        const SizedBox(width: 4),
+        Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
+      ]),
     );
   }
 }
