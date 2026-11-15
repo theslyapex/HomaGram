@@ -2240,5 +2240,8 @@
         "type": "String"
       }
     }
-  }
+  },
+  "usernameRequired": "أدخل اسم المستخدم.",
+  "usernameInvalid": "استخدم من 3 إلى 24 حرفًا إنجليزيًا صغيرًا أو رقمًا أو شرطة سفلية.",
+  "adminCommunityUntitled": "بلا عنوان"
 }
