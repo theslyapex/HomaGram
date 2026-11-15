@@ -91,8 +91,12 @@ class _SupportInboxScreenState extends State<SupportInboxScreen> {
                                   backgroundColor: isOpen
                                       ? const Color(0xFF8B6CF6).withValues(alpha: .15)
                                       : colors.surfaceContainerHighest,
-                                  child: Icon(Icons.person_outline_rounded,
-                                      color: isOpen ? const Color(0xFF8B6CF6) : colors.onSurfaceVariant),
+                                  backgroundImage: item.avatarUrl == null
+                                      ? null : NetworkImage(item.avatarUrl!),
+                                  child: item.avatarUrl == null
+                                      ? Icon(Icons.person_outline_rounded,
+                                          color: isOpen ? const Color(0xFF8B6CF6) : colors.onSurfaceVariant)
+                                      : null,
                                 ),
                                 title: Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(fontWeight: FontWeight.w800)),
