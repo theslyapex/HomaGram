@@ -64,6 +64,12 @@ class MultiAccountService {
     if (current != null) await _persistSession(current);
   }
 
+  static Future<void> dispose() async {
+    await _authSubscription?.cancel();
+    _authSubscription = null;
+    _initialized = false;
+  }
+
   static Future<void> rememberCurrentSession() async {
     final session = _client.auth.currentSession;
     if (session != null) await _persistSession(session);
