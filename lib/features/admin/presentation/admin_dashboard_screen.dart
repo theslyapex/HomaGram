@@ -394,6 +394,21 @@ class _ReportsTabState extends State<_ReportsTab> {
                       Text('توضیح گزارش: ${report.details}',
                         style: Theme.of(context).textTheme.bodySmall),
                     ],
+                    if (report.rightsOwner != null) ...[
+                      const SizedBox(height: 7),
+                      Text('مالکیت اثر: ${report.rightsOwner == 'self' ? 'گزارش‌دهنده مدعی مالکیت اثر است' : 'اثر متعلق به شخص دیگری است'}',
+                        style: Theme.of(context).textTheme.bodySmall),
+                    ],
+                    if (report.rightsHolderName?.trim().isNotEmpty == true) ...[
+                      const SizedBox(height: 5),
+                      Text('نام صاحب اثر: ${report.rightsHolderName}',
+                        style: Theme.of(context).textTheme.bodySmall),
+                    ],
+                    if (report.authorUsername?.isNotEmpty == true || report.postAuthorId != null) ...[
+                      const SizedBox(height: 5),
+                      Text('صاحب محتوا: ${report.authorDisplayName ?? 'کاربر'}  •  @${report.authorUsername ?? 'نامشخص'}',
+                        style: Theme.of(context).textTheme.bodySmall),
+                    ],
                     const SizedBox(height: 8),
                     Text(
                       'شناسه پست: ${report.postId.substring(0, 8)}…  •  ${_adminDate(report.createdAt)}',
@@ -680,10 +695,15 @@ class _RetryView extends StatelessWidget {
 }
 
 String _reasonLabel(String reason) => switch (reason) {
-  'spam' => 'هرزنامه',
-  'harassment' => 'آزار و اذیت',
+  'spam' => 'هرزنامه یا تبلیغات مزاحم',
+  'harassment' => 'توهین، آزار و تهدید',
   'misinformation' => 'اطلاعات نادرست',
-  'inappropriate' => 'محتوای نامناسب',
+  'copied_content' => 'محتوای کپی‌شده',
+  'copyright_claim' => 'نقض حقوق مالکیت اثر',
+  'violence' => 'محتوای خشونت‌آمیز',
+  'inappropriate' => 'محتوای غیراخلاقی یا نامناسب',
+  'political_insult' => 'محتوای سیاسیِ توهین‌آمیز',
+  'illegal_content' => 'محتوای مغایر با قوانین',
   'other' => 'سایر موارد',
   _ => reason,
 };
