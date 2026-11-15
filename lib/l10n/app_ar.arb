@@ -545,5 +545,46 @@
   "channelAdminsAlwaysCanSend": "يمكن لمالكي القناة ومشرفيها الإرسال دائمًا.",
   "memberPermissionsUpdated": "تم تحديث أذونات الأعضاء.",
   "memberPermissionsSaveFailed": "تعذر حفظ إعدادات الأذونات.",
-  "editChannelDetails": "تعديل تفاصيل القناة"
+  "editChannelDetails": "تعديل تفاصيل القناة",
+  "channelActivityHistory": "سجل نشاط القناة",
+  "addMember": "إضافة عضو",
+  "addMemberFailed": "تعذرت إضافة العضو. ربما يكون عضوًا بالفعل أو لا تملك الإذن اللازم.",
+  "owner": "المالك",
+  "admin": "مشرف",
+  "member": "عضو",
+  "thisMember": "هذا العضو",
+  "transferChannelOwnership": "نقل ملكية القناة",
+  "transferOwnershipConfirm": "هل تريد نقل ملكية القناة إلى {name}؟ بعد النقل ستصبح مشرفًا وسيحصل المالك الجديد على التحكم الكامل.",
+  "@transferOwnershipConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmTransfer": "تأكيد النقل",
+  "channelOwnershipTransferredSuccess": "تم نقل ملكية القناة بنجاح.",
+  "ownershipTransferFailed": "تعذر نقل الملكية. المالك الحالي فقط يمكنه القيام بذلك.",
+  "memberActionFailed": "تعذر تنفيذ الإجراء على العضو. تحقق من صلاحياتك.",
+  "promoteToAdmin": "ترقية إلى مشرف",
+  "demoteToMember": "تخفيض إلى عضو",
+  "transferChannelOwnershipMenu": "نقل ملكية القناة",
+  "removeFromChannel": "إزالة من القناة",
+  "removeFromGroup": "إزالة من المجموعة",
+  "deleteGroupForEveryone": "حذف المجموعة لجميع الأعضاء",
+  "deleteChannelForEveryone": "حذف القناة لجميع الأعضاء",
+  "deleteGroup": "حذف المجموعة",
+  "deleteChannel": "حذف القناة",
+  "deleteCommunityConfirm": "سيؤدي هذا إلى حذف {type} ورسائله وعضويات جميع أعضائه نهائيًا. لا يمكن التراجع عن ذلك. هل تريد المتابعة؟",
+  "@deleteCommunityConfirm": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteForEveryone": "حذف للجميع",
+  "deleteCommunityFailed": "تعذر الحذف. المالك الحالي فقط يمكنه حذف هذه المجموعة أو القناة.",
+  "leaveConversation": "مغادرة المحادثة",
+  "conversationInfoLoadFailed": "تعذر تحميل تفاصيل المحادثة. تحقق من الاتصال أو صلاحية العضوية."
 }
