@@ -2,6 +2,7 @@ import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
@@ -755,6 +756,7 @@ class StoriesStrip extends StatefulWidget {
 }
 
 class _StoriesStripState extends State<StoriesStrip> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   late Future<List<Map<String, dynamic>>> _future;
   String? _myAvatarUrl;
 
@@ -850,17 +852,17 @@ class _StoriesStripState extends State<StoriesStrip> {
               padding: const EdgeInsets.symmetric(horizontal: 17),
               child: Row(
                 children: [
-                  const Text('استوری‌ها', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                  Text(_t.storiesTitle, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
                   const Spacer(),
                   if (snapshot.connectionState == ConnectionState.waiting)
                     const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
                   HomaGramSpringPress(child: TextButton(
                     onPressed: _archive,
                     style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
-                    child: const Text('آرشیو', style: TextStyle(fontSize: 11)),
+                    child: Text(_t.storiesArchive, style: TextStyle(fontSize: 11)),
                   )),
                   HomaGramSpringPress(child: IconButton(
-                    tooltip: 'تازه‌سازی استوری‌ها',
+                    tooltip: _t.storiesRefresh,
                     visualDensity: VisualDensity.compact,
                     onPressed: _refresh,
                     icon: const Icon(Icons.refresh_rounded, size: 18),
@@ -874,7 +876,7 @@ class _StoriesStripState extends State<StoriesStrip> {
                 padding: const EdgeInsets.symmetric(horizontal: 13),
                 children: [
                   _StoryAvatar(
-                    title: own == null ? 'استوری شما' : 'استوری من',
+                    title: own == null ? _t.storiesYourStory : _t.storiesMyStory,
                     imageUrl: own?.last['avatar_url'] as String? ?? _myAvatarUrl,
                     imageCacheKey: own?.last['avatar_path'] as String?,
                     hasStory: own != null,
@@ -968,7 +970,7 @@ class _StoryAvatar extends StatelessWidget {
           Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
           if (add)
-            const Text('افزودن', style: TextStyle(fontSize: 9, color: HomaGramTheme.turquoise)),
+            Text(_t.storiesAdd, style: TextStyle(fontSize: 9, color: HomaGramTheme.turquoise)),
         ],
       ),
     ),
@@ -3122,7 +3124,7 @@ class _StoryMediaState extends State<_StoryMedia> {
           HomaGramSpringPress(child: FilledButton.icon(
             onPressed: _loading ? null : _loadVideo,
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text('تلاش دوباره'),
+            label: Text(_t.storiesTryAgain),
           )),
         ],
       ),
@@ -3194,6 +3196,7 @@ class StoryArchiveScreen extends StatefulWidget {
 }
 
 class _StoryArchiveScreenState extends State<StoryArchiveScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final ScrollController _scrollController = ScrollController();
   final List<Map<String, dynamic>> _items = [];
   bool _loading = true;
@@ -3338,10 +3341,10 @@ class _StoryArchiveScreenState extends State<StoryArchiveScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('آرشیو استوری‌ها'),
+      title: Text(_t.storiesArchiveTitle),
       actions: [
         HomaGramSpringPress(child: IconButton(
-          tooltip: 'بارگذاری دوباره',
+          tooltip: _t.storiesReload,
           onPressed: _loading ? null : _loadFirstPage,
           icon: const Icon(Icons.refresh_rounded),
         )),
@@ -3354,18 +3357,18 @@ class _StoryArchiveScreenState extends State<StoryArchiveScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('آرشیو بارگذاری نشد.'),
+                    Text(_t.storiesArchiveFailed),
                     const SizedBox(height: 10),
                     HomaGramSpringPress(child: FilledButton.icon(
                       onPressed: _loadFirstPage,
                       icon: const Icon(Icons.refresh_rounded),
-                      label: const Text('تلاش دوباره'),
+                      label: Text(_t.storiesTryAgain),
                     )),
                   ],
                 ),
               )
             : _items.isEmpty
-                ? const Center(child: Text('هنوز استوری منقضی‌شده‌ای ندارید.'))
+                ? Center(child: Text(_t.storiesArchiveEmpty))
                 : RefreshIndicator(
                     onRefresh: _loadFirstPage,
                     child: GridView.builder(
@@ -3384,7 +3387,7 @@ class _StoryArchiveScreenState extends State<StoryArchiveScreen> {
                           if (_failed) {
                             return Center(
                               child: HomaGramSpringPress(child: IconButton(
-                                tooltip: 'تلاش دوباره',
+                                tooltip: _t.storiesTryAgain,
                                 onPressed: _loadNextPage,
                                 icon: const Icon(Icons.refresh_rounded),
                               )),
