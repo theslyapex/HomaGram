@@ -14,7 +14,7 @@ class SupportChatScreen extends StatefulWidget {
   const SupportChatScreen({
     this.conversationId,
     this.initialMessage,
-    this.title = 'پشتیبانی هماگرام',
+    this.title = '',
     this.isAdmin = false,
     super.key,
   });
@@ -72,7 +72,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
           await _loadMessages();
         } catch (_) {
           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text(_t.supportInitialSendFailed)),
+            SnackBar(content: Text(_t.supportInitialSendFailed)),
           );
         }
       }
@@ -128,7 +128,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
       if (mounted) {
         _controller.text = text;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(_t.supportMessageSendFailed)),
+          SnackBar(content: Text(_t.supportMessageSendFailed)),
         );
       }
     } finally {
@@ -141,11 +141,11 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text(_t.supportDeleteAccountTitle),
-        content: const Text(_t.supportDeleteAccountConfirm),
+        title: Text(_t.supportDeleteAccountTitle),
+        content: Text(_t.supportDeleteAccountConfirm),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text(_t.cancel)),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text(_t.supportSendRequest)),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(_t.cancel)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(_t.supportSendRequest)),
         ],
       ),
     );
@@ -156,7 +156,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
       await _loadMessages();
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t.supportDeleteAccountRequestFailed)),
+        SnackBar(content: Text(_t.supportDeleteAccountRequestFailed)),
       );
     }
   }
@@ -170,12 +170,12 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           ListTile(
             leading: const Icon(Icons.image_outlined),
-            title: const Text(_t.supportSendImage),
+            title: Text(_t.supportSendImage),
             onTap: () => Navigator.pop(context, 'image'),
           ),
           ListTile(
             leading: const Icon(Icons.attach_file_rounded),
-            title: const Text(_t.supportSendFile),
+            title: Text(_t.supportSendFile),
             onTap: () => Navigator.pop(context, 'file'),
           ),
         ]),
@@ -212,7 +212,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
       if (bytes == null || bytes.isEmpty) return;
       if (bytes.length > 52428800) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(_t.supportFileMaxSize)),
+          SnackBar(content: Text(_t.supportFileMaxSize)),
         );
         return;
       }
@@ -227,7 +227,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(_t.supportFileSendFailed)),
+          SnackBar(content: Text(_t.supportFileSendFailed)),
         );
       }
     } finally {
@@ -261,7 +261,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(_t.supportStatusChangeFailed)),
+          SnackBar(content: Text(_t.supportStatusChangeFailed)),
         );
       }
     }
@@ -342,7 +342,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                 child: TextButton.icon(
                   onPressed: _sendAccountDeletionRequest,
                   icon: const Icon(Icons.person_remove_alt_1_rounded, size: 17),
-                  label: const Text(_t.supportDeleteAccountAction),
+                  label: Text(_t.supportDeleteAccountAction),
                 ),
               ),
             ]),
@@ -353,7 +353,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
               : _error != null
                   ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                       Text(_error!),
-                      HomaGramSpringPress(child: TextButton(onPressed: _loadMessages, child: const Text(_t.retry))),
+                      HomaGramSpringPress(child: TextButton(onPressed: _loadMessages, child: Text(_t.retry))),
                     ]))
                   : _messages.isEmpty
                       ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
@@ -421,7 +421,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(12),
                                         child: Image.network(url, width: 220, fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => const Text(_t.supportImageUnavailable)),
+                                          errorBuilder: (_, __, ___) => Text(_t.supportImageUnavailable)),
                                       ),
                                     if (url != null && !isImage)
                                       InkWell(
