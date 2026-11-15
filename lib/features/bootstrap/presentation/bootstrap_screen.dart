@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_theme.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class BootstrapScreen extends StatelessWidget {
   const BootstrapScreen({
@@ -13,6 +14,7 @@ class BootstrapScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final t = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: DecoratedBox(
@@ -64,7 +66,7 @@ class BootstrapScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'ارتباطی فراتر از مرزها',
+                      t.tagline,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Color(0xFFD6E8F0),
@@ -81,7 +83,7 @@ class BootstrapScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Text(
-                              'زیرساخت اولیه آماده است',
+                              t.bootstrapReadyTitle,
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                     color: HomaGramTheme.navy,
@@ -90,7 +92,7 @@ class BootstrapScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              'این نسخه، نقطه شروع توسعه مرحله‌ای هماگرام است. قابلیت‌های حساب کاربری، شبکه اجتماعی و پیام‌رسان در مراحل بعدی ساخته و آزمایش می‌شوند.',
+                              t.bootstrapDescription,
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: const Color(0xFF536078),
@@ -123,8 +125,8 @@ class BootstrapScreen extends StatelessWidget {
                                   Expanded(
                                     child: Text(
                                       supabaseConfigured
-                                          ? 'پیکربندی اتصال Supabase بارگذاری شد'
-                                          : 'اتصال Supabase هنوز پیکربندی نشده است',
+                                          ? t.bootstrapSupabaseConfigured
+                                          : t.bootstrapSupabaseNotConfigured,
                                       style: const TextStyle(
                                         color: HomaGramTheme.navy,
                                         fontWeight: FontWeight.w600,
@@ -136,7 +138,7 @@ class BootstrapScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 14),
                             Text(
-                              'مرحله صفر  •  آماده‌سازی پروژه',
+                              t.bootstrapStage,
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: colors.primary,
