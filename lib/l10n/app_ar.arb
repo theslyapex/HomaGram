@@ -344,5 +344,35 @@
         "type": "int"
       }
     }
-  }
+  },
+  "messagesLoadFailed": "تعذر تحميل الرسائل. تحقق من اتصالك.",
+  "searchMessages": "البحث في الرسائل",
+  "minimumTwoCharacters": "حرفان على الأقل",
+  "search": "بحث",
+  "noMessagesFound": "لم يتم العثور على رسائل.",
+  "messageSearchFailed": "فشل البحث في الرسائل.",
+  "chooseImage": "اختيار صورة",
+  "sendTimedImage": "إرسال صورة مؤقتة (10 ثوانٍ)",
+  "viewOnceOnly": "يمكن مشاهدتها مرة واحدة فقط",
+  "chooseVideo": "اختيار فيديو",
+  "chooseFile": "اختيار ملف",
+  "fileSizeLimit": "يجب ألا يتجاوز حجم الملف 50 ميغابايت.",
+  "fileSendFailed": "تعذر إرسال الملف. حاول مرة أخرى.",
+  "mediaSizeLimit": "يجب ألا يتجاوز حجم الوسائط 50 ميغابايت.",
+  "mediaSendFailed": "تعذر إرسال الوسائط. حاول مرة أخرى.",
+  "messageSendFailed": "تعذر إرسال الرسالة. حاول مرة أخرى.",
+  "homagramPost": "منشور HomaGram",
+  "tapToViewPost": "اضغط لعرض المنشور",
+  "online": "متصل",
+  "starredMessages": "الرسائل المميزة بنجمة",
+  "conversationInfo": "معلومات المحادثة",
+  "pinnedMessage": "رسالة مثبتة",
+  "mediaMessage": "رسالة وسائط",
+  "edited": "تم التعديل",
+  "adminsOnlyMessaging": "إرسال الرسائل في هذه المجموعة متاح للمشرفين فقط.",
+  "addMedia": "إضافة وسائط",
+  "mediaSendingDisabled": "إرسال الوسائط معطل في هذه المجموعة",
+  "writeMessage": "اكتب رسالتك…",
+  "messagingDisabled": "إرسال الرسائل معطل",
+  "offline": "غير متصل"
 }
