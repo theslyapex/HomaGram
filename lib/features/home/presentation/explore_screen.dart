@@ -525,13 +525,7 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
           onTap: () => Navigator.pop(ctx, 'repost')),
         ListTile(leading: const Icon(Icons.ios_share_outlined), title: const Text('ارسال پست'),
           onTap: () => Navigator.pop(ctx, 'share')),
-        if (widget.post['author_id'] == _uid) ...[
-          ListTile(leading: const Icon(Icons.edit_outlined), title: const Text('ویرایش پست'),
-            onTap: () => Navigator.pop(ctx, 'edit')),
-          ListTile(leading: const Icon(Icons.delete_outline, color: Colors.red),
-            title: const Text('حذف پست', style: TextStyle(color: Colors.red)),
-            onTap: () => Navigator.pop(ctx, 'delete')),
-        ] else
+        if (widget.post['author_id'] != _uid)
           ListTile(leading: const Icon(Icons.flag_outlined), title: const Text('گزارش پست'),
             onTap: () => Navigator.pop(ctx, 'report')),
       ])));
@@ -574,21 +568,6 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
             const SnackBar(content: Text('ثبت گزارش انجام نشد.')));
         }
       }
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.post['media_type'] == 'video' && widget.post['media_url'] is String) {
-      _video = VideoPlayerController.networkUrl(Uri.parse(widget.post['media_url'] as String))
-        ..setLooping(true)
-        ..setVolume(0)
-        ..initialize().then((_) {
-          if (!mounted) return;
-          setState(() => _videoReady = true);
-          if (widget.isActive) _video?.play();
-        }).catchError((_) {});
     }
   }
 
