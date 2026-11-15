@@ -65,7 +65,7 @@ class BootstrapScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       t.tagline,
                       textAlign: TextAlign.center,
                       style: TextStyle(
