@@ -916,12 +916,12 @@
   "createCaptionLimit": "Captions can contain up to 2,200 characters.",
   "createSessionInvalid": "Your session is invalid. Please sign in again.",
   "createUploadFailed": "File upload failed: {error}",
-  "createPublishFailed": "Publishing failed: {error}",
+  "createPublishFailed": "Publishing failed: {details}",
   "createCoverReady": "Reel cover is ready",
   "createImageReady": "Image ready to publish",
   "createChooseFrame": "Choose frame",
   "createCoverFromGallery": "Cover from gallery",
-  "createSelectCoverFrame": "Select cover frame",
+  "createSelectCoverFrame": "Choose cover frame",
   "createConfirm": "Confirm",
   "createCancel": "Cancel",
   "createSelectThisFrame": "Use this frame",
@@ -958,7 +958,7 @@
   },
   "@createPublishFailed": {
     "placeholders": {
-      "error": {
+      "details": {
         "type": "String"
       }
     }
@@ -1084,5 +1084,32 @@
   "reelsCreateFirst": "Create the first reel",
   "reelsShareTitle": "Reel on HomaGram",
   "reelsReportTitle": "Report this reel",
-  "reelsReportSuccess": "The reel was reported for review."
+  "reelsReportSuccess": "The reel was reported for review.",
+  "reelsViewProfile": "View profile",
+  "reelsShare": "Share",
+  "reelsReport": "Report",
+  "createVideoTime": "{seconds} seconds into the video",
+  "createFrameExtractFailed": "Couldn't extract the frame: {error}",
+  "createErrorCode": "Code: {code}",
+  "@createVideoTime": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "@createFrameExtractFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@createErrorCode": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  }
 }
