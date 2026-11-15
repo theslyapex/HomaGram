@@ -228,7 +228,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       return ListTile(
                         leading: CircleAvatar(child: Icon(isChannel ? Icons.campaign_outlined : Icons.groups_outlined)),
                         title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                        subtitle: Text('@${community['slug'] ?? ''} • ${community['member_count'] ?? 0} عضو'),
+                        subtitle: Text('@${community['slug'] ?? ''} • ${_t.exploreMembersCount((community['member_count'] as num?)?.toInt() ?? 0)}'),
                         trailing: TextButton(
                           onPressed: () async {
                             try {
