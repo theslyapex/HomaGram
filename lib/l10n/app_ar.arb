@@ -962,5 +962,120 @@
         "type": "String"
       }
     }
+  },
+  "feedComposerHint": "بماذا تود المشاركة؟",
+  "feedCreatePost": "إنشاء منشور",
+  "feedLoadFailed": "تعذر تحميل الخلاصة",
+  "feedConnectionRetry": "تحقق من اتصالك وحاول مرة أخرى.",
+  "feedRetry": "إعادة المحاولة",
+  "feedEmptyTitle": "لا توجد منشورات بعد",
+  "feedEmptyMessage": "انشر أول منشور على HomaGram وابدأ بتشكيل خلاصتك.",
+  "feedCreateFirstPost": "إنشاء أول منشور",
+  "feedActionFailed": "تعذر إكمال العملية. حاول مرة أخرى.",
+  "feedLikesTitle": "الإعجابات على هذا المنشور",
+  "feedNoLikes": "لم يعجب أي شخص بهذا المنشور بعد.",
+  "feedUserFallback": "مستخدم",
+  "feedLikesLoadFailed": "تعذر تحميل قائمة الإعجابات.",
+  "feedSharePost": "مشاركة المنشور",
+  "feedSendToUsers": "إرسال إلى مستخدمي HomaGram",
+  "feedChooseConversations": "اختر شخصًا أو أكثر من محادثاتك",
+  "feedCopyLink": "نسخ رابط المنشور",
+  "feedShareOtherApps": "المشاركة خارج HomaGram",
+  "feedSendWithApps": "الإرسال باستخدام تطبيقات أخرى على جهازك",
+  "feedLinkCopied": "تم نسخ رابط المنشور.",
+  "feedShareText": "شاهد هذا المنشور على HomaGram:\n{link}",
+  "feedShareSubject": "منشور على HomaGram",
+  "feedShareUnavailable": "المشاركة غير متاحة على هذا الجهاز.",
+  "feedShareMessage": "أرسلت لك هذا المنشور.",
+  "feedSendFailed": "تعذر إرسال المنشور.",
+  "feedSentCount": "تم إرسال المنشور إلى {count} أشخاص.",
+  "feedEditCaption": "تعديل نص المنشور",
+  "feedCaptionHint": "نص المنشور",
+  "feedCancel": "إلغاء",
+  "feedSaveChanges": "حفظ التغييرات",
+  "feedPostUpdated": "تم تحديث نص المنشور.",
+  "feedEditFailed": "تعذر تعديل المنشور.",
+  "feedDeletePost": "حذف المنشور",
+  "feedDeleteConfirm": "هل تريد حذف هذا المنشور نهائيًا؟",
+  "feedDelete": "حذف",
+  "feedPostDeleted": "تم حذف المنشور.",
+  "feedDeleteFailed": "تعذر حذف المنشور.",
+  "feedReportHarassment": "المضايقة أو الإساءة أو التهديد",
+  "feedReportCopied": "محتوى منسوخ",
+  "feedReportCopyright": "استخدام عمل محمي بحقوق شخص آخر",
+  "feedReportViolence": "محتوای خشونت‌آمیز",
+  "feedReportInappropriate": "محتوى غير لائق",
+  "feedReportPolitical": "محتوى سياسي مسيء",
+  "feedReportIllegal": "محتوى مخالف للقانون",
+  "feedReportSpam": "رسائل مزعجة أو إعلانات غير مرغوب فيها",
+  "feedReportOther": "أخرى",
+  "feedReportTitle": "الإبلاغ عن هذا المحتوى",
+  "feedReportInstructions": "حدد الخيار الذي يخالف قواعد HomaGram. ستتم مراجعة بلاغك بسرية.",
+  "feedCopyrightOwner": "من صاحب هذا العمل؟",
+  "feedIAmOwner": "أنا صاحب هذا العمل",
+  "feedOtherOwner": "هذا العمل يخص شخصًا آخر",
+  "feedOwnerName": "اسم صاحب العمل (إن عُرف)",
+  "feedReportDetails": "تفاصيل أو أدلة إضافية (اختياري)",
+  "feedReportDetailsHint": "أضف شرحًا موجزًا عند الحاجة.",
+  "feedSubmitReport": "إرسال البلاغ",
+  "feedReportSuccess": "تم إرسال بلاغك إلى فريق HomaGram للمراجعة.",
+  "feedReportFailed": "تم الإبلاغ عن هذا المحتوى مسبقًا أو تعذر إرسال البلاغ.",
+  "feedUnsave": "إزالة من المحفوظات",
+  "feedSave": "حفظ المنشور",
+  "feedUndoRepost": "التراجع عن إعادة النشر",
+  "feedRepost": "إعادة النشر في ملفي الشخصي",
+  "feedSendPost": "إرسال المنشور",
+  "feedEditPost": "تعديل نص المنشور",
+  "feedReportPost": "الإبلاغ عن المنشور",
+  "feedLike": "إعجاب",
+  "feedComment": "تعليق",
+  "feedSend": "إرسال",
+  "feedUserSearchFailed": "تعذر البحث عن المستخدمين.",
+  "feedSelectRecipients": "اختيار المستلمين",
+  "feedSearchUsersHint": "ابحث بالاسم أو اسم المستخدم",
+  "feedSelectedPeople": "تم تحديد {count} أشخاص",
+  "feedSearchUsersPrompt": "ابحث عن الأشخاص بالاسم أو اسم المستخدم.",
+  "feedSendToCount": "إرسال إلى {count} أشخاص",
+  "feedCommentLikeFailed": "تعذر تسجيل الإعجاب بالتعليق.",
+  "feedCommentFailed": "تعذر إرسال التعليق.",
+  "feedCommentsTitle": "التعليقات",
+  "feedNoComments": "لا توجد تعليقات بعد.",
+  "feedReply": "رد",
+  "feedReplyTo": "الرد على {name}",
+  "feedCommentHint": "اكتب تعليقًا…",
+  "@feedShareText": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "@feedSentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@feedSelectedPeople": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@feedSendToCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@feedReplyTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }
