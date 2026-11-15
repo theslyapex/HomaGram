@@ -14,6 +14,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/messaging_service.dart';
 import '../../home/presentation/shared_post_screen.dart';
 import '../../../core/utils/persian_date.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({
@@ -30,6 +31,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
   final _picker = ImagePicker();
@@ -128,7 +130,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = 'دریافت پیام‌ها انجام نشد. اتصال را بررسی کنید.';
+        _error = _t.messagesLoadFailed;
       });
     }
   }
@@ -157,11 +159,11 @@ class _ChatScreenState extends State<ChatScreen> {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('جست‌وجوی پیام‌ها'),
-        content: TextField(controller: controller, autofocus: true, decoration: const InputDecoration(hintText: 'حداقل دو نویسه')),
+        title: Text(_t.searchMessages),
+        content: TextField(controller: controller, autofocus: true, decoration: const InputDecoration(hintText: _t.minimumTwoCharacters)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('جست‌وجو')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(_t.cancel)),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: const Text(_t.search)),
         ],
       ),
     );
@@ -177,7 +179,7 @@ class _ChatScreenState extends State<ChatScreen> {
           child: SizedBox(
             height: MediaQuery.sizeOf(context).height * .65,
             child: results.isEmpty
-                ? const Center(child: Text('پیامی پیدا نشد.'))
+                ? const Center(child: Text(_t.noMessagesFound))
                 : ListView.separated(
                     itemCount: results.length,
                     separatorBuilder: (_, __) => const Divider(height: 1),
@@ -206,7 +208,7 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('جست‌وجوی پیام‌ها انجام نشد.')),
+        SnackBar(content: Text(_t.messageSearchFailed)),
       );
     }
   }
@@ -218,10 +220,10 @@ class _ChatScreenState extends State<ChatScreen> {
       showDragHandle: true,
       builder: (context) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          ListTile(leading: const Icon(Icons.image_outlined), title: const Text('انتخاب تصویر'), onTap: () => Navigator.pop(context, 'image')),
-          ListTile(leading: const Icon(Icons.timer_outlined), title: const Text('ارسال تصویر زمان‌دار (۱۰ ثانیه)'), subtitle: const Text('فقط یک‌بار قابل مشاهده است'), onTap: () => Navigator.pop(context, 'timed_image')),
-          ListTile(leading: const Icon(Icons.video_library_outlined), title: const Text('انتخاب ویدئو'), onTap: () => Navigator.pop(context, 'video')),
-          ListTile(leading: const Icon(Icons.attach_file_rounded), title: const Text('انتخاب فایل'), onTap: () => Navigator.pop(context, 'file')),
+          ListTile(leading: const Icon(Icons.image_outlined), title: Text(_t.chooseImage), onTap: () => Navigator.pop(context, 'image')),
+          ListTile(leading: const Icon(Icons.timer_outlined), title: const Text(_t.sendTimedImage), subtitle: Text(_t.viewOnceOnly), onTap: () => Navigator.pop(context, 'timed_image')),
+          ListTile(leading: const Icon(Icons.video_library_outlined), title: const Text(_t.chooseVideo), onTap: () => Navigator.pop(context, 'video')),
+          ListTile(leading: const Icon(Icons.attach_file_rounded), title: const Text(_t.chooseFile), onTap: () => Navigator.pop(context, 'file')),
         ]),
       ),
     );
@@ -240,7 +242,7 @@ class _ChatScreenState extends State<ChatScreen> {
         if (bytes == null || bytes.isEmpty) throw StateError('File bytes unavailable');
         if (bytes.length > 52428800) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('حجم فایل نباید بیشتر از ۵۰ مگابایت باشد.')),
+            const SnackBar(content: Text(_t.fileSizeLimit)),
           );
           return;
         }
@@ -256,7 +258,7 @@ class _ChatScreenState extends State<ChatScreen> {
         await _refresh();
       } catch (_) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ارسال فایل انجام نشد. دوباره تلاش کنید.')),
+          const SnackBar(content: Text(_t.fileSendFailed)),
         );
       } finally {
         if (mounted) setState(() => _sending = false);
@@ -270,7 +272,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (file == null || !mounted) return;
       final bytes = await file.readAsBytes();
       if (bytes.length > 52428800) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('حجم رسانه نباید بیشتر از ۵۰ مگابایت باشد.')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(_t.mediaSizeLimit)));
         return;
       }
       final ext = file.name.toLowerCase().split('.').last;
@@ -288,7 +290,7 @@ class _ChatScreenState extends State<ChatScreen> {
       await _refresh();
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ارسال رسانه انجام نشد. دوباره تلاش کنید.')),
+        const SnackBar(content: Text(_t.mediaSendFailed)),
       );
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -312,7 +314,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (mounted) {
         _controller.text = text;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ارسال پیام انجام نشد. دوباره تلاش کنید.')),
+          const SnackBar(content: Text(_t.messageSendFailed)),
         );
       }
     } finally {
@@ -346,9 +348,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: Icon(Icons.article_rounded, color: colors.primary)),
               const SizedBox(width: 10),
               const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('پست HomaGram', style: TextStyle(fontWeight: FontWeight.w900)),
+                Text(_t.homagramPost, style: TextStyle(fontWeight: FontWeight.w900)),
                 SizedBox(height: 3),
-                Text('برای مشاهده پست لمس کنید', style: TextStyle(fontSize: 11)),
+                Text(_t.tapToViewPost, style: TextStyle(fontSize: 11)),
               ])),
               Icon(Icons.open_in_new_rounded, size: 17, color: colors.primary),
             ]),
@@ -413,7 +415,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   if (_presenceLabel.isNotEmpty)
                     Text(_presenceLabel, style: TextStyle(
                       fontSize: 10,
-                      color: _presenceLabel == 'آنلاین'
+                      color: _presenceLabel == _t.online
                           ? colors.primary : colors.onSurfaceVariant,
                     )),
                 ],
@@ -423,17 +425,17 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         actions: [
           HomaGramSpringPress(child: IconButton(
-            tooltip: 'پیام‌های ستاره‌دار',
+            tooltip: _t.starredMessages,
             onPressed: _showStarredMessages,
             icon: const Icon(Icons.star_outline_rounded),
           )),
           HomaGramSpringPress(child: IconButton(
-            tooltip: 'جست‌وجوی پیام‌ها',
+            tooltip: _t.searchMessages,
             onPressed: _searchMessages,
             icon: const Icon(Icons.search_rounded),
           )),
           HomaGramSpringPress(child: IconButton(
-            tooltip: 'اطلاعات گفتگو',
+            tooltip: _t.conversationInfo,
             onPressed: _showConversationInfo,
             icon: const Icon(Icons.more_vert_rounded),
           )),
@@ -447,8 +449,8 @@ class _ChatScreenState extends State<ChatScreen> {
               child: ListTile(
                 dense: true,
                 leading: const Icon(Icons.push_pin_rounded),
-                title: const Text('پیام سنجاق‌شده', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
-                subtitle: Text(pinnedMessages.last['body'] as String? ?? 'پیام رسانه‌ای',
+                title: const Text(_t.pinnedMessage, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+                subtitle: Text(pinnedMessages.last['body'] as String? ?? _t.mediaMessage,
                   maxLines: 1, overflow: TextOverflow.ellipsis),
                 trailing: Text('${pinnedMessages.length}', style: const TextStyle(fontSize: 11)),
                 onTap: () => _showPinnedMessages(pinnedMessages),
@@ -538,7 +540,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                           if (message['is_pinned'] == true) const Icon(Icons.push_pin_rounded, size: 13),
                                         ]),
                                       if (message['edited_at'] != null && !deleted)
-                                        const Text('ویرایش‌شده', style: TextStyle(fontSize: 9)),
+                                        const Text(_t.edited, style: TextStyle(fontSize: 9)),
                                       const SizedBox(height: 3),
                                       Row(mainAxisSize: MainAxisSize.min, children: [
                                         if (mine)
@@ -593,7 +595,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       child: Row(children: [
                         Icon(Icons.lock_outline_rounded, size: 17),
                         SizedBox(width: 8),
-                        Expanded(child: Text('ارسال پیام در این گروه فقط برای مدیران فعال است.',
+                        Expanded(child: Text(_t.adminsOnlyMessaging,
                           style: TextStyle(fontSize: 12))),
                       ]),
                     ),
@@ -601,7 +603,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   IconButton(
-                    tooltip: _canSendMedia ? 'افزودن رسانه' : 'ارسال رسانه در این گروه غیرفعال است',
+                    tooltip: _canSendMedia ? _t.addMedia : _t.mediaSendingDisabled,
                     onPressed: _sending || !_canSendMedia ? null : _pickMedia,
                     icon: const Icon(Icons.add_circle_outline_rounded),
                   ),
@@ -613,7 +615,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       maxLines: 5,
                       textInputAction: TextInputAction.newline,
                       decoration: InputDecoration(
-                        hintText: _canSendText ? 'پیام خود را بنویسید…' : 'ارسال پیام غیرفعال است',
+                        hintText: _canSendText ? _t.writeMessage : _t.messagingDisabled,
                         filled: true,
                         fillColor: colors.surfaceContainerHighest.withValues(alpha: .65),
                         border: OutlineInputBorder(
@@ -658,14 +660,14 @@ class _ChatScreenState extends State<ChatScreen> {
       }).length;
       String label;
       if (info['kind'] == 'group') {
-        label = online > 0 ? '$online نفر آنلاین' : 'گروه';
+        label = online > 0 ? '$online نفر آنلاین' : _t.group;
       } else if (online > 0) {
-        label = 'آنلاین';
+        label = _t.online;
       } else if (rows.isNotEmpty && rows.first['last_seen_at'] != null) {
         final last = DateTime.tryParse(rows.first['last_seen_at'] as String);
-        label = last == null ? 'آفلاین' : 'آخرین بازدید ${last.toLocal().hour.toString().padLeft(2, '0')}:${last.toLocal().minute.toString().padLeft(2, '0')}';
+        label = last == null ? _t.offline : 'آخرین بازدید ${last.toLocal().hour.toString().padLeft(2, '0')}:${last.toLocal().minute.toString().padLeft(2, '0')}';
       } else {
-        label = 'آفلاین';
+        label = _t.offline;
       }
       if (mounted && label != _presenceLabel) setState(() => _presenceLabel = label);
     } catch (_) {}
@@ -860,7 +862,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ]),
                 ),
                 actions: [
-                  TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+                  TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text(_t.cancel)),
                   FilledButton(
                     onPressed: () {
                       if (formKey.currentState!.validate()) {
@@ -939,7 +941,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 title: const Text('غیرفعال‌سازی کد دعوت'),
                 content: const Text('با این کار، کد دیگر برای عضویت قابل استفاده نخواهد بود.'),
                 actions: [
-                  TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('انصراف')),
+                  TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text(_t.cancel)),
                   FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('غیرفعال کن')),
                 ],
               ),
@@ -1091,7 +1093,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text(_t.cancel)),
             FilledButton(
               onPressed: () => Navigator.pop(dialogContext, [
                 membersCanSendMessages, membersCanSendMedia, membersCanAddMembers,
@@ -1230,7 +1232,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   const SizedBox(width: 10),
                   Expanded(child: Text(
-                    (info['title'] as String?) ?? (isChannel ? 'کانال' : isGroup ? 'گروه' : widget.title),
+                    (info['title'] as String?) ?? (isChannel ? 'کانال' : isGroup ? _t.group : widget.title),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
@@ -1334,7 +1336,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 ],
                               )),
                               actions: [
-                                TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+                                TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text(_t.cancel)),
                                 FilledButton(
                                   onPressed: () {
                                     if (isPublic && !RegExp(r'^[a-zA-Z0-9_]{3,32}$').hasMatch(slugController.text.trim())) {
@@ -1405,7 +1407,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 )),
                             ])),
                             actions: [
-                              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
+                              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text(_t.cancel)),
                               FilledButton(onPressed: () => Navigator.pop(ctx, [
                                 titleController.text, slugController.text, descriptionController.text,
                               ]), child: const Text('ذخیره')),
@@ -1471,7 +1473,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   style: TextStyle(fontSize: 12)),
                               ]),
                               actions: [
-                                TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+                                TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text(_t.cancel)),
                                 FilledButton(onPressed: () => Navigator.pop(dialogContext, [canPost, canSendMedia]),
                                   child: const Text('ذخیره تنظیمات')),
                               ],
@@ -1531,9 +1533,9 @@ class _ChatScreenState extends State<ChatScreen> {
                             content: TextField(controller: queryController, autofocus: true,
                               decoration: const InputDecoration(hintText: 'نام کاربری')),
                             actions: [
-                              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
+                              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text(_t.cancel)),
                               FilledButton(onPressed: () => Navigator.pop(ctx, queryController.text),
-                                child: const Text('جست‌وجو')),
+                                child: const Text(_t.search)),
                             ],
                           ),
                         );
@@ -1612,7 +1614,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       title: const Text('انتقال مالکیت کانال'),
                                       content: Text('مالکیت کانال به $displayName منتقل شود؟ شما پس از انتقال، مدیر کانال خواهید بود و مالک جدید کنترل کامل کانال را در اختیار می‌گیرد.'),
                                       actions: [
-                                        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('انصراف')),
+                                        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text(_t.cancel)),
                                         FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('تأیید انتقال')),
                                       ],
                                     ),
@@ -1678,12 +1680,12 @@ class _ChatScreenState extends State<ChatScreen> {
                           builder: (dialogContext) => AlertDialog(
                             title: Text(isGroup ? 'حذف کامل گروه' : 'حذف کامل کانال'),
                             content: Text(
-                              'این عملیات ${isGroup ? 'گروه' : 'کانال'}، پیام‌ها و عضویت تمام اعضا را حذف می‌کند و قابل بازگشت نیست. ادامه می‌دهید؟',
+                              'این عملیات ${isGroup ? _t.group : 'کانال'}، پیام‌ها و عضویت تمام اعضا را حذف می‌کند و قابل بازگشت نیست. ادامه می‌دهید؟',
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(dialogContext, false),
-                                child: const Text('انصراف'),
+                                child: const Text(_t.cancel),
                               ),
                               FilledButton(
                                 style: FilledButton.styleFrom(
@@ -2173,7 +2175,7 @@ class _ChatScreenState extends State<ChatScreen> {
             title: const Text('ویرایش پیام'),
             content: TextField(controller: controller, autofocus: true, maxLines: 5, maxLength: 10000),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('انصراف')),
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text(_t.cancel)),
               FilledButton(onPressed: () => Navigator.pop(context, controller.text), child: const Text('ذخیره')),
             ],
           ),
@@ -2238,7 +2240,7 @@ class _ChatScreenState extends State<ChatScreen> {
             title: const Text('حذف پیام'),
             content: const Text('این پیام برای همه اعضای گفتگو حذف شود؟'),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('انصراف')),
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text(_t.cancel)),
               FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف')),
             ],
           ),
@@ -2269,7 +2271,7 @@ class _ChatScreenState extends State<ChatScreen> {
             final message = pinned[index];
             return ListTile(
               leading: const Icon(Icons.push_pin_rounded),
-              title: Text(message['body'] as String? ?? 'پیام رسانه‌ای',
+              title: Text(message['body'] as String? ?? _t.mediaMessage,
                 maxLines: 2, overflow: TextOverflow.ellipsis),
               subtitle: Text(_time(message['created_at'] as String?)),
             );
