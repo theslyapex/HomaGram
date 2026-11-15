@@ -13,6 +13,7 @@ import 'package:video_player/video_player.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
 import 'video_trim_screen.dart';
+import '../data/supabase_resumable_upload.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({this.initialReel = false, super.key});
@@ -29,6 +30,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   String? _mediaType;
   Uint8List? _coverBytes;
   bool _posting = false, _editing = false;
+  double _uploadProgress = 0;
   bool get _isReel => _mediaType == 'video';
 
   @override
@@ -264,7 +266,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     if (_isReel && _coverBytes == null) { _notice(_t.createReelCoverRequired, error: true); return; }
     if (caption.isEmpty && _media == null) { _notice(_t.createContentRequired, error: true); return; }
     if (caption.length > 2200) { _notice(_t.createCaptionLimit, error: true); return; }
-    setState(() => _posting = true);
+    setState(() { _posting = true; _uploadProgress = 0; });
     String? uploadedPath, uploadedCoverPath;
     try {
       final client = AuthService.client, user = AuthService.client.auth.currentUser;
@@ -287,8 +289,29 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         final mime = _media!.mimeType ?? _mimeFromName(_media!.name, _mediaType!);
         final ext = _media!.name.contains('.') ? _media!.name.split('.').last.toLowerCase() : (_isReel ? 'mp4' : 'jpg');
         uploadedPath = '${user.id}/$stamp.$ext';
-        await client.storage.from('post-media').upload(uploadedPath, File(_media!.path),
-          fileOptions: FileOptions(contentType: mime, upsert: false));
+        if (_isReel) {
+          const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+          const publishableKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
+          final accessToken = client.auth.currentSession?.accessToken;
+          if (supabaseUrl.isEmpty || publishableKey.isEmpty || accessToken == null) {
+            throw StateError(_t.createSessionInvalid);
+          }
+          await SupabaseResumableUpload.upload(
+            file: File(_media!.path),
+            bucket: 'post-media',
+            objectPath: uploadedPath,
+            contentType: mime,
+            projectUrl: supabaseUrl,
+            publishableKey: publishableKey,
+            accessToken: accessToken,
+            onProgress: (progress) {
+              if (mounted) setState(() => _uploadProgress = progress);
+            },
+          );
+        } else {
+          await client.storage.from('post-media').upload(uploadedPath, File(_media!.path),
+            fileOptions: FileOptions(contentType: mime, upsert: false));
+        }
       }
       if (_isReel && _coverBytes != null) {
         uploadedCoverPath = '${user.id}/${stamp}_cover.jpg';
@@ -449,6 +472,17 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         const SizedBox(height: 10),
         Text(_t.createVideoReelNote,
           textAlign: TextAlign.center, style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4))),
+        if (_posting && _isReel) ...[
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(value: _uploadProgress, minHeight: 7),
+          ),
+          const SizedBox(height: 6),
+          Text('${(_uploadProgress * 100).round()}%',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+        ],
         const SizedBox(height: 18),
         SizedBox(height: 54, child: HomaGramSpringPress(child: FilledButton.icon(
           onPressed: _posting || _editing ? null : _publish,
