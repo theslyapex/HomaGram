@@ -315,7 +315,6 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
     final messenger = ScaffoldMessenger.maybeOf(context);
     if (messenger == null) return;
 
-    final body = message.notification?.body?.trim();
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
       SnackBar(
