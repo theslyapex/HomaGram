@@ -1805,5 +1805,62 @@
         "type": "String"
       }
     }
+  },
+  "adminModerationLoadFailed": "دریافت فهرست محتوا انجام نشد. دسترسی مدیریتی و اتصال را بررسی کنید.",
+  "adminModerationPreviewUnavailable": "برای این محتوا پیش‌نمایش رسانه‌ای در دسترس نیست.",
+  "adminModerationReelPreview": "پیش‌نمایش ریلز",
+  "adminClose": "بستن",
+  "adminModerationVideoPreviewFailed": "پخش پیش‌نمایش ویدئو ممکن نشد.",
+  "adminModerationImageLoadFailed": "بارگذاری تصویر ممکن نشد.",
+  "adminModerationDefaultWarning": "محتوای منتشرشده شما با بخشی از مقررات هماگرام مغایرت دارد. لطفاً پیش از انتشار محتوای بعدی، راهنمای جامعه و قوانین را مطالعه کنید.",
+  "adminModerationWarnTitle": "ارسال اخطار به کاربر",
+  "adminModerationWarningText": "متن اخطار",
+  "adminModerationSendWarning": "ارسال اخطار",
+  "adminModerationWarningSent": "اخطار برای کاربر ارسال شد.",
+  "adminModerationBanTitle": "مسدودسازی حساب کاربر",
+  "adminModerationBanInstruction": "مدت محدودیت را انتخاب کنید. حساب‌های مدیریتی از این اقدام محافظت می‌شوند.",
+  "adminDuration24Hours": "۲۴ ساعت",
+  "adminDuration7Days": "۷ روز",
+  "adminDuration30Days": "۳۰ روز",
+  "adminDurationLongTerm": "بلندمدت",
+  "adminModerationConfirmBan": "تأیید مسدودسازی",
+  "adminModerationUserBanned": "حساب کاربر مسدود شد.",
+  "adminModerationProfileCleanupTitle": "پاک‌سازی محتوای پروفایل",
+  "adminModerationProfileCleanupDescription": "متن معرفی، نشانی وب‌سایت و تصویر پروفایل حذف می‌شوند؛ حساب کاربر و نام کاربری او باقی می‌مانند. برای صاحب حساب نیز اعلان ارسال می‌شود.",
+  "adminModerationProfileCleanup": "پاک‌سازی پروفایل",
+  "adminModerationProfileCleaned": "اطلاعات نمایشی پروفایل پاک‌سازی شد.",
+  "adminModerationDeleteTitle": "حذف محتوا",
+  "adminModerationDeleteDescription": "این پست یا ریلز از هماگرام حذف می‌شود و برای صاحب حساب اخطار ارسال خواهد شد. این عملیات قابل بازگشت نیست.",
+  "adminModerationDeleteAndWarn": "حذف و ارسال اخطار",
+  "adminModerationDeletedAndWarned": "محتوا حذف شد و اخطار برای صاحب آن ارسال شد.",
+  "adminModerationActionFailed": "اقدام مدیریتی انجام نشد. نتیجه را بررسی و دوباره تلاش کنید.",
+  "adminTypePost": "پست",
+  "adminTypeReel": "ریلز",
+  "adminTypeProfile": "پروفایل",
+  "adminTypeContent": "محتوا",
+  "adminModerationPublishedContent": "فهرست محتوای منتشرشده",
+  "adminContentTypePosts": "پست‌ها",
+  "adminContentTypeReels": "ریلزها",
+  "adminContentTypeProfiles": "پروفایل‌ها",
+  "adminModerationLoading": "در حال دریافت…",
+  "adminModerationShowMore": "نمایش موارد بیشتر",
+  "adminModerationContentId": "شناسه محتوا: {id} • {date}",
+  "adminModerationOwnerId": "شناسه صاحب محتوا: {id}",
+  "@adminModerationContentId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminModerationOwnerId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
   }
 }
