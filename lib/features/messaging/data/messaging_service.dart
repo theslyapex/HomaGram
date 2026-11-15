@@ -217,9 +217,14 @@ class MessagingService {
     String conversationId, {
     required bool archived,
   }) async {
-    await _client.from('conversation_members').update({
+    final updated = await _client.from('conversation_members').update({
       'archived_at': archived ? DateTime.now().toUtc().toIso8601String() : null,
-    }).eq('conversation_id', conversationId).eq('user_id', _userId);
+    }).eq('conversation_id', conversationId).eq('user_id', _userId)
+      .isFilter('left_at', null)
+      .select('conversation_id');
+    if (updated.isEmpty) {
+      throw StateError('Conversation archive state was not updated for the active member.');
+    }
   }
 
   static Future<void> leaveConversation(String conversationId) async {
