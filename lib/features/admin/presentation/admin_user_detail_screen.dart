@@ -46,7 +46,7 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
         title: Text(_t.adminDeleteAccountConfirmTitle),
         content: Text(_t.adminDeleteAccountQuestion(name?.isNotEmpty == true ? name! : (username ?? widget.userId))),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('انصراف')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(_t.feedCancel)),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(ctx, true),
@@ -73,7 +73,7 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
           ),
         ]),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('بازگشت')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(_t.feedCancel)),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: controller.text.trim() == _t.adminDeleteAccountPhrase ? () => Navigator.pop(ctx, true) : null,
