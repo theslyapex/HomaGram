@@ -46,9 +46,12 @@ class AdminPostReport {
     required this.id, required this.postId, required this.reporterId,
     required this.reason, required this.details, required this.status,
     required this.createdAt, required this.reviewNote, required this.postCaption,
+    this.rightsOwner, this.rightsHolderName, this.postAuthorId,
+    this.authorUsername, this.authorDisplayName,
   });
   final String id, postId, reporterId, reason, status;
-  final String? details, reviewNote, postCaption;
+  final String? details, reviewNote, postCaption, rightsOwner, rightsHolderName;
+  final String? postAuthorId, authorUsername, authorDisplayName;
   final DateTime? createdAt;
 
   factory AdminPostReport.fromJson(Map<String, dynamic> json) => AdminPostReport(
@@ -61,6 +64,11 @@ class AdminPostReport {
     createdAt: DateTime.tryParse(json['created_at']?.toString() ?? ''),
     reviewNote: json['review_note'] as String?,
     postCaption: json['post_caption'] as String?,
+    rightsOwner: json['rights_owner'] as String?,
+    rightsHolderName: json['rights_holder_name'] as String?,
+    postAuthorId: json['post_author_id']?.toString(),
+    authorUsername: json['author_username'] as String?,
+    authorDisplayName: json['author_display_name'] as String?,
   );
 }
 
@@ -170,7 +178,7 @@ class AdminService {
   }
 
   static Future<List<AdminPostReport>> loadReports() async {
-    final result = await _client.rpc('admin_list_post_reports', params: {
+    final result = await _client.rpc('admin_list_post_reports_detailed', params: {
       'p_limit': 50, 'p_offset': 0,
     });
     if (result is! List) return [];
