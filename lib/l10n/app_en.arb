@@ -1171,5 +1171,16 @@
   "homeAdminPanel": "Admin panel",
   "homeTab": "Home",
   "homeMessages": "Messages",
-  "homeProfile": "Profile"
+  "homeProfile": "Profile",
+  "storiesTitle": "Stories",
+  "storiesArchive": "Archive",
+  "storiesRefresh": "Refresh stories",
+  "storiesYourStory": "Your story",
+  "storiesMyStory": "My story",
+  "storiesAdd": "Add",
+  "storiesArchiveTitle": "Story archive",
+  "storiesReload": "Reload",
+  "storiesArchiveFailed": "The archive couldn't be loaded.",
+  "storiesTryAgain": "Try again",
+  "storiesArchiveEmpty": "You don't have any expired stories yet."
 }
