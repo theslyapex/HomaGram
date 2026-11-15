@@ -674,5 +674,28 @@
   "startConversation": "گفتگو را شروع کنید",
   "channelFirstPostHint": "با انتشار نخستین پست، مطالب کانال اینجا نمایش داده می‌شوند.",
   "groupFirstMessageHint": "اولین پیام گروه را ارسال کنید.",
-  "conversationFirstMessageHint": "اولین پیام این گفتگو را ارسال کنید."
+  "conversationFirstMessageHint": "اولین پیام این گفتگو را ارسال کنید.",
+  "onlinePeopleCount": "{count} نفر آنلاین",
+  "@onlinePeopleCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "lastSeenAt": "آخرین بازدید {time}",
+  "@lastSeenAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "publicIdHelper": "۳ تا ۳۲ حرف انگلیسی، عدد یا زیرخط",
+  "name": "نام",
+  "description": "توضیحات",
+  "saveSettings": "ذخیره تنظیمات",
+  "save": "ذخیره",
+  "replyFallback": "پیام",
+  "userFallback": "کاربر"
 }
