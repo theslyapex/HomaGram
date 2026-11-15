@@ -1111,5 +1111,59 @@
         "type": "String"
       }
     }
+  },
+  "highlightManageCollection": "Manage highlight collection",
+  "highlightEditTitleStories": "Edit title and stories",
+  "highlightDelete": "Delete highlight",
+  "highlightDeleteConfirm": "Delete “{title}”? Your archived stories will remain safe.",
+  "highlightDeleteFailed": "Couldn't delete the highlight.",
+  "highlightReorderFailed": "Couldn't reorder highlights.",
+  "highlightNew": "New",
+  "highlightCoverTooLarge": "The cover image must be smaller than 5 MB.",
+  "highlightCoverFailed": "Couldn't select or upload the cover image.",
+  "highlightTitleLength": "Highlight title must be 1–30 characters.",
+  "highlightSelectStory": "Select at least one story.",
+  "highlightSaveFailed": "Couldn't save the highlight. Try again.",
+  "highlightCreate": "Create highlight",
+  "highlightEdit": "Edit highlight",
+  "highlightArchiveLoadFailed": "Couldn't load the story archive.",
+  "highlightNoStories": "You don't have any active or archived stories to add.",
+  "highlightTitleLabel": "Highlight title",
+  "highlightTitleHint": "For example: Trips, projects, moments",
+  "highlightCustomCover": "Custom highlight cover",
+  "highlightCoverDescription": "Choose an image from your gallery or keep a story as the cover.",
+  "highlightChooseGallery": "Choose from gallery",
+  "highlightRemoveCover": "Remove selected image",
+  "highlightSelectedStories": "Active and archived stories • {count} selected | ★ Choose cover",
+  "highlightSaving": "Saving…",
+  "highlightCreateCount": "Create highlight ({count})",
+  "highlightSaveCount": "Save changes ({count})",
+  "@highlightDeleteConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "@highlightSelectedStories": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@highlightCreateCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@highlightSaveCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }
