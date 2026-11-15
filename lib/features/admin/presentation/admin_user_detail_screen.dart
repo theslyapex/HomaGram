@@ -183,8 +183,11 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
                   colors: [Color(0xFF283B70), Color(0xFF174D60), Color(0xFF17233E)])),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
-                  const CircleAvatar(radius: 26, backgroundColor: Color(0x33FFFFFF),
-                    child: Icon(Icons.person_rounded, color: Colors.white, size: 29)),
+                  CircleAvatar(radius: 26, backgroundColor: Color(0x33FFFFFF),
+                    backgroundImage: d['avatar_url'] is String
+                        ? NetworkImage(d['avatar_url'] as String) : null,
+                    child: d['avatar_url'] is String ? null
+                        : const Icon(Icons.person_rounded, color: Colors.white, size: 29)),
                   const SizedBox(width: 12),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(mainAxisSize: MainAxisSize.min, children: [
