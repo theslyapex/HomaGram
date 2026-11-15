@@ -138,6 +138,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       case 'support_message':
       case 'support_reply': return Icons.support_agent_rounded;
       case 'moderation_notice': return Icons.gavel_rounded;
+      case 'report_reviewed': return Icons.fact_check_rounded;
       default: return Icons.notifications_rounded;
     }
   }
