@@ -916,7 +916,7 @@
   "createCaptionLimit": "يمكن أن يصل الوصف إلى 2200 حرف.",
   "createSessionInvalid": "جلستك غير صالحة. سجّل الدخول مجددًا.",
   "createUploadFailed": "فشل تحميل الملف: {error}",
-  "createPublishFailed": "فشل النشر: {error}",
+  "createPublishFailed": "فشل نشر المحتوى: {details}",
   "createCoverReady": "غلاف الريلز جاهز",
   "createImageReady": "الصورة جاهزة للنشر",
   "createChooseFrame": "اختر إطارًا",
@@ -958,7 +958,7 @@
   },
   "@createPublishFailed": {
     "placeholders": {
-      "error": {
+      "details": {
         "type": "String"
       }
     }
@@ -1084,5 +1084,32 @@
   "reelsCreateFirst": "إنشاء أول ريلز",
   "reelsShareTitle": "ريلز على HomaGram",
   "reelsReportTitle": "الإبلاغ عن مقطع الريلز",
-  "reelsReportSuccess": "تم إرسال بلاغ عن الريلز للمراجعة."
+  "reelsReportSuccess": "تم إرسال بلاغ عن الريلز للمراجعة.",
+  "reelsViewProfile": "عرض الملف الشخصي",
+  "reelsShare": "مشاركة",
+  "reelsReport": "إبلاغ",
+  "createVideoTime": "عند الثانية {seconds} من الفيديو",
+  "createFrameExtractFailed": "تعذر استخراج الإطار: {error}",
+  "createErrorCode": "الرمز: {code}",
+  "@createVideoTime": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "@createFrameExtractFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@createErrorCode": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  }
 }
