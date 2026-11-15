@@ -776,3 +776,4 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
       ),
     );
   }
+}
