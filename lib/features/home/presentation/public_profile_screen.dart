@@ -280,7 +280,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   Widget _header() {
     final p = _profile!;
     final displayName = (p['display_name'] as String?)?.trim();
-    final username = p['username'] as String? ?? 'user';
+    final username = p['username'] as String? ?? _t.feedUserFallback;
     final birthDate = p['public_birth_date'] as String?;
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 22, 18, 18),
@@ -400,7 +400,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   }
 
   Future<void> _shareProfile() async {
-    final username = _profile?['username'] as String? ?? 'user';
+    final username = _profile?['username'] as String? ?? _t.feedUserFallback;
     final name = _profile?['display_name'] as String? ?? _t.homagramUser;
     await SharePlus.instance.share(ShareParams(text: _t.profileShareText(name, username)));
   }
