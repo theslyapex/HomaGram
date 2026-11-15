@@ -65,7 +65,6 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _refresh();
-    _loadPeerIdentity();
     _loadConversationMetadata();
     _channel = MessagingService.watchConversation(widget.conversationId, _refresh);
     _presenceChannel = MessagingService.watchPresence(_refreshPresence);
@@ -107,6 +106,7 @@ class _ChatScreenState extends State<ChatScreen> {
         _membersCanSendMessages = row['members_can_send_messages'] as bool? ?? true;
         _membersCanSendMedia = row['members_can_send_media'] as bool? ?? true;
       });
+      if (row['kind'] == 'direct') await _loadPeerIdentity();
     } catch (error) {
       debugPrint('Conversation metadata unavailable: $error');
     }
