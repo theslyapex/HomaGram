@@ -87,7 +87,7 @@ class SupabaseResumableUpload {
               lastError = error;
               try {
                 final serverOffset = await _readOffset(client, uploadUri, publishableKey, accessToken);
-                if (serverOffset >= start && serverOffset <= length) {
+                if (serverOffset > start && serverOffset <= length) {
                   offset = serverOffset;
                   sent = true;
                 }
