@@ -938,7 +938,7 @@ class MessagingService {
       final actor = byId[row['actor_id']];
       final target = byId[row['target_user_id']];
       row['actor_label'] = actor == null
-          ? 'مدیر سابق'
+          ? null
           : (actor['display_name'] as String?)?.trim().isNotEmpty == true
               ? actor['display_name']
               : '@${actor['username']}';
@@ -956,7 +956,7 @@ class MessagingService {
         .select('title').eq('id', conversationId).single();
     return (row['title'] as String?)?.trim().isNotEmpty == true
         ? row['title'] as String
-        : 'کانال خصوصی';
+        : '';
   }
 
 }
