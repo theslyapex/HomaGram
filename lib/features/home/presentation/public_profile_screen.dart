@@ -330,7 +330,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           Row(mainAxisSize: MainAxisSize.min, children: [
             const Icon(Icons.cake_outlined, size: 15, color: Color(0xFFB9DDE8)),
             const SizedBox(width: 6),
-            Text(_t.bornOn,
+            Text(_t.bornOn(persianDate(DateTime.parse(birthDate))),
               style: const TextStyle(color: Color(0xFFD6E8F0), fontSize: 12)),
           ]),
         ],
@@ -344,7 +344,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           SizedBox(width: double.infinity, child: HomaGramSpringPress(child: FilledButton.icon(
             onPressed: _editProfile,
             icon: const Icon(Icons.edit_outlined),
-            label: const Text(_t.editProfile),
+            label: Text(_t.editProfile),
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF35BDB6),
               foregroundColor: const Color(0xFF081A2A),
@@ -394,7 +394,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       ));
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t.startConversationFailed)),
+        SnackBar(content: Text(_t.startConversationFailed)),
       );
     }
   }
@@ -538,10 +538,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       builder: (sheetContext) => SafeArea(child: SizedBox(
         height: MediaQuery.of(sheetContext).size.height * .72,
         child: Column(children: [
-          const Padding(padding: EdgeInsets.all(16), child: Text(_t.profileVisitors,
+          Padding(padding: const EdgeInsets.all(16), child: Text(_t.profileVisitors,
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
           Expanded(child: _visitors.isEmpty
-            ? const Center(child: Text(_t.noProfileVisitorsYet))
+            ? Center(child: Text(_t.noProfileVisitorsYet))
             : ListView.builder(itemCount: _visitors.length, itemBuilder: (context, index) {
                 final visitor = _visitors[index];
                 final date = DateTime.tryParse(visitor['viewed_at'] as String? ?? '')?.toLocal();
@@ -571,7 +571,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     }
     Navigator.of(context).push(MaterialPageRoute<void>(
       builder: (_) => Scaffold(
-        appBar: AppBar(title: const Text(_t.viewPost)),
+        appBar: AppBar(title: Text(_t.viewPost)),
         body: ListView(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 28),
           children: [
