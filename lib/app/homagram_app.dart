@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
 import '../features/auth/data/auth_service.dart';
+import '../features/auth/data/multi_account_service.dart';
 import '../features/auth/presentation/auth_gate.dart';
 import '../features/bootstrap/presentation/bootstrap_screen.dart';
 import '../features/home/presentation/shared_post_screen.dart';
@@ -435,6 +436,7 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    unawaited(MultiAccountService.dispose());
     WidgetsBinding.instance.removeObserver(this);
     _linkSubscription?.cancel();
     _authSubscription?.cancel();
