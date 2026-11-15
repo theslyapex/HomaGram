@@ -361,7 +361,7 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
   Future<void> _loadInteractions() async {
     try {
       final c = AuthService.client;
-      final results = await Future.wait([
+      final results = await Future.wait<dynamic>([
         c.from('post_likes').select('user_id').eq('post_id', _postId),
         c.from('post_comments').select('id').eq('post_id', _postId),
         c.from('post_likes').select('post_id').eq('post_id', _postId).eq('user_id', _uid).maybeSingle(),
