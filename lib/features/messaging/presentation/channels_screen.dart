@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,7 +13,10 @@ class ChannelsScreen extends StatefulWidget {
 }
 
 class _ChannelsScreenState extends State<ChannelsScreen> {
-  List<Map<String, dynamic>> _channels = [];
+  List<Map<String, dynamic>> _communities = [];
+  final TextEditingController _search = TextEditingController();
+  Timer? _searchDebounce;
+  String _filter = 'all';
   bool _loading = true;
   String? _error;
 
@@ -21,16 +26,37 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     _load();
   }
 
-  Future<void> _load() async {
-    if (mounted) setState(() { _loading = true; _error = null; });
+  Future<void> _load({bool showLoading = true}) async {
+    if (showLoading && mounted) setState(() { _loading = true; _error = null; });
     try {
-      final rows = await MessagingService.loadPublicChannels();
+      final rows = await MessagingService.searchPublicCommunities(
+        query: _search.text,
+        kind: _filter,
+      );
       if (!mounted) return;
-      setState(() { _channels = rows; _loading = false; });
+      setState(() { _communities = rows; _loading = false; _error = null; });
     } catch (_) {
       if (!mounted) return;
-      setState(() { _loading = false; _error = 'دریافت فهرست کانال‌ها ممکن نشد.'; });
+      setState(() { _loading = false; _error = 'جست‌وجوی گروه‌ها و کانال‌های عمومی انجام نشد.'; });
     }
+  }
+
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 350), () => _load());
+  }
+
+  void _setFilter(String value) {
+    if (_filter == value) return;
+    setState(() => _filter = value);
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _search.dispose();
+    super.dispose();
   }
 
   Future<void> _showInviteCode(String token) async {
@@ -193,20 +219,29 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     }
   }
 
-  Future<void> _join(Map<String, dynamic> channel) async {
-    final id = channel['conversation_id'] as String;
+  Future<void> _openCommunity(Map<String, dynamic> item) async {
+    final id = item['conversation_id'] as String;
+    final kind = item['kind'] as String;
+    final title = item['title'] as String? ?? '@${item['slug']}';
     try {
-      await MessagingService.joinPublicChannel(id);
+      if (item['is_member'] != true) {
+        if (kind == 'group') {
+          await MessagingService.joinPublicGroup(id);
+        } else {
+          await MessagingService.joinPublicChannel(id);
+        }
+      }
       if (!mounted) return;
-      final conversation = channel['conversations'];
-      final title = conversation is Map ? conversation['title'] as String? : null;
       Navigator.of(context).push(MaterialPageRoute<void>(
-        builder: (_) => ChatScreen(conversationId: id, title: title ?? '@${channel['slug']}'),
+        builder: (_) => ChatScreen(conversationId: id, title: title),
       ));
+      _load(showLoading: false);
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('عضویت در کانال انجام نشد.')),
+          SnackBar(content: Text(kind == 'group'
+              ? 'عضویت در گروه عمومی انجام نشد.'
+              : 'عضویت در کانال عمومی انجام نشد.')),
         );
       }
     }
@@ -270,11 +305,11 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('کانال‌ها'),
+        title: const Text('کشف عمومی'),
         actions: [
           HomaGramSpringPress(child: IconButton(
             onPressed: _joinByCode,
-            tooltip: 'ورود با کد دعوت',
+            tooltip: 'ورود با کد دعوت خصوصی',
             icon: const Icon(Icons.key_rounded),
           )),
           HomaGramSpringPress(child: IconButton(
@@ -284,71 +319,179 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
           )),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _load,
-        child: _loading
-            ? ListView(children: const [
-                SizedBox(height: 220),
-                Center(child: CircularProgressIndicator()),
-              ])
-            : _error != null
-                ? ListView(children: [
-                    const SizedBox(height: 140),
-                    Center(child: Text(_error!)),
-                    Center(child: HomaGramSpringPress(child: TextButton(onPressed: _load, child: const Text('تلاش دوباره')))),
-                  ])
-                : _channels.isEmpty
-                    ? ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        children: [
-                          const SizedBox(height: 100),
-                          Icon(Icons.campaign_outlined, size: 58, color: colors.primary),
-                          const SizedBox(height: 12),
-                          const Center(child: Text('هنوز کانال عمومی ساخته نشده است')),
-                          const SizedBox(height: 12),
-                          Center(child: HomaGramSpringPress(child: FilledButton.icon(
-                            onPressed: _create,
-                            icon: const Icon(Icons.add),
-                            label: const Text('ساخت اولین کانال'),
-                          ))),
-                          Center(child: HomaGramSpringPress(child: TextButton.icon(
-                            onPressed: _joinByCode,
-                            icon: const Icon(Icons.key_rounded),
-                            label: const Text('ورود با کد دعوت خصوصی'),
-                          ))),
-                        ],
-                      )
-                    : ListView.separated(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: _channels.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1, indent: 76),
-                        itemBuilder: (context, index) {
-                          final item = _channels[index];
-                          final conversation = item['conversations'];
-                          final title = conversation is Map ? conversation['title'] as String? : null;
-                          return ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: colors.primaryContainer,
-                              child: Icon(Icons.campaign_rounded, color: colors.onPrimaryContainer),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'گروه‌ها و کانال‌های عمومی را پیدا کن',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  'با نام، شناسه یا توضیحات جست‌وجو کن و مستقیم عضو شو.',
+                  style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: _search,
+                  onChanged: _onSearchChanged,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) {
+                    _searchDebounce?.cancel();
+                    _load();
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'جست‌وجوی گروه یا کانال',
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    suffixIcon: _search.text.isEmpty ? null : IconButton(
+                      tooltip: 'پاک کردن جست‌وجو',
+                      onPressed: () {
+                        _search.clear();
+                        _load();
+                        setState(() {});
+                      },
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                    filled: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(18),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    ChoiceChip(
+                      label: const Text('همه'),
+                      selected: _filter == 'all',
+                      onSelected: (_) => _setFilter('all'),
+                    ),
+                    ChoiceChip(
+                      label: const Text('گروه‌ها'),
+                      selected: _filter == 'group',
+                      onSelected: (_) => _setFilter('group'),
+                    ),
+                    ChoiceChip(
+                      label: const Text('کانال‌ها'),
+                      selected: _filter == 'channel',
+                      onSelected: (_) => _setFilter('channel'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _load,
+              child: _loading
+                  ? ListView(children: const [
+                      SizedBox(height: 180),
+                      Center(child: CircularProgressIndicator()),
+                    ])
+                  : _error != null
+                      ? ListView(children: [
+                          const SizedBox(height: 130),
+                          Center(child: Text(_error!)),
+                          Center(child: TextButton(
+                            onPressed: _load,
+                            child: const Text('تلاش دوباره'),
+                          )),
+                        ])
+                      : _communities.isEmpty
+                          ? ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: [
+                                const SizedBox(height: 90),
+                                Icon(Icons.travel_explore_rounded, size: 58, color: colors.primary),
+                                const SizedBox(height: 14),
+                                Center(
+                                  child: Text(_search.text.trim().isEmpty
+                                      ? 'هنوز مورد عمومی‌ای برای نمایش وجود ندارد.'
+                                      : 'نتیجه‌ای برای این جست‌وجو پیدا نشد.'),
+                                ),
+                                const SizedBox(height: 8),
+                                Center(
+                                  child: Text(
+                                    'گروه‌ها و کانال‌های خصوصی در این بخش نمایش داده نمی‌شوند.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
+                                Center(child: HomaGramSpringPress(child: FilledButton.icon(
+                                  onPressed: _create,
+                                  icon: const Icon(Icons.add_rounded),
+                                  label: const Text('ساخت کانال عمومی'),
+                                ))),
+                              ],
+                            )
+                          : ListView.separated(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              itemCount: _communities.length,
+                              separatorBuilder: (_, __) => const Divider(height: 1, indent: 76),
+                              itemBuilder: (context, index) {
+                                final item = _communities[index];
+                                final isGroup = item['kind'] == 'group';
+                                final isMember = item['is_member'] == true;
+                                final title = item['title'] as String? ?? '';
+                                final slug = item['slug'] as String? ?? '';
+                                final description = item['description'] as String? ?? '';
+                                final count = item['member_count'] ?? 0;
+                                return ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                                  leading: CircleAvatar(
+                                    radius: 25,
+                                    backgroundColor: isGroup
+                                        ? const Color(0xFF7356C8).withValues(alpha: .16)
+                                        : const Color(0xFF20B8B0).withValues(alpha: .16),
+                                    child: Icon(
+                                      isGroup ? Icons.groups_rounded : Icons.campaign_rounded,
+                                      color: isGroup ? const Color(0xFF9B83FF) : const Color(0xFF20B8B0),
+                                    ),
+                                  ),
+                                  title: Text(
+                                    title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontWeight: FontWeight.w900),
+                                  ),
+                                  subtitle: Padding(
+                                    padding: const EdgeInsets.only(top: 3),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '@$slug  •  ${isGroup ? 'گروه' : 'کانال'}  •  $count عضو',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        if (description.isNotEmpty)
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 3),
+                                            child: Text(description, maxLines: 2, overflow: TextOverflow.ellipsis),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  trailing: HomaGramSpringPress(child: FilledButton.tonal(
+                                    onPressed: () => _openCommunity(item),
+                                    child: Text(isMember ? 'باز کردن' : 'عضویت'),
+                                  )),
+                                  onTap: () => _openCommunity(item),
+                                );
+                              },
                             ),
-                            title: Text(
-                              title ?? '@${item['slug']}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontWeight: FontWeight.w800),
-                            ),
-                            subtitle: Text(
-                              '@${item['slug']} • ${item['description'] ?? ''}',
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            trailing: HomaGramSpringPress(child: FilledButton.tonal(
-                              onPressed: () => _join(item),
-                              child: const Text('عضویت'),
-                            )),
-                          );
-                        },
-                      ),
+            ),
+          ),
+        ],
       ),
     );
   }
