@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../app/theme/app_theme.dart';
 import '../data/auth_service.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class PasswordRecoveryScreen extends StatefulWidget {
   const PasswordRecoveryScreen({super.key});
@@ -14,6 +15,8 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
   final _confirm = TextEditingController();
   bool _busy = false, _obscure = true;
 
+  AppLocalizations get _t => AppLocalizations.of(context)!;
+
   @override
   void dispose() { _password.dispose(); _confirm.dispose(); super.dispose(); }
 
@@ -25,11 +28,11 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
       await AuthService.signOutThisDevice();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('رمز عبور تغییر کرد. اکنون با رمز جدید وارد شوید.')));
+        content: Text(_t.passwordRecoverySuccess)));
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('تغییر رمز انجام نشد. دوباره درخواست بازیابی بدهید.'),
+          content: Text(_t.passwordRecoverySaveFailed),
         ));
       }
     } finally { if (mounted) setState(() => _busy = false); }
@@ -37,28 +40,28 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('بازیابی رمز عبور')),
+    appBar: AppBar(title: Text(_t.passwordRecovery)),
     body: Center(child: SingleChildScrollView(padding: const EdgeInsets.all(22),
       child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 460),
         child: Card(child: Padding(padding: const EdgeInsets.all(22),
           child: Form(key: _form, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             const Icon(Icons.lock_reset, size: 48, color: HomaGramTheme.turquoise),
             const SizedBox(height: 14),
-            const Text('رمز عبور تازه انتخاب کنید', textAlign: TextAlign.center,
+            Text(_t.passwordRecoveryChooseNew, textAlign: TextAlign.center,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
             const SizedBox(height: 22),
             TextFormField(controller: _password, obscureText: _obscure, textDirection: TextDirection.ltr,
-              validator: (v) => (v ?? '').length < 10 ? 'حداقل ۱۰ نویسه وارد کنید.' : null,
-              decoration: InputDecoration(labelText: 'رمز عبور جدید',
+              validator: (v) => (v ?? '').length < 10 ? _t.passwordMinLength : null,
+              decoration: InputDecoration(labelText: _t.passwordNew,
                 suffixIcon: IconButton(onPressed: () => setState(() => _obscure = !_obscure),
                   icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined)))),
             const SizedBox(height: 14),
             TextFormField(controller: _confirm, obscureText: true, textDirection: TextDirection.ltr,
-              validator: (v) => v != _password.text ? 'تکرار رمز عبور یکسان نیست.' : null,
-              decoration: const InputDecoration(labelText: 'تکرار رمز عبور')),
+              validator: (v) => v != _password.text ? _t.passwordsDoNotMatch : null,
+              decoration: InputDecoration(labelText: _t.confirmPassword)),
             const SizedBox(height: 20),
             FilledButton(onPressed: _busy ? null : _save,
-              child: Text(_busy ? 'در حال ذخیره...' : 'ثبت رمز جدید')),
+              child: Text(_busy ? _t.saving : _t.passwordSaveNew)),
           ])),
         )),
       ),
