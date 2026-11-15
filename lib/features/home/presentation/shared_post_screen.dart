@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/data/auth_service.dart';
 import 'feed_screen.dart';
 
@@ -10,6 +11,7 @@ class SharedPostScreen extends StatefulWidget {
 }
 
 class _SharedPostScreenState extends State<SharedPostScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   late Future<Map<String, dynamic>> _post;
   @override
   void initState() { super.initState(); _post = _load(); }
@@ -39,7 +41,7 @@ class _SharedPostScreenState extends State<SharedPostScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('پست در HomaGram')),
+    appBar: AppBar(title: Text(_t.sharedPostTitle)),
     body: FutureBuilder<Map<String, dynamic>>(
       future: _post,
       builder: (context, snapshot) {
@@ -47,9 +49,9 @@ class _SharedPostScreenState extends State<SharedPostScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError || !snapshot.hasData) {
-          return const Center(child: Padding(
-            padding: EdgeInsets.all(28),
-            child: Text('این پست در دسترس نیست؛ ممکن است حذف شده باشد یا حساب منتشرکننده خصوصی باشد.',
+          return Center(child: Padding(
+            padding: const EdgeInsets.all(28),
+            child: Text(_t.sharedPostUnavailable,
               textAlign: TextAlign.center),
           ));
         }
