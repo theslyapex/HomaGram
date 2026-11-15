@@ -1496,5 +1496,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "sharedPostTitle": "پست در HomaGram",
+  "sharedPostUnavailable": "این پست در دسترس نیست؛ ممکن است حذف شده باشد یا حساب منتشرکننده خصوصی باشد."
 }
