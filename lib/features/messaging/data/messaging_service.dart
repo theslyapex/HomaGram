@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ConversationPreview {
@@ -99,6 +100,7 @@ class MessagingService {
         profile['avatar_url'] = await _client.storage
             .from('avatars').createSignedUrl(path, 3600);
       } catch (error) {
+        debugPrint('Inbox avatar signing failed: $error');
         profile['avatar_url'] = null;
       }
     }));
@@ -462,8 +464,8 @@ class MessagingService {
     } catch (error, stackTrace) {
       // Keep the precise failing stage in device logs; don't silently mask the
       // Storage/PostgREST error behind the generic "media send failed" message.
-      print('HomaGram media send failed at $stage: $error');
-      print(stackTrace);
+      debugPrint('HomaGram media send failed at $stage: $error');
+      debugPrintStack(stackTrace: stackTrace);
       if (path != null) {
         try { await _client.storage.from('chat-media').remove([path]); } catch (_) {}
       }
