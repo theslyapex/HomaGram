@@ -1498,5 +1498,51 @@
     }
   },
   "sharedPostTitle": "پست در HomaGram",
-  "sharedPostUnavailable": "این پست در دسترس نیست؛ ممکن است حذف شده باشد یا حساب منتشرکننده خصوصی باشد."
+  "sharedPostUnavailable": "این پست در دسترس نیست؛ ممکن است حذف شده باشد یا حساب منتشرکننده خصوصی باشد.",
+  "verificationRequestTitle": "درخواست نشان تأیید",
+  "verificationStep": "مرحله {current} از {total}",
+  "verificationAccountType": "نوع حساب",
+  "verificationIndividual": "شخص حقیقی",
+  "verificationOrganization": "شخص حقوقی",
+  "verificationCategory": "حوزه فعالیت / دسته‌بندی",
+  "verificationFullName": "نام و نام خانوادگی",
+  "verificationOrganizationName": "نام رسمی شرکت یا سازمان",
+  "verificationRequired": "این فیلد الزامی است.",
+  "verificationPhoneOptional": "شماره تماس (اختیاری)",
+  "verificationRegistrationNumber": "شماره ثبت شرکت",
+  "verificationNationalId": "شناسه ملی",
+  "verificationPublicLinks": "لینک وب‌سایت و حساب‌های تأییدشده دیگر",
+  "verificationLinksHint": "هر لینک در یک خط",
+  "verificationAddEvidence": "افزودن مدرک یا خبر ({count}/{maximum})",
+  "verificationEvidenceInstructions": "تصویر خبر، معرفی‌نامه، مدرک ثبت یا شواهد عمومی مرتبط را بارگذاری کنید. مدارک فقط برای بررسی مدیران قابل مشاهده‌اند.",
+  "verificationExplanation": "توضیحات تکمیلی و دلیل درخواست",
+  "verificationExplanationRequired": "حداقل ۲۰ نویسه توضیح بنویسید.",
+  "verificationDisclaimer": "ارسال درخواست به معنی تضمین دریافت نشان نیست. اطلاعات نادرست می‌تواند باعث رد درخواست شود.",
+  "verificationPrevious": "قبلی",
+  "verificationSubmitForReview": "ارسال برای بررسی",
+  "verificationContinue": "ادامه",
+  "verificationSubmitted": "درخواست تأیید حساب ثبت شد و در صف بررسی قرار گرفت.",
+  "verificationSubmitFailed": "ثبت درخواست انجام نشد. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.",
+  "verificationFileTooLarge": "هر مدرک باید حداکثر ۱۰ مگابایت باشد.",
+  "verificationFileFormatInvalid": "فقط تصویر JPG، PNG یا WebP پذیرفته می‌شود.",
+  "@verificationStep": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@verificationAddEvidence": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "maximum": {
+        "type": "int"
+      }
+    }
+  }
 }
