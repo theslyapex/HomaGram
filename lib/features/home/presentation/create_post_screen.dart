@@ -287,7 +287,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         final mime = _media!.mimeType ?? _mimeFromName(_media!.name, _mediaType!);
         final ext = _media!.name.contains('.') ? _media!.name.split('.').last.toLowerCase() : (_isReel ? 'mp4' : 'jpg');
         uploadedPath = '${user.id}/$stamp.$ext';
-        await client.storage.from('post-media').uploadBinary(uploadedPath, await _media!.readAsBytes(),
+        await client.storage.from('post-media').upload(uploadedPath, File(_media!.path),
           fileOptions: FileOptions(contentType: mime, upsert: false));
       }
       if (_isReel && _coverBytes != null) {
