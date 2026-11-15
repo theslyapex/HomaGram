@@ -152,7 +152,7 @@ class _TwoStepVerificationScreenState extends State<TwoStepVerificationScreen> {
                 colors: [Color(0xFF293C75), Color(0xFF174D60), Color(0xFF17233E)],
               ),
             ),
-            child: const Row(children: [
+            child: Row(children: [
               Icon(Icons.shield_moon_rounded, color: Colors.white, size: 34),
               SizedBox(width: 13),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
