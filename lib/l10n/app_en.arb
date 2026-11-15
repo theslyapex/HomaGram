@@ -1335,5 +1335,12 @@
         "type": "String"
       }
     }
-  }
+  },
+  "storyTextLengthInvalid": "Story text must be between 1 and 1,000 characters.",
+  "storyChooseMediaFirst": "Choose an image or video first.",
+  "storyTextMaxLength": "Story text can be up to 500 characters.",
+  "storyQuestionLengthInvalid": "Enter a question-box prompt between 1 and 180 characters.",
+  "storyCountdownInvalid": "Enter a valid countdown title and time.",
+  "storyPollInvalid": "Complete the poll question and options without duplicates.",
+  "storyPublishFailed": "Couldn't publish the story. Check your connection or media format."
 }
