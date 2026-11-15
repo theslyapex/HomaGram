@@ -131,7 +131,7 @@ class AdminCommunitySummary {
       AdminCommunitySummary(
         id: json['conversation_id']?.toString() ?? '',
         kind: json['kind']?.toString() ?? 'group',
-        title: json['title']?.toString() ?? 'بدون نام',
+        title: json['title']?.toString() ?? '',
         ownerId: json['owner_id']?.toString(),
         ownerUsername: json['owner_username'] as String?,
         ownerDisplayName: json['owner_display_name'] as String?,
