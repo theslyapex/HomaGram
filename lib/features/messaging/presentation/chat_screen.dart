@@ -683,7 +683,7 @@ class _ChatScreenState extends State<ChatScreen> {
       loading = false;
     } catch (_) {
       loading = false;
-      error = 'دریافت تاریخچه فعالیت‌ها ممکن نشد.';
+      error = _t.activityHistoryLoadFailed;;
     }
     if (!mounted) return;
 
@@ -739,7 +739,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: Row(children: [
                   Icon(Icons.history_rounded),
                   SizedBox(width: 9),
-                  Text('تاریخچه فعالیت‌های کانال',
+                  Text(_t.channelActivityHistory,
                     style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
                 ]),
               ),
@@ -750,7 +750,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     : error != null
                         ? Center(child: Text(error))
                         : logs.isEmpty
-                            ? const Center(child: Text('هنوز فعالیت مدیریتی ثبت نشده است.'))
+                            ? Center(child: Text(_t.noAdminActivityYet))
                             : ListView.separated(
                                 padding: const EdgeInsets.all(12),
                                 itemCount: logs.length,
@@ -803,7 +803,7 @@ class _ChatScreenState extends State<ChatScreen> {
       loading = false;
     } catch (_) {
       loading = false;
-      loadError = 'دریافت کدهای دعوت ممکن نشد.';
+      loadError = _t.inviteCodesLoadFailed;;
     }
     if (!mounted) return;
 
@@ -824,7 +824,7 @@ class _ChatScreenState extends State<ChatScreen> {
               setSheetState(() { invites = rows; loading = false; });
             } catch (_) {
               if (!sheetContext.mounted) return;
-              setSheetState(() { loading = false; loadError = 'به‌روزرسانی فهرست ممکن نشد.'; });
+              setSheetState(() { loading = false; loadError = _t.listRefreshFailed;; });
             }
           }
 
@@ -835,28 +835,28 @@ class _ChatScreenState extends State<ChatScreen> {
             final values = await showDialog<List<int>>(
               context: sheetContext,
               builder: (dialogContext) => AlertDialog(
-                title: const Text('ساخت کد دعوت جدید'),
+                title: Text(_t.createNewInviteCode),
                 content: Form(
                   key: formKey,
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
                     TextFormField(
                       controller: expiryController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'اعتبار به ساعت (۱ تا ۷۲۰)'),
+                      decoration: const InputDecoration(labelText: _t.validityHours),
                       validator: (value) {
                         final number = int.tryParse(value ?? '');
                         return number == null || number < 1 || number > 720
-                            ? 'عدد باید بین ۱ تا ۷۲۰ باشد.' : null;
+                            ? _t.hoursRangeError : null;
                       },
                     ),
                     TextFormField(
                       controller: usesController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'حداکثر دفعات استفاده (۱ تا ۵۰۰)'),
+                      decoration: const InputDecoration(labelText: _t.maximumUses),
                       validator: (value) {
                         final number = int.tryParse(value ?? '');
                         return number == null || number < 1 || number > 500
-                            ? 'عدد باید بین ۱ تا ۵۰۰ باشد.' : null;
+                            ? _t.usesRangeError : null;
                       },
                     ),
                   ]),
@@ -872,7 +872,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         ]);
                       }
                     },
-                    child: const Text('ساخت کد'),
+                    child: Text(_t.createCode),
                   ),
                 ],
               ),
@@ -894,7 +894,7 @@ class _ChatScreenState extends State<ChatScreen> {
               await showDialog<void>(
                 context: sheetContext,
                 builder: (dialogContext) => AlertDialog(
-                  title: const Text('کد دعوت آماده است'),
+                  title: Text(_t.inviteCodeReady),
                   content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(isGroup
                         ? 'این لینک فقط تا زمان انقضا یا تکمیل ظرفیت فعال است. آن را برای افراد موردنظر بفرستید.'
@@ -911,16 +911,16 @@ class _ChatScreenState extends State<ChatScreen> {
                         await Clipboard.setData(ClipboardData(text: isGroup ? 'homagram://group/$token' : token));
                         if (dialogContext.mounted) {
                           ScaffoldMessenger.of(dialogContext).showSnackBar(
-                            const SnackBar(content: Text('کد دعوت کپی شد.')),
+                            SnackBar(content: Text(_t.inviteCodeCopied)),
                           );
                         }
                       },
                       icon: const Icon(Icons.copy_rounded),
-                      label: Text(isGroup ? 'کپی لینک دعوت' : 'کپی کد'),
+                      label: Text(isGroup ? _t.copyInviteLink : _t.copyCode),
                     )),
                   ]),
                   actions: [
-                    FilledButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('بستن')),
+                    FilledButton(onPressed: () => Navigator.pop(dialogContext), child: Text(_t.close)),
                   ],
                 ),
               );
@@ -928,7 +928,7 @@ class _ChatScreenState extends State<ChatScreen> {
             } catch (_) {
               if (sheetContext.mounted) {
                 ScaffoldMessenger.of(sheetContext).showSnackBar(
-                  const SnackBar(content: Text('ساخت کد دعوت انجام نشد.')),
+                  SnackBar(content: Text(_t.inviteCodeCreateFailed)),
                 );
               }
             }
@@ -938,11 +938,11 @@ class _ChatScreenState extends State<ChatScreen> {
             final confirmed = await showDialog<bool>(
               context: sheetContext,
               builder: (dialogContext) => AlertDialog(
-                title: const Text('غیرفعال‌سازی کد دعوت'),
-                content: const Text('با این کار، کد دیگر برای عضویت قابل استفاده نخواهد بود.'),
+                title: Text(_t.revokeInviteCodeTitle),
+                content: Text(_t.revokeInviteCodeExplanation),
                 actions: [
                   TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text(_t.cancel)),
-                  FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('غیرفعال کن')),
+                  FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: Text(_t.revoke)),
                 ],
               ),
             );
@@ -957,18 +957,18 @@ class _ChatScreenState extends State<ChatScreen> {
             } catch (_) {
               if (sheetContext.mounted) {
                 ScaffoldMessenger.of(sheetContext).showSnackBar(
-                  const SnackBar(content: Text('غیرفعال‌سازی کد انجام نشد.')),
+                  SnackBar(content: Text(_t.inviteCodeRevokeFailed)),
                 );
               }
             }
           }
 
           String statusLabel(String status) => switch (status) {
-            'active' => 'فعال',
-            'revoked' => 'غیرفعال‌شده',
-            'expired' => 'منقضی‌شده',
-            'exhausted' => 'ظرفیت تکمیل',
-            _ => 'نامشخص',
+            'active' => _t.active,
+            'revoked' => _t.revoked,
+            'expired' => _t.expired,
+            'exhausted' => _t.limitReached,
+            _ => _t.unknown,
           };
 
           return SizedBox(
@@ -996,10 +996,10 @@ class _ChatScreenState extends State<ChatScreen> {
                     : loadError != null
                         ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                             Text(loadError!),
-                            TextButton(onPressed: reload, child: const Text('تلاش دوباره')),
+                            TextButton(onPressed: reload, child: Text(_t.retry)),
                           ]))
                         : invites.isEmpty
-                            ? const Center(child: Text('هنوز کد دعوتی ساخته نشده است.'))
+                            ? Center(child: Text(_t.noInviteCodesYet))
                             : ListView.separated(
                                 itemCount: invites.length,
                                 separatorBuilder: (_, __) => const Divider(height: 1),
@@ -1019,7 +1019,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     subtitle: Text('${invite['use_count']} از ${invite['max_uses']} استفاده • $expiryText'),
                                     trailing: status == 'active'
                                         ? IconButton(
-                                            tooltip: 'غیرفعال‌سازی',
+                                            tooltip: _t.revokeTooltip,
                                             onPressed: () => revokeInvite(invite['id'] as String),
                                             icon: const Icon(Icons.block_rounded),
                                           )
@@ -1048,7 +1048,7 @@ class _ChatScreenState extends State<ChatScreen> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
-          title: const Text('دسترسی‌های گروه'),
+          title: Text(_t.groupPermissions),
           content: SizedBox(
             width: MediaQuery.sizeOf(dialogContext).width * .82,
             child: SingleChildScrollView(
@@ -1099,7 +1099,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 membersCanSendMessages, membersCanSendMedia, membersCanAddMembers,
                 adminsCanChangeInfo, adminsCanManageMembers,
               ]),
-              child: const Text('ذخیره دسترسی‌ها'),
+              child: Text(_t.savePermissions),
             ),
           ],
         ),
@@ -1116,12 +1116,12 @@ class _ChatScreenState extends State<ChatScreen> {
         adminsCanManageMembers: values[4],
       );
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('دسترسی‌های گروه به‌روزرسانی شد.')),
+        SnackBar(content: Text(_t.groupPermissionsUpdated)),
       );
     } catch (error) {
       debugPrint('Group permissions update failed: $error');
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ذخیره دسترسی‌ها انجام نشد. فقط مالک گروه می‌تواند این تنظیمات را تغییر دهد.')),
+        SnackBar(content: Text(_t.groupPermissionsSaveFailed)),
       );
     }
   }
