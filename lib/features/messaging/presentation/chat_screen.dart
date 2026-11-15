@@ -66,7 +66,7 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final row = await Supabase.instance.client
           .from('conversations')
-          .select('kind,photo_path,description,members_can_send_messages,members_can_send_media')
+          .select('kind,photo_path,description,is_public,public_slug,members_can_send_messages,members_can_send_media')
           .eq('id', widget.conversationId)
           .maybeSingle();
       if (row == null) return;
@@ -1080,7 +1080,7 @@ class _ChatScreenState extends State<ChatScreen> {
       // Fetch the conversation row separately from its optional channel row.
       // A nested PostgREST relationship can fail for group/direct conversations.
       final info = await Supabase.instance.client.from('conversations')
-          .select('kind,title,photo_path,description,members_can_send_messages,members_can_send_media,members_can_add_members,admins_can_change_info,admins_can_manage_members')
+          .select('kind,title,photo_path,description,is_public,public_slug,members_can_send_messages,members_can_send_media,members_can_add_members,admins_can_change_info,admins_can_manage_members')
           .eq('id', widget.conversationId).single();
       final isGroup = info['kind'] == 'group';
       final isChannel = info['kind'] == 'channel';
@@ -1223,6 +1223,98 @@ class _ChatScreenState extends State<ChatScreen> {
                           debugPrint('Conversation photo update failed: $error');
                           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('تغییر تصویر انجام نشد. دسترسی مدیر را بررسی کنید.')),
+                          );
+                        }
+                      },
+                    ),
+                  if (isGroup && myRole == 'owner')
+                    IconButton(
+                      tooltip: 'تنظیمات عمومی گروه',
+                      icon: const Icon(Icons.public_rounded),
+                      onPressed: () async {
+                        final slugController = TextEditingController(text: info['public_slug'] as String? ?? '');
+                        final descriptionController = TextEditingController(text: description);
+                        var isPublic = info['is_public'] == true;
+                        final values = await showDialog<Map<String, dynamic>>(
+                          context: context,
+                          builder: (dialogContext) => StatefulBuilder(
+                            builder: (dialogContext, setDialogState) => AlertDialog(
+                              title: const Text('قابلیت کشف گروه'),
+                              content: SingleChildScrollView(child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SwitchListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    value: isPublic,
+                                    onChanged: (value) => setDialogState(() => isPublic = value),
+                                    title: Text(isPublic ? 'گروه عمومی' : 'گروه خصوصی'),
+                                    subtitle: Text(isPublic
+                                      ? 'در بخش کشف نمایش داده می‌شود و کاربران می‌توانند عضو شوند.'
+                                      : 'از نتایج کشف حذف می‌شود و فقط اعضا و دعوت‌شدگان دسترسی دارند.'),
+                                  ),
+                                  if (isPublic) ...[
+                                    TextField(
+                                      controller: slugController,
+                                      maxLength: 32,
+                                      textDirection: TextDirection.ltr,
+                                      decoration: const InputDecoration(
+                                        labelText: 'شناسه عمومی',
+                                        prefixText: '@',
+                                        helperText: '۳ تا ۳۲ حرف انگلیسی، عدد یا زیرخط',
+                                      ),
+                                    ),
+                                    TextField(
+                                      controller: descriptionController,
+                                      maxLength: 500,
+                                      maxLines: 3,
+                                      decoration: const InputDecoration(labelText: 'توضیحات عمومی'),
+                                    ),
+                                  ],
+                                ],
+                              )),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+                                FilledButton(
+                                  onPressed: () {
+                                    if (isPublic && !RegExp(r'^[a-zA-Z0-9_]{3,32}$').hasMatch(slugController.text.trim())) {
+                                      ScaffoldMessenger.of(dialogContext).showSnackBar(
+                                        const SnackBar(content: Text('شناسه باید ۳ تا ۳۲ حرف انگلیسی، عدد یا زیرخط باشد.')),
+                                      );
+                                      return;
+                                    }
+                                    Navigator.pop(dialogContext, {
+                                      'isPublic': isPublic,
+                                      'slug': slugController.text,
+                                      'description': descriptionController.text,
+                                    });
+                                  },
+                                  child: const Text('ذخیره'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                        slugController.dispose();
+                        descriptionController.dispose();
+                        if (values == null) return;
+                        try {
+                          await MessagingService.updateGroupDiscoverySettings(
+                            conversationId: widget.conversationId,
+                            isPublic: values['isPublic'] as bool,
+                            slug: values['slug'] as String,
+                            description: values['description'] as String,
+                          );
+                          await _loadConversationMetadata();
+                          if (mounted) setState(() {});
+                          if (sheetContext.mounted) Navigator.pop(sheetContext);
+                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(values['isPublic'] == true
+                              ? 'گروه در بخش کشف عمومی قرار گرفت.'
+                              : 'گروه از فهرست عمومی خارج شد.')),
+                          );
+                        } catch (_) {
+                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('ذخیره تنظیمات عمومی گروه انجام نشد؛ شناسه را بررسی کنید.')),
                           );
                         }
                       },
