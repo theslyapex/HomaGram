@@ -274,7 +274,7 @@ class MessagingService {
       }
     }
     final attachments = await _client.from('message_attachments')
-        .select('id,message_id,storage_path,mime_type,file_name,size_bytes,is_view_once')
+        .select('id,message_id,storage_path,uploader_id,mime_type,file_name,size_bytes,is_view_once')
         .inFilter('message_id', ids);
     for (final item in attachments) {
       if (item['is_view_once'] == true) {
