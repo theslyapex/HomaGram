@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/presentation/homagram_branding.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/data/auth_service.dart';
 import '../../admin/data/admin_service.dart';
 import '../../admin/presentation/admin_dashboard_screen.dart';
@@ -21,6 +22,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   int _tab = 0;
   int _unreadNotifications = 0;
   bool _isAdmin = false;
@@ -166,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
-            tooltip: 'تنظیمات',
+            tooltip: _t.homeSettings,
             icon: const Icon(Icons.settings_outlined),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
@@ -175,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           IconButton(
-            tooltip: 'اعلان‌ها',
+            tooltip: _t.homeNotifications,
             icon: Badge(
               isLabelVisible: _unreadNotifications > 0,
               label: Text(
@@ -191,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           if (_isAdmin)
             IconButton(
-              tooltip: 'پنل مدیریت',
+              tooltip: _t.homeAdminPanel,
               icon: const Icon(Icons.admin_panel_settings_outlined),
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
@@ -245,25 +247,25 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     _buildNavItem(
                       index: 0,
-                      label: 'خانه',
+                      label: _t.homeTab,
                       icon: Icons.home_outlined,
                       selectedIcon: Icons.home_rounded,
                     ),
                     _buildNavItem(
                       index: 1,
-                      label: 'کشف',
+                      label: _t.exploreTitle,
                       icon: Icons.search_rounded,
                       selectedIcon: Icons.explore_rounded,
                     ),
                     _buildNavItem(
                       index: 2,
-                      label: 'پیام‌ها',
+                      label: _t.homeMessages,
                       icon: Icons.chat_bubble_outline_rounded,
                       selectedIcon: Icons.chat_rounded,
                     ),
                     _buildNavItem(
                       index: 3,
-                      label: 'پروفایل',
+                      label: _t.homeProfile,
                       icon: Icons.person_outline_rounded,
                       selectedIcon: Icons.person_rounded,
                     ),
