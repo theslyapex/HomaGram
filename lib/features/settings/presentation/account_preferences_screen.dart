@@ -47,13 +47,18 @@ class _AccountPreferencesScreenState extends State<AccountPreferencesScreen> {
       final profiles = blockedIds.isEmpty
           ? <dynamic>[]
           : await _client.from('profiles')
-              .select('id,username,display_name')
+              .select('id,username,display_name,avatar_path')
               .inFilter('id', blockedIds);
       final byId = {for (final profile in profiles) profile['id'] as String: profile};
       final blocked = blockedIds.map((id) => byId[id])
           .whereType<Map<String, dynamic>>()
           .map((row) => Map<String, dynamic>.from(row))
           .toList();
+      await Future.wait(blocked.map((profile) async {
+        final path = profile['avatar_path'] as String?;
+        if (path == null || path.isEmpty) return;
+        try { profile['avatar_url'] = await _client.storage.from('avatars').createSignedUrl(path, 900); } catch (_) {}
+      }));
       final theme = settings?['theme'] as String? ?? 'system';
       if (!mounted) return;
       setState(() {
@@ -215,7 +220,10 @@ class _AccountPreferencesScreenState extends State<AccountPreferencesScreen> {
               : Column(children: [
                   for (final profile in _blocked)
                     ListTile(
-                      leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
+                      leading: CircleAvatar(
+                        backgroundImage: profile['avatar_url'] is String ? NetworkImage(profile['avatar_url'] as String) : null,
+                        child: profile['avatar_url'] is String ? null : const Icon(Icons.person_outline_rounded),
+                      ),
                       title: Row(children: [
                         Flexible(child: Text(profile['display_name'] as String? ?? _t.adminUnknownUser,
                           maxLines: 1, overflow: TextOverflow.ellipsis)),
