@@ -2077,5 +2077,17 @@
   "accountVisitorsDescription": "با خاموش‌کردن این گزینه، فهرست بازدیدها برای پروفایل شما ثبت نمی‌شود.",
   "accountBlockedUsers": "حساب‌های مسدودشده",
   "accountNoBlockedUsers": "در حال حاضر حسابی را مسدود نکرده‌اید.",
-  "accountUnblock": "رفع مسدودی"
+  "accountUnblock": "رفع مسدودی",
+  "bugReportSettingsSaveFailed": "ذخیره تنظیم انجام نشد. دوباره تلاش کنید.",
+  "bugReportSettingsTitle": "گزارش سریع مشکل",
+  "bugReportShakeTitle": "گزارش با یک حرکت",
+  "bugReportShakeDescription": "گوشی را تکان دهید تا فرم گزارش مشکل با تصویر همین صفحه باز شود.",
+  "bugReportShakeToggle": "فعال‌سازی گزارش با تکان گوشی",
+  "bugReportSignedInOnly": "این قابلیت فقط هنگام ورود به حساب فعال است.",
+  "bugReportPreviewTitle": "پیش‌نمایش قبل از ارسال",
+  "bugReportPreviewDescription": "پس از تکان گوشی، تصویر صفحه فقط برای نمایش پیش‌نمایش گرفته می‌شود. هیچ تصویری بدون تأیید شما ارسال نخواهد شد.",
+  "bugReportDetailsTitle": "توضیح مشکل",
+  "bugReportDetailsDescription": "می‌توانید توضیح دهید چه کاری انجام می‌دادید و چه مشکلی رخ داد؛ تصویر و توضیح در یک پیام برای پشتیبانی فرستاده می‌شوند.",
+  "bugReportPrivacyTitle": "حریم خصوصی",
+  "bugReportPrivacyDescription": "پیش از ارسال، تصویر را بررسی کنید و اگر اطلاعات خصوصی یا حساس روی صفحه دیده می‌شود، ارسال را لغو کنید."
 }
