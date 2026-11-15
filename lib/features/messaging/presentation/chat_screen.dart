@@ -278,7 +278,9 @@ class _ChatScreenState extends State<ChatScreen> {
           mimeType: mime,
         );
         await _refresh();
-      } catch (_) {
+      } catch (error, stackTrace) {
+        debugPrint('Chat file picker/send failed: $error');
+        debugPrintStack(stackTrace: stackTrace);
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(_t.fileSendFailed)),
         );
