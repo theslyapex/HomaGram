@@ -999,7 +999,7 @@ class _ChatScreenState extends State<ChatScreen> {
         builder: (dialogContext, setDialogState) => AlertDialog(
           title: const Text('دسترسی‌های گروه'),
           content: SizedBox(
-            width: 420,
+            width: MediaQuery.sizeOf(dialogContext).width * .82,
             child: SingleChildScrollView(
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 const Align(alignment: Alignment.centerRight,
