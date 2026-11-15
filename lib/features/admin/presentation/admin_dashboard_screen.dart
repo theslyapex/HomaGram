@@ -549,9 +549,9 @@ class _MessageReportsTabState extends State<_MessageReportsTab> {
             style: const TextStyle(fontWeight: FontWeight.w800))),
           SegmentedButton<String>(
             segments: [
-              ButtonSegment(value: 'pending', label: Text('بررسی‌نشده')),
-              ButtonSegment(value: 'reviewed', label: Text('بررسی‌شده')),
-              ButtonSegment(value: 'all', label: Text('همه')),
+              ButtonSegment(value: 'pending', label: Text(_t.adminFilterPending)),
+              ButtonSegment(value: 'reviewed', label: Text(_t.adminFilterReviewed)),
+              ButtonSegment(value: 'all', label: Text(_t.adminFilterAll)),
             ],
             selected: {_filter},
             onSelectionChanged: (value) => setState(() => _filter = value.first),
