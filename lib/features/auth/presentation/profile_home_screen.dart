@@ -764,7 +764,13 @@ class _CloseFriendsManagerSheetState extends State<CloseFriendsManagerSheet> {
                           final selected = _selected.contains(id);
                           return ListTile(
                             contentPadding: EdgeInsets.zero,
-                            leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
+                            leading: CircleAvatar(
+                              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                              backgroundImage: person['avatar_url'] is String
+                                  ? NetworkImage(person['avatar_url'] as String) : null,
+                              child: person['avatar_url'] is String ? null
+                                  : const Icon(Icons.person_outline_rounded),
+                            ),
                             title: Row(mainAxisSize: MainAxisSize.min, children: [
                               Flexible(child: Text(person['display_name']?.toString() ?? _t.userLabel,
                                 maxLines: 1, overflow: TextOverflow.ellipsis)),
