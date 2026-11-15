@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class AppLanguage extends ChangeNotifier {
   AppLanguage._();
@@ -38,9 +39,10 @@ class LanguagePicker extends StatelessWidget {
       animation: AppLanguage.instance,
       builder: (context, _) {
         final code = AppLanguage.instance.locale.languageCode;
-        final label = code == 'en' ? 'English' : code == 'ar' ? 'العربية' : 'فارسی';
+        final strings = AppLocalizations.of(context)!;
+        final label = code == 'en' ? strings.english : code == 'ar' ? strings.arabic : strings.persian;
         return PopupMenuButton<String>(
-          tooltip: 'Language / زبان / اللغة',
+          tooltip: strings.language,
           onSelected: AppLanguage.instance.setLanguage,
           itemBuilder: (_) => const [
             PopupMenuItem(value: 'fa', child: Text('فارسی')),
@@ -63,7 +65,7 @@ class LanguagePicker extends StatelessWidget {
                 )
               : ListTile(
                   leading: const Icon(Icons.language_rounded),
-                  title: const Text('زبان / Language / اللغة'),
+                  title: Text(strings.language),
                   subtitle: Text(label),
                   trailing: const Icon(Icons.chevron_right_rounded),
                 ),
