@@ -294,6 +294,86 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
     await SharePlus.instance.share(ShareParams(text: 'ریلز در HomaGram\n${widget.reel['caption'] ?? ''}'));
   }
 
+  Future<void> _reportReel() async {
+    const reasons = <String, String>{
+      'harassment': 'توهین، آزار و تهدید',
+      'copied_content': 'محتوای کپی‌شده',
+      'copyright_claim': 'استفاده از اثر متعلق به شخص دیگر',
+      'violence': 'محتوای خشونت‌آمیز',
+      'inappropriate': 'محتوای غیراخلاقی یا نامناسب',
+      'political_insult': 'محتوای سیاسیِ توهین‌آمیز',
+      'illegal_content': 'محتوای مغایر با قوانین',
+      'spam': 'هرزنامه یا تبلیغات مزاحم',
+      'other': 'سایر موارد',
+    };
+    String? reason, rightsOwner;
+    final details = TextEditingController();
+    final rightsHolder = TextEditingController();
+    final result = await showModalBottomSheet<Map<String, String>>(
+      context: context, isScrollControlled: true, showDragHandle: true,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, update) => Padding(
+        padding: EdgeInsets.fromLTRB(18, 8, 18, 18 + MediaQuery.viewInsetsOf(ctx).bottom),
+        child: SafeArea(child: SingleChildScrollView(child: Column(
+          mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('گزارش این ریلز', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 6),
+            const Text('علت گزارش را انتخاب کنید. گزارش شما برای بررسی تیم هماگرام ارسال می‌شود.'),
+            ...reasons.entries.map((entry) => RadioListTile<String>(
+              dense: true, contentPadding: EdgeInsets.zero,
+              value: entry.key, groupValue: reason, title: Text(entry.value),
+              onChanged: (value) => update(() {
+                reason = value;
+                if (value != 'copyright_claim') rightsOwner = null;
+              }),
+            )),
+            if (reason == 'copyright_claim') ...[
+              const Divider(),
+              const Text('اثر متعلق به چه کسی است؟', style: TextStyle(fontWeight: FontWeight.w800)),
+              RadioListTile<String>(dense: true, value: 'self', groupValue: rightsOwner,
+                title: const Text('خودم صاحب اثر هستم'),
+                onChanged: (v) => update(() => rightsOwner = v)),
+              RadioListTile<String>(dense: true, value: 'third_party', groupValue: rightsOwner,
+                title: const Text('اثر متعلق به شخص دیگری است'),
+                onChanged: (v) => update(() => rightsOwner = v)),
+              if (rightsOwner == 'third_party')
+                TextField(controller: rightsHolder, maxLength: 160,
+                  decoration: const InputDecoration(labelText: 'نام صاحب اثر (در صورت اطلاع)')),
+            ],
+            TextField(controller: details, maxLength: 1000, minLines: 2, maxLines: 4,
+              decoration: const InputDecoration(labelText: 'توضیحات تکمیلی (اختیاری)', border: OutlineInputBorder())),
+            const SizedBox(height: 10),
+            FilledButton(
+              onPressed: reason == null || (reason == 'copyright_claim' && rightsOwner == null)
+                ? null : () => Navigator.pop(ctx, {
+                  'reason': reason!, 'details': details.text.trim(),
+                  'rights_owner': rightsOwner ?? '',
+                  'rights_holder_name': rightsHolder.text.trim(),
+                }),
+              child: const Text('ارسال گزارش'),
+            ),
+          ],
+        ))),
+      )),
+    );
+    details.dispose();
+    rightsHolder.dispose();
+    if (result == null) return;
+    try {
+      await AuthService.client.from('post_reports').insert({
+        'post_id': _id, 'reporter_id': _uid, 'reason': result['reason'],
+        'details': (result['details'] ?? '').isEmpty ? null : result['details'],
+        'rights_owner': (result['rights_owner'] ?? '').isEmpty ? null : result['rights_owner'],
+        'rights_holder_name': (result['rights_holder_name'] ?? '').isEmpty ? null : result['rights_holder_name'],
+      });
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('گزارش ریلز ثبت شد و برای بررسی ارسال شد.')));
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('این ریلز قبلاً گزارش شده یا ثبت گزارش ممکن نیست.')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = _video;
@@ -385,6 +465,8 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
           _action(Icons.mode_comment_outlined, _comments.toString(), onTap: _openComments),
           const SizedBox(height: 18),
           _action(Icons.share_outlined, 'اشتراک', onTap: _share),
+          const SizedBox(height: 18),
+          _action(Icons.flag_outlined, 'گزارش', onTap: _reportReel),
         ]),
       ),
     ]);
