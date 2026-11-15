@@ -236,7 +236,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     render(selectedMs, update);
                   },
                 )),
-                Text('${(selectedMs / 1000).toStringAsFixed(1)}s', style: const TextStyle(fontSize: 11)),
+                Text('${(selectedMs / 1000).toStringAsFixed(1)} ${_t.storySecondsUnit}', style: const TextStyle(fontSize: 11)),
               ]),
               SizedBox(width: double.infinity, child: HomaGramSpringPress(child: FilledButton(
                 onPressed: preview == null || previewMs != selectedMs || isRendering
