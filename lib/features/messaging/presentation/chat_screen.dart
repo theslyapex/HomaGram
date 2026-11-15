@@ -1834,7 +1834,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     )),
                   ]),
                 ),
-              ),
               SafeArea(
                 top: false,
                 child: Padding(
