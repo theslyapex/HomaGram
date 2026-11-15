@@ -545,5 +545,46 @@
   "channelAdminsAlwaysCanSend": "Channel owners and admins can always send messages.",
   "memberPermissionsUpdated": "Member permissions updated.",
   "memberPermissionsSaveFailed": "Could not save permission settings.",
-  "editChannelDetails": "Edit channel details"
+  "editChannelDetails": "Edit channel details",
+  "channelActivityHistory": "Channel activity history",
+  "addMember": "Add member",
+  "addMemberFailed": "Could not add member. They may already be a member, or you may lack permission.",
+  "owner": "Owner",
+  "admin": "Admin",
+  "member": "Member",
+  "thisMember": "This member",
+  "transferChannelOwnership": "Transfer channel ownership",
+  "transferOwnershipConfirm": "Transfer channel ownership to {name}? After the transfer, you will become an admin and the new owner will have full control.",
+  "@transferOwnershipConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmTransfer": "Confirm transfer",
+  "channelOwnershipTransferredSuccess": "Channel ownership transferred successfully.",
+  "ownershipTransferFailed": "Could not transfer ownership. Only the current owner can do this.",
+  "memberActionFailed": "Could not perform this action on the member. Check your permissions.",
+  "promoteToAdmin": "Promote to admin",
+  "demoteToMember": "Demote to member",
+  "transferChannelOwnershipMenu": "Transfer channel ownership",
+  "removeFromChannel": "Remove from channel",
+  "removeFromGroup": "Remove from group",
+  "deleteGroupForEveryone": "Delete group for all members",
+  "deleteChannelForEveryone": "Delete channel for all members",
+  "deleteGroup": "Delete group",
+  "deleteChannel": "Delete channel",
+  "deleteCommunityConfirm": "This will permanently delete the {type}, its messages, and all memberships. This action cannot be undone. Continue?",
+  "@deleteCommunityConfirm": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteForEveryone": "Delete for everyone",
+  "deleteCommunityFailed": "Could not delete. Only the current owner can delete this group or channel.",
+  "leaveConversation": "Leave conversation",
+  "conversationInfoLoadFailed": "Could not load conversation details. Check your connection or membership access."
 }
