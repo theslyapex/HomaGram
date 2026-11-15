@@ -83,13 +83,25 @@ class MessagingService {
         ? <dynamic>[]
         : await _client
             .from('profiles')
-            .select('id,display_name,username')
+            .select('id,display_name,username,avatar_path')
             .inFilter('id', otherUserIds);
 
     final profileById = {
       for (final profile in profiles)
         profile['id'] as String: Map<String, dynamic>.from(profile),
     };
+    // Avatar objects live in a private bucket. Resolve short-lived URLs for
+    // inbox rows rather than passing storage paths directly to NetworkImage.
+    await Future.wait(profileById.values.map((profile) async {
+      final path = profile['avatar_path'] as String?;
+      if (path == null || path.isEmpty) return;
+      try {
+        profile['avatar_url'] = await _client.storage
+            .from('avatars').createSignedUrl(path, 3600);
+      } catch (error) {
+        profile['avatar_url'] = null;
+      }
+    }));
 
     final otherMemberByConversation = <String, String>{};
     for (final member in allMembers) {
@@ -150,16 +162,20 @@ class MessagingService {
       }
 
       String? photoUrl;
-      final photoPath = conversation['photo_path'] as String?;
-      if ((kind == 'group' || kind == 'channel') &&
-          photoPath != null && photoPath.isNotEmpty) {
-        try {
-          photoUrl = await _client.storage
-              .from('conversation-photos')
-              .createSignedUrl(photoPath, 3600);
-        } catch (error) {
-          // Keep the conversation visible even if its private photo cannot be signed.
-          photoUrl = null;
+      if (kind == 'direct') {
+        final peerId = otherMemberByConversation[id];
+        photoUrl = peerId == null ? null : profileById[peerId]?['avatar_url'] as String?;
+      } else {
+        final photoPath = conversation['photo_path'] as String?;
+        if (photoPath != null && photoPath.isNotEmpty) {
+          try {
+            photoUrl = await _client.storage
+                .from('conversation-photos')
+                .createSignedUrl(photoPath, 3600);
+          } catch (error) {
+            // Keep the conversation visible even if its private photo cannot be signed.
+            photoUrl = null;
+          }
         }
       }
 
@@ -410,30 +426,54 @@ class MessagingService {
         : mimeType.startsWith('audio/') ? 'audio' : 'file';
     final label = kind == 'image' ? 'تصویر' : kind == 'video' ? 'ویدئو'
         : kind == 'audio' ? 'فایل صوتی' : 'فایل';
-    final inserted = await _client.from('messages').insert({
-      'conversation_id': conversationId, 'sender_id': _userId,
-      'message_type': kind, 'body': label,
-    }).select('id').single();
-    final messageId = inserted['id'] as String;
-    final safeName = fileName.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
-    final path = '$conversationId/$_userId/$messageId/$safeName';
+    final safeName = fileName
+        .replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_')
+        .replaceAll(RegExp(r'_+'), '_');
+    final normalizedName = safeName.isEmpty || safeName == '.'
+        ? 'attachment'
+        : safeName.length > 255 ? safeName.substring(safeName.length - 255) : safeName;
+    String? messageId;
+    String? path;
+    var stage = 'message row';
     try {
+      final inserted = await _client.from('messages').insert({
+        'conversation_id': conversationId, 'sender_id': _userId,
+        'message_type': kind, 'body': label,
+      }).select('id').single();
+      messageId = inserted['id'] as String;
+      path = '$conversationId/$_userId/$messageId/$normalizedName';
+
+      stage = 'storage upload';
       await _client.storage.from('chat-media').uploadBinary(
-        path, bytes, fileOptions: FileOptions(contentType: mimeType, upsert: false),
+        path, bytes, fileOptions: FileOptions(
+          contentType: mimeType,
+          cacheControl: '3600',
+          upsert: false,
+        ),
       );
+
+      stage = 'attachment metadata';
       await _client.from('message_attachments').insert({
         'message_id': messageId, 'conversation_id': conversationId,
         'uploader_id': _userId, 'storage_path': path,
-        'mime_type': mimeType, 'size_bytes': bytes.length, 'file_name': safeName,
-        'is_view_once': viewOnce,
+        'mime_type': mimeType, 'size_bytes': bytes.length,
+        'file_name': normalizedName, 'is_view_once': viewOnce,
       });
-    } catch (_) {
-      try { await _client.storage.from('chat-media').remove([path]); } catch (_) {}
-      try {
-        await _client.from('messages').update({
-          'deleted_at': DateTime.now().toUtc().toIso8601String(),
-        }).eq('id', messageId);
-      } catch (_) {}
+    } catch (error, stackTrace) {
+      // Keep the precise failing stage in device logs; don't silently mask the
+      // Storage/PostgREST error behind the generic "media send failed" message.
+      print('HomaGram media send failed at $stage: $error');
+      print(stackTrace);
+      if (path != null) {
+        try { await _client.storage.from('chat-media').remove([path]); } catch (_) {}
+      }
+      if (messageId != null) {
+        try {
+          await _client.from('messages').update({
+            'deleted_at': DateTime.now().toUtc().toIso8601String(),
+          }).eq('id', messageId);
+        } catch (_) {}
+      }
       rethrow;
     }
   }
