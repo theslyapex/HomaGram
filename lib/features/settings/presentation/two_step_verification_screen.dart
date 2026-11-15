@@ -229,7 +229,7 @@ class _TwoStepVerificationScreenState extends State<TwoStepVerificationScreen> {
     );
   }
 
-  Widget _codeField({String hint = _t.twoStepCodeHint}) => TextField(
+  Widget _codeField({String? hint}) => TextField(
     controller: _code,
     keyboardType: TextInputType.number,
     textAlign: TextAlign.center,
