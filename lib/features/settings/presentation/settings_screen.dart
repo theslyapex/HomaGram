@@ -121,6 +121,8 @@ class SettingsScreen extends StatelessWidget {
           ]),
         ),
         const SizedBox(height: 18),
+        const Card(child: LanguagePicker()),
+        const SizedBox(height: 10),
         for (final entry in entries)
           Padding(padding: const EdgeInsets.only(bottom: 9), child: Material(
             color: Theme.of(context).cardTheme.color, borderRadius: BorderRadius.circular(18),
