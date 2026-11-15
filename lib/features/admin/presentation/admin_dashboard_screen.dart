@@ -3,13 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../data/admin_service.dart';
 import 'admin_user_detail_screen.dart';
+import 'admin_verification_screen.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) => DefaultTabController(
-    length: 5,
+    length: 6,
     child: Scaffold(
       appBar: AppBar(
         title: const Text('مدیریت هماگرام', style: TextStyle(fontWeight: FontWeight.w900)),
@@ -19,13 +20,37 @@ class AdminDashboardScreen extends StatelessWidget {
           Tab(icon: Icon(Icons.flag_outlined), text: 'گزارش پست‌ها'),
           Tab(icon: Icon(Icons.chat_bubble_outline), text: 'گزارش پیام‌ها'),
           Tab(icon: Icon(Icons.history_rounded), text: 'سوابق مدیران'),
+          Tab(icon: Icon(Icons.verified_user_outlined), text: 'تأیید هویت'),
         ]),
       ),
       body: const HomaGramEntrance(child: TabBarView(children: [
-        _OverviewTab(), _UsersTab(), _ReportsTab(), _MessageReportsTab(), _AuditLogsTab(),
+        _OverviewTab(), _UsersTab(), _ReportsTab(), _MessageReportsTab(), _AuditLogsTab(), _VerificationTab(),
       ])),
     ),
   );
+}
+
+class _VerificationTab extends StatelessWidget {
+  const _VerificationTab();
+  @override
+  Widget build(BuildContext context) => Center(child: Padding(
+    padding: const EdgeInsets.all(24),
+    child: Column(mainAxisSize: MainAxisSize.min, children: [
+      const Icon(Icons.verified_user_rounded, size: 52, color: Color(0xFF3195F5)),
+      const SizedBox(height: 12),
+      const Text('بررسی درخواست‌های نشان تأیید', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17)),
+      const SizedBox(height: 8),
+      const Text('مدارک اشخاص حقیقی و حقوقی را بررسی و وضعیت درخواست را مدیریت کنید.', textAlign: TextAlign.center),
+      const SizedBox(height: 16),
+      FilledButton.icon(
+        onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
+          builder: (_) => const AdminVerificationScreen(),
+        )),
+        icon: const Icon(Icons.open_in_new_rounded),
+        label: const Text('باز کردن درخواست‌ها'),
+      ),
+    ]),
+  ));
 }
 
 class _OverviewTab extends StatefulWidget {
