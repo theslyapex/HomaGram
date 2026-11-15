@@ -2248,5 +2248,12 @@
   "termsNoticeMiddle": " و",
   "termsNoticeSuffix": ".",
   "termsLinkLabel": "شروط الاستخدام",
-  "privacyLinkLabel": "سياسة الخصوصية"
+  "privacyLinkLabel": "سياسة الخصوصية",
+
+  "accountSwitcherTitle": "حساباتك",
+  "accountSwitcherHint": "اختر الحساب الذي تريد التبديل إليه",
+  "noSavedAccounts": "لا توجد حسابات محفوظة بعد",
+  "addAnotherAccount": "إضافة حساب آخر",
+  "addAccountSubtitle": "سجّل الدخول إلى حساب آخر واحفظه بأمان على هذا الجهاز",
+  "accountSwitchFailed": "تعذر تبديل الحساب. حاول مرة أخرى."
 }
