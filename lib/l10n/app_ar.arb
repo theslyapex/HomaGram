@@ -1498,5 +1498,51 @@
     }
   },
   "sharedPostTitle": "منشور على HomaGram",
-  "sharedPostUnavailable": "هذا المنشور غير متاح. ربما تم حذفه أو أن حساب الناشر خاص."
+  "sharedPostUnavailable": "هذا المنشور غير متاح. ربما تم حذفه أو أن حساب الناشر خاص.",
+  "verificationRequestTitle": "طلب شارة التوثيق",
+  "verificationStep": "الخطوة {current} من {total}",
+  "verificationAccountType": "نوع الحساب",
+  "verificationIndividual": "فرد",
+  "verificationOrganization": "مؤسسة",
+  "verificationCategory": "مجال النشاط / التصنيف",
+  "verificationFullName": "الاسم الكامل",
+  "verificationOrganizationName": "الاسم الرسمي للشركة أو المؤسسة",
+  "verificationRequired": "هذا الحقل مطلوب.",
+  "verificationPhoneOptional": "رقم الهاتف (اختياري)",
+  "verificationRegistrationNumber": "رقم تسجيل الشركة",
+  "verificationNationalId": "الرقم الوطني",
+  "verificationPublicLinks": "الموقع الإلكتروني وروابط الحسابات الموثقة الأخرى",
+  "verificationLinksHint": "أدخل رابطًا واحدًا في كل سطر",
+  "verificationAddEvidence": "إضافة مستند أو تغطية إعلامية ({count}/{maximum})",
+  "verificationEvidenceInstructions": "ارفع تغطية إعلامية أو خطاب تعريف أو مستندات تسجيل أو أدلة عامة ذات صلة. لا يمكن الاطلاع على هذه المستندات إلا من قبل المسؤولين.",
+  "verificationExplanation": "تفاصيل إضافية وسبب الطلب",
+  "verificationExplanationRequired": "يرجى كتابة 20 حرفًا على الأقل.",
+  "verificationDisclaimer": "لا يضمن إرسال الطلب الحصول على شارة التوثيق. قد تؤدي المعلومات غير الصحيحة إلى رفض الطلب.",
+  "verificationPrevious": "السابق",
+  "verificationSubmitForReview": "إرسال للمراجعة",
+  "verificationContinue": "متابعة",
+  "verificationSubmitted": "تم إرسال طلب التوثيق وهو بانتظار المراجعة.",
+  "verificationSubmitFailed": "تعذّر إرسال الطلب. تحقق من اتصالك وحاول مرة أخرى.",
+  "verificationFileTooLarge": "يجب ألا يتجاوز حجم كل مستند 10 ميغابايت.",
+  "verificationFileFormatInvalid": "تُقبل صور JPG وPNG وWebP فقط.",
+  "@verificationStep": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@verificationAddEvidence": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "maximum": {
+        "type": "int"
+      }
+    }
+  }
 }
