@@ -1440,5 +1440,29 @@
         "type": "String"
       }
     }
+  },
+  "storyCountdownComplete": "The time has come!",
+  "storyDays": "days",
+  "storyHours": "hours",
+  "storyMinutesUnit": "minutes",
+  "storySecondsUnit": "seconds",
+  "storyQuestionResponses": "View responses • {count}",
+  "storyWriteAnswer": "Write a response",
+  "storyPollDefault": "Poll",
+  "storyVoteCount": "{count} votes",
+  "storyChoosePollOption": "Choose an option to vote.",
+  "@storyQuestionResponses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyVoteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }
