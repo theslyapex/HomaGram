@@ -2,6 +2,7 @@ import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:gal/gal.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -1730,6 +1731,32 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _downloadImageAttachment(Map<String, dynamic> attachment) async {
+    final path = attachment['storage_path'] as String?;
+    if (path == null || path.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('مسیر تصویر در دسترس نیست.')),
+      );
+      return;
+    }
+    try {
+      final bytes = await Supabase.instance.client.storage
+          .from('chat-media')
+          .download(path);
+      await Gal.putImageBytes(bytes);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تصویر در گالری دستگاه ذخیره شد.')),
+      );
+    } catch (error) {
+      debugPrint('Save chat image failed: $error');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ذخیره تصویر انجام نشد؛ دسترسی گالری و اتصال را بررسی کنید.')),
+      );
+    }
+  }
+
   Widget _attachmentPreview(Map<String, dynamic> attachment) {
     final url = attachment['signed_url'] as String?;
     final mime = attachment['mime_type'] as String? ?? '';
@@ -1739,8 +1766,28 @@ class _ChatScreenState extends State<ChatScreen> {
         padding: const EdgeInsets.only(bottom: 8),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: Image.network(url, width: 230, height: 190, fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => const SizedBox(width: 230, height: 90, child: Center(child: Icon(Icons.broken_image_outlined)))),
+          child: Stack(
+            children: [
+              Image.network(url, width: 230, height: 190, fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const SizedBox(width: 230, height: 90, child: Center(child: Icon(Icons.broken_image_outlined)))),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Material(
+                  color: Colors.black.withValues(alpha: .62),
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    tooltip: 'دانلود تصویر',
+                    visualDensity: VisualDensity.compact,
+                    constraints: const BoxConstraints.tightFor(width: 38, height: 38),
+                    padding: EdgeInsets.zero,
+                    onPressed: () => _downloadImageAttachment(attachment),
+                    icon: const Icon(Icons.download_rounded, color: Colors.white, size: 21),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
