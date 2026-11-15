@@ -137,6 +137,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       case 'message_new': return Icons.mark_chat_unread_rounded;
       case 'support_message':
       case 'support_reply': return Icons.support_agent_rounded;
+      case 'moderation_notice': return Icons.gavel_rounded;
       default: return Icons.notifications_rounded;
     }
   }
