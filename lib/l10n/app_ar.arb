@@ -1974,5 +1974,87 @@
         "type": "String"
       }
     }
+  },
+  "adminDeleteAccountConfirmTitle": "حذف حساب المستخدم؟",
+  "adminDeleteAccountQuestion": "هل أنت متأكد من حذف حساب {name}؟ لا يمكن التراجع عن هذا الإجراء، وستُحذف البيانات المرتبطة وفق علاقات قاعدة البيانات.",
+  "adminContinueDelete": "نعم، متابعة",
+  "adminFinalDeleteConfirm": "التأكيد النهائي للحذف",
+  "adminDeleteAccountInstruction": "لمنع الحذف غير المقصود، أدخل العبارة «{phrase}» تمامًا.",
+  "adminDeleteAccountPhrase": "حذف الحساب",
+  "adminDeleteAccountField": "عبارة التأكيد",
+  "adminDeleteAccountPermanent": "حذف الحساب نهائيًا",
+  "adminUserDeleted": "تم حذف حساب المستخدم.",
+  "adminDeleteAccountFailed": "تعذّر حذف الحساب. قد يكون حساب مسؤول أو حسابًا محميًا.",
+  "adminVerificationEnabled": "تم تفعيل شارة التوثيق.",
+  "adminVerificationDisabled": "تم إلغاء شارة التوثيق.",
+  "adminVerificationToggleFailed": "تعذّر تحديث حالة التوثيق.",
+  "adminUserSupportTitle": "دعم المستخدم",
+  "adminUserSupportFailed": "تعذّر إنشاء محادثة دعم.",
+  "adminDurationHoursAndMinutes": "{hours} ساعة و{minutes} دقيقة",
+  "adminUserFileTitle": "ملف المستخدم",
+  "adminUserDataLoadFailed": "تعذّر تحميل معلومات المستخدم.",
+  "adminMetricComments": "التعليقات",
+  "adminMetricLikesReceived": "الإعجابات المستلمة",
+  "adminMetricFollowers": "المتابعون",
+  "adminMetricFollowing": "يتابع",
+  "adminMetricReportsSubmitted": "البلاغات المقدمة",
+  "adminMetricPostReportsReceived": "بلاغات المنشورات المستلمة",
+  "adminMetricMessageReportsSubmitted": "بلاغات الرسائل المقدمة",
+  "adminMetricMessageReportsReceived": "بلاغات الرسائل المستلمة",
+  "adminUniqueAccountId": "معرّف الحساب الفريد",
+  "adminJoinedAt": "تاريخ الانضمام",
+  "adminLastSignIn": "آخر تسجيل دخول",
+  "adminUserBio": "نبذة المستخدم",
+  "adminWebsite": "الموقع الإلكتروني",
+  "adminActivityTotal": "إجمالي وقت النشاط المسجل",
+  "adminActivityTrackingNote": "يُحسب من الإصدار الذي يسجل النشاط؛ الإحصاءات السابقة غير متاحة.",
+  "adminAccountPerformance": "نشاط الحساب",
+  "adminUserSubmittedReports": "البلاغات التي قدمها هذا المستخدم",
+  "adminReportsAgainstUser": "البلاغات المقدمة ضد محتوى هذا المستخدم",
+  "adminRevokeVerification": "إلغاء شارة التوثيق",
+  "adminGrantVerification": "منح شارة التوثيق",
+  "adminSendSupportMessage": "إرسال رسالة دعم إلى المستخدم",
+  "adminDeletingAccount": "جارٍ حذف الحساب…",
+  "adminDeleteUserAccount": "حذف حساب المستخدم",
+  "adminNoReports": "لا توجد سجلات.",
+  "adminReportedContent": "المحتوى المُبلّغ عنه: {content}",
+  "adminReportDate": "التاريخ: {date}",
+  "@adminDeleteAccountQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminDeleteAccountInstruction": {
+    "placeholders": {
+      "phrase": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminDurationHoursAndMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminReportedContent": {
+    "placeholders": {
+      "content": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminReportDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   }
 }
