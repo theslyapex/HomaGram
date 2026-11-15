@@ -49,7 +49,9 @@ def main() -> int:
     application.set(android + "label", "HomaGram")
     # Keep the icon shown by Android Settings/App info identical to the launcher icon.
     application.set(android + "icon", "@mipmap/ic_launcher")
-    application.set(android + "roundIcon", "@mipmap/ic_launcher_round")
+    # flutter_launcher_icons generates ic_launcher reliably; do not reference a
+    # round-icon resource that may not exist in generated Android scaffolds.
+    application.attrib.pop(android + "roundIcon", None)
     fid_metadata = "firebase_messaging_installation_id_enabled"
     if not any(item.get(android + "name") == fid_metadata
                for item in application.findall("meta-data")):
