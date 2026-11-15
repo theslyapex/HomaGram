@@ -61,7 +61,35 @@ DateTime? parsePersianDate(String input) {
     normalized = normalized.replaceAll(persianDigits[i], '$i');
     normalized = normalized.replaceAll(arabicDigits[i], '$i');
   }
-  final match = RegExp(r'^(\\d{4})[/-](\\d{1,2})[/-](\\d{1,2})$').firstMatch(normalized);
+  final match = RegExp(r'^(\d{4})[/-](\d{1,2})[/-](\d{1,2}).firstMatch(normalized);
+  if (match == null) return null;
+  final jy = int.parse(match.group(1)!);
+  final jm = int.parse(match.group(2)!);
+  final jd = int.parse(match.group(3)!);
+  if (jy < 1300 || jy > 1600 || jm < 1 || jm > 12 || jd < 1) return null;
+  final firstDay = _jalaliToJdn(jy, jm, 1);
+  final nextMonth = jm == 12 ? _jalaliToJdn(jy + 1, 1, 1) : _jalaliToJdn(jy, jm + 1, 1);
+  if (jd > nextMonth - firstDay) return null;
+  final g = _jdnToGregorian(firstDay + jd - 1);
+  final result = DateTime(g.$1, g.$2, g.$3);
+  if (result.isAfter(DateTime.now())) return null;
+  return result;
+}
+
+(int, int, int) _jdnToGregorian(int jdn) {
+  var l = jdn + 68569;
+  final n = (4 * l) ~/ 146097;
+  l -= (146097 * n + 3) ~/ 4;
+  final i = (4000 * (l + 1)) ~/ 1461001;
+  l = l - (1461 * i) ~/ 4 + 31;
+  final j = (80 * l) ~/ 2447;
+  final day = l - (2447 * j) ~/ 80;
+  l = j ~/ 11;
+  final month = j + 2 - 12 * l;
+  final year = 100 * (n - 49) + i + l;
+  return (year, month, day);
+}
+).firstMatch(normalized);
   if (match == null) return null;
   final jy = int.parse(match.group(1)!);
   final jm = int.parse(match.group(2)!);
