@@ -382,6 +382,18 @@ class MessagingService {
     });
   }
 
+  static Future<void> updateGroupDetails({
+    required String conversationId,
+    required String title,
+    required String description,
+  }) async {
+    await _client.rpc('update_group_details', params: {
+      'p_conversation_id': conversationId,
+      'p_title': title.trim(),
+      'p_description': description.trim(),
+    });
+  }
+
   static Future<String> uploadConversationPhoto({
     required String conversationId,
     required Uint8List bytes,
@@ -406,11 +418,15 @@ class MessagingService {
         'p_conversation_id': conversationId,
         'p_photo_path': path,
       });
-      return await _client.storage.from('conversation-photos').createSignedUrl(path, 3600);
     } catch (_) {
+      // Delete the upload only when the database rejected the new path.
       try { await _client.storage.from('conversation-photos').remove([path]); } catch (_) {}
       rethrow;
     }
+    // Signing is a separate display concern. If signing fails, keep the object:
+    // the conversation already points to this durable storage path and a later
+    // screen load can issue a fresh signed URL.
+    return await _client.storage.from('conversation-photos').createSignedUrl(path, 3600);
   }
 
   static Future<List<Map<String, dynamic>>> loadConversationMembers(
