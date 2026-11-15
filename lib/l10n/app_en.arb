@@ -1862,5 +1862,117 @@
         "type": "String"
       }
     }
+  },
+  "adminCommunitiesLoadFailed": "Couldn't load groups and channels.",
+  "adminCommunityWarningMinLength": "The warning must contain at least 8 characters.",
+  "adminCommunityDeleteGroupTitle": "Permanently delete group",
+  "adminCommunityDeleteChannelTitle": "Permanently delete channel",
+  "adminCommunityDeleteDescription": "“{title}” and all its messages and memberships will be deleted for every member. This action can't be undone.",
+  "adminCommunityDeleteForEveryone": "Delete for everyone",
+  "adminCommunityWarnTitle": "Send a warning to {kind}",
+  "adminCommunityGroup": "group",
+  "adminCommunityChannel": "channel",
+  "adminCommunityWarningLabel": "Warning message for all members",
+  "adminCommunityBlockTitle": "Block {kind}",
+  "adminCommunityBlockReasonOptional": "Reason for blocking (optional)",
+  "adminCommunityConfirmBlockTitle": "Confirm block",
+  "adminCommunityBlockDescription": "This will stop all members from sending new messages in this group or channel.",
+  "adminCommunityBlock": "Block",
+  "adminCommunityWarnSent": "A warning was sent to the members.",
+  "adminCommunityBlocked": "The group or channel was blocked.",
+  "adminCommunityUnblocked": "The group or channel restriction was lifted.",
+  "adminCommunityDeleted": "The group or channel was deleted.",
+  "adminCommunityActionFailed": "The action failed. Check administrator access and your connection.",
+  "adminCommunitySearchHint": "Search by name, ID, or owner",
+  "adminRefresh": "Refresh",
+  "adminCommunityGroups": "Groups",
+  "adminCommunityChannels": "Channels",
+  "adminNoCommunitiesFound": "No groups or channels found.",
+  "adminCommunityUnknownOwner": "Unknown owner",
+  "adminCommunityPublic": "Public",
+  "adminCommunityPrivate": "Private",
+  "adminCommunitySummary": "{kind} • {visibility} • {count} members",
+  "adminCommunityOwnerDate": "Owner: {owner} • {date}",
+  "adminCommunityBlockReason": "Block reason: {reason}",
+  "adminCommunityActions": "Moderation actions",
+  "adminCommunityUnblock": "Unblock",
+  "adminCommunityDeleteCompletely": "Delete permanently",
+  "adminCommunityId": "ID: {id}",
+  "adminCommunityNoDescription": "No description provided.",
+  "adminCommunityActiveMembers": "Active members: {count}",
+  "adminCommunityStatus": "Status: {status}",
+  "adminCommunityBlockedStatus": "Blocked",
+  "adminCommunityActiveStatus": "Active",
+  "@adminCommunityDeleteDescription": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommunityWarnTitle": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommunityBlockTitle": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommunitySummary": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "visibility": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminCommunityOwnerDate": {
+    "placeholders": {
+      "owner": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommunityBlockReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommunityId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommunityActiveMembers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminCommunityStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
   }
 }
