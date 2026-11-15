@@ -293,6 +293,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       final read = item['is_read'] == true;
                       final iconColor = type == 'post_like'
                           ? Colors.pinkAccent : HomaGramTheme.turquoise;
+                      final actor = item['actor'] as Map<String, dynamic>?;
+                      final actorAvatar = actor?['avatar_url'] as String?;
                       return Material(
                         color: read ? Theme.of(context).cardColor
                             : HomaGramTheme.turquoise.withValues(alpha: .09),
@@ -305,7 +307,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             child: Row(children: [
                               CircleAvatar(
                                 backgroundColor: iconColor.withValues(alpha: .13),
-                                child: Icon(_icon(type), color: iconColor),
+                                backgroundImage: actorAvatar == null ? null : NetworkImage(actorAvatar),
+                                child: actorAvatar == null ? Icon(_icon(type), color: iconColor) : null,
                               ),
                               const SizedBox(width: 12),
                               Expanded(child: Column(
