@@ -1102,6 +1102,15 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       }
       final canManage = myRole == 'owner' || myRole == 'admin';
+      final canManageMembers = isGroup
+          ? myRole == 'owner' || (myRole == 'admin' && info['admins_can_manage_members'] == true)
+          : canManage;
+      final canChangeInfo = isGroup
+          ? myRole == 'owner' || (myRole == 'admin' && info['admins_can_change_info'] == true)
+          : canManage;
+      final canAddMembers = isGroup
+          ? canManageMembers || (myRole == 'member' && info['members_can_add_members'] == true)
+          : canManage;
 
       Future<void> manageMember(String targetId, String action) async {
         if (isChannel) {
@@ -1134,7 +1143,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     (info['title'] as String?) ?? (isChannel ? 'کانال' : isGroup ? 'گروه' : widget.title),
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
                   )),
-                  if ((isGroup || isChannel) && canManage)
+                  if ((isGroup || isChannel) && canChangeInfo)
                     IconButton(
                       tooltip: isChannel ? 'تغییر تصویر کانال' : 'تغییر تصویر گروه',
                       icon: const Icon(Icons.camera_alt_outlined),
@@ -1177,9 +1186,9 @@ class _ChatScreenState extends State<ChatScreen> {
                         }
                       },
                     ),
-                  if ((isGroup || isChannel) && canManage)
+                  if ((isGroup || isChannel) && canChangeInfo)
                     IconButton(
-                      tooltip: isChannel ? 'ویرایش اطلاعات کانال' : 'تغییر نام گروه',
+                      tooltip: isChannel ? 'ویرایش اطلاعات کانال' : 'ویرایش اطلاعات گروه',
                       icon: const Icon(Icons.edit_outlined),
                       onPressed: () async {
                         final titleController = TextEditingController(text: info['title'] as String? ?? '');
@@ -1301,13 +1310,22 @@ class _ChatScreenState extends State<ChatScreen> {
                       icon: const Icon(Icons.history_rounded),
                       onPressed: () => _showChannelAuditLogs(widget.conversationId),
                     ),
-                  if (isChannel && canManage && channelData['is_public'] == false)
+                  if ((isChannel && canManage && channelData['is_public'] == false) ||
+                      (isGroup && canManageMembers))
                     IconButton(
-                      tooltip: 'مدیریت کدهای دعوت',
+                      tooltip: isGroup ? 'مدیریت لینک‌های دعوت گروه' : 'مدیریت کدهای دعوت',
                       icon: const Icon(Icons.key_rounded),
-                      onPressed: () => _manageChannelInvites(widget.conversationId),
+                      onPressed: () => _manageConversationInvites(
+                        widget.conversationId, isGroup: isGroup,
+                      ),
                     ),
-                  if ((isGroup || isChannel) && canManage)
+                  if (isGroup && myRole == 'owner')
+                    IconButton(
+                      tooltip: 'تنظیم دسترسی‌های گروه',
+                      icon: const Icon(Icons.tune_rounded),
+                      onPressed: () => _showGroupPermissions(widget.conversationId, info),
+                    ),
+                  if ((isGroup || isChannel) && canAddMembers)
                     IconButton(
                       tooltip: 'افزودن عضو', icon: const Icon(Icons.person_add_alt_1_rounded),
                       onPressed: () async {
@@ -1371,8 +1389,10 @@ class _ChatScreenState extends State<ChatScreen> {
                     final member = members[index];
                     final role = member['role'] as String? ?? 'member';
                     final isMe = member['user_id'] == _myId;
-                    final canAct = (isGroup || isChannel) && !isMe && canManage &&
-                        (myRole == 'owner' || role == 'member');
+                    final canAct = (isGroup || isChannel) && !isMe &&
+                        ((myRole == 'owner' && role != 'owner') ||
+                         (myRole == 'admin' && role == 'member' &&
+                          (!isGroup || info['admins_can_manage_members'] == true)));
                     return ListTile(
                       leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
                       title: Text(member['display_name'] as String? ?? ''),
