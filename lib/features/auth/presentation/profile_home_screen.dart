@@ -180,7 +180,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
       }
       _message(_t.avatarUpdated);
     } on StorageException catch (e) {
-      _message(_t.avatarUploadStorageError, error: true);
+      _message(_t.avatarUploadStorageError(e.message), error: true);
     } catch (_) {
       _message(_t.avatarUploadFailed, error: true);
     } finally {
@@ -385,8 +385,8 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                 onChanged: _birthDate.text.trim().isEmpty
                                     ? null
                                     : (value) => setState(() => _showBirthDate = value),
-                                title: const Text(_t.showBirthDate),
-                                subtitle: const Text(_t.birthDatePrivateHint),
+                                title: Text(_t.showBirthDate),
+                                subtitle: Text(_t.birthDatePrivateHint),
                                 secondary: const Icon(Icons.visibility_outlined),
                               ),
                               const SizedBox(height: 8),
@@ -406,7 +406,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                   MaterialPageRoute<void>(builder: (_) => const VerificationRequestScreen()),
                                 ),
                                 icon: const Icon(Icons.verified_user_outlined),
-                                label: const Text(_t.requestVerificationBadge),
+                                label: Text(_t.requestVerificationBadge),
                               ),
                               const SizedBox(height: 8),
                               HomaGramSpringPress(child: FilledButton(
@@ -426,9 +426,8 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                         child: SwitchListTile(
                           value: _private,
                           onChanged: _setPrivacy,
-                          title: const Text(_t.privateAccount),
-                          subtitle: const Text(
-                            _t.privateAccountFeatureNotice,
+                          title: Text(_t.privateAccount),
+                          subtitle: Text(_t.privateAccountFeatureNotice,
                           ),
                           secondary: const Icon(Icons.lock_outline),
                         ),
@@ -437,9 +436,9 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                       Card(
                         child: ListTile(
                           leading: const Icon(Icons.people_alt_outlined),
-                          title: const Text(_t.closeFriends,
+                          title: Text(_t.closeFriends,
                               style: TextStyle(fontWeight: FontWeight.w800)),
-                          subtitle: const Text(_t.closeFriendsPrivateDescription),
+                          subtitle: Text(_t.closeFriendsPrivateDescription),
                           trailing: const Icon(Icons.chevron_right_rounded),
                           onTap: () => showModalBottomSheet<void>(
                             context: context,
@@ -464,21 +463,21 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                               SwitchListTile(
                                 value: _showFollowers,
                                 onChanged: (value) => _setVisibility('show_followers', value),
-                                title: const Text(_t.showFollowers),
-                                subtitle: const Text(_t.hideFollowersHint),
+                                title: Text(_t.showFollowers),
+                                subtitle: Text(_t.hideFollowersHint),
                               ),
                               SwitchListTile(
                                 value: _showFollowing,
                                 onChanged: (value) => _setVisibility('show_following', value),
-                                title: const Text(_t.showFollowing),
-                                subtitle: const Text(_t.hideFollowingHint),
+                                title: Text(_t.showFollowing),
+                                subtitle: Text(_t.hideFollowingHint),
                               ),
                               const Divider(height: 1),
                               SwitchListTile(
                                 value: _showProfileVisitors,
                                 onChanged: (value) => _setVisibility('show_profile_visitors', value),
-                                title: const Text(_t.showProfileVisitors),
-                                subtitle: const Text(_t.profileVisitorsHint),
+                                title: Text(_t.showProfileVisitors),
+                                subtitle: Text(_t.profileVisitorsHint),
                               ),
                             ],
                           ),
@@ -491,18 +490,17 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              const Text(_t.sessionManagement,
+                              Text(_t.sessionManagement,
                                   style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
                               const SizedBox(height: 6),
-                              const Text(
-                                _t.sessionManagementDescription,
+                              Text(_t.sessionManagementDescription,
                                 style: TextStyle(height: 1.7, color: Color(0xFF64718A)),
                               ),
                               const SizedBox(height: 12),
                               HomaGramSpringPress(child: OutlinedButton.icon(
                                 onPressed: () => _signOut(otherDevices: true),
                                 icon: const Icon(Icons.devices_rounded),
-                                label: const Text(_t.signOutOtherDevices),
+                                label: Text(_t.signOutOtherDevices),
                               )),
                             ],
                           ),
@@ -582,7 +580,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
             icon: const Icon(Icons.add_a_photo_outlined, size: 18),
             label: Text(_uploadingAvatar ? _t.uploadingAvatar : _t.chooseProfilePhoto),
           )),
-          const Text(_t.avatarFormatLimit,
+          Text(_t.avatarFormatLimit,
               style: TextStyle(fontSize: 11, color: Color(0xFF7A879B))),
         ],
       );
@@ -605,7 +603,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(_t.accountActive,
+                  Text(_t.accountActive,
                       style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 17)),
                   const SizedBox(height: 5),
                   Text(email,
@@ -628,8 +626,8 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
               const SizedBox(height: 12),
               Text(_error!, textAlign: TextAlign.center),
               const SizedBox(height: 16),
-              HomaGramSpringPress(child: FilledButton(onPressed: _load, child: const Text(_t.tryAgain))),
-              HomaGramSpringPress(child: TextButton(onPressed: _signOut, child: const Text(_t.signOut))),
+              HomaGramSpringPress(child: FilledButton(onPressed: _load, child: Text(_t.tryAgain))),
+              HomaGramSpringPress(child: TextButton(onPressed: _signOut, child: Text(_t.signOut))),
             ],
           ),
         ),
@@ -737,7 +735,7 @@ class _CloseFriendsManagerSheetState extends State<CloseFriendsManagerSheet> {
                 style: const TextStyle(color: Color(0xFF20B8B0), fontWeight: FontWeight.w800)),
             ]),
             const SizedBox(height: 6),
-            const Text(_t.closeFriendsStoryDescription,
+            Text(_t.closeFriendsStoryDescription,
               style: TextStyle(height: 1.6, color: Color(0xFF7A879B), fontSize: 12)),
             const SizedBox(height: 14),
             TextField(
@@ -753,9 +751,9 @@ class _CloseFriendsManagerSheetState extends State<CloseFriendsManagerSheet> {
               child: _loading
                 ? const Center(child: CircularProgressIndicator())
                 : _candidates.isEmpty
-                  ? const Center(child: Text(_t.noFollowersToAdd))
+                  ? Center(child: Text(_t.noFollowersToAdd))
                   : visible.isEmpty
-                    ? const Center(child: Text(_t.noSearchResults))
+                    ? Center(child: Text(_t.noSearchResults))
                     : ListView.separated(
                         itemCount: visible.length,
                         separatorBuilder: (_, __) => const Divider(height: 1),
