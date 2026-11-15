@@ -358,7 +358,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                 controller: _username,
                                 maxLength: 24,
                                 textDirection: TextDirection.ltr,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: _t.username,
                                   prefixText: '@ ',
                                   prefixIcon: Icon(Icons.alternate_email),
@@ -371,7 +371,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                 onChanged: (_) => setState(() {}),
                                 keyboardType: TextInputType.datetime,
                                 textDirection: TextDirection.ltr,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: _t.persianBirthDate,
                                   hintText: _t.birthDateExample,
                                   prefixIcon: Icon(Icons.cake_outlined),
@@ -394,7 +394,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                 controller: _bio,
                                 maxLength: 160,
                                 maxLines: 3,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: _t.biography,
                                   prefixIcon: Icon(Icons.notes_rounded),
                                   alignLabelWithHint: true,
@@ -454,7 +454,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 6),
                           child: Column(
                             children: [
-                              const ListTile(
+                              ListTile(
                                 leading: Icon(Icons.visibility_off_outlined),
                                 title: Text(_t.listPrivacy,
                                     style: TextStyle(fontWeight: FontWeight.w800)),
@@ -507,7 +507,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      const Center(
+                      Center(
                         child: Text(_t.homagramAccountFooter,
                             style: TextStyle(color: Color(0xFF7A879B), fontSize: 11)),
                       ),
@@ -740,7 +740,7 @@ class _CloseFriendsManagerSheetState extends State<CloseFriendsManagerSheet> {
             const SizedBox(height: 14),
             TextField(
               controller: _search,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: _t.searchFollowers,
                 prefixIcon: Icon(Icons.search_rounded),
                 border: OutlineInputBorder(),
