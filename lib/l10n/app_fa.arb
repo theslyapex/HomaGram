@@ -1478,5 +1478,23 @@
         "type": "String"
       }
     }
+  },
+  "videoTrimUnsupported": "این ویدئو قابل ویرایش نیست.",
+  "videoTrimSaveFailed": "برش و ذخیره ویدئو انجام نشد. دوباره تلاش کنید.",
+  "videoTrimTitle": "ویرایش ویدئو",
+  "videoTrimInstructions": "دو دستگیره را جابه‌جا کنید تا ابتدا و انتهای بخش دلخواه ویدئو مشخص شود.",
+  "videoTrimRange": "انتخاب بازه ویدئو",
+  "videoTrimDuration": "مدت انتخاب‌شده: {selected} • حداکثر {maximum} دقیقه",
+  "videoTrimPreparing": "در حال آماده‌سازی...",
+  "videoTrimConfirm": "تأیید برش ویدئو",
+  "@videoTrimDuration": {
+    "placeholders": {
+      "selected": {
+        "type": "String"
+      },
+      "maximum": {
+        "type": "String"
+      }
+    }
   }
 }
