@@ -374,5 +374,13 @@
   "mediaSendingDisabled": "Media sending is disabled in this group",
   "writeMessage": "Write your message…",
   "messagingDisabled": "Messaging is disabled",
-  "offline": "Offline"
+  "offline": "Offline",
+  "selectedPeople": "{count} selected",
+  "@selectedPeople": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
