@@ -514,7 +514,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                       const SizedBox(width: 4),
                       HomaGramVerifiedBadge(userId: p['id'] as String?),
                     ]),
-                    subtitle: Text('@${p['username'] ?? 'user'}'),
+                    subtitle: Text('@${p['username'] ?? _t.feedUserFallback}'),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.of(this.context).push(MaterialPageRoute<void>(
@@ -548,7 +548,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 return ListTile(
                   leading: const CircleAvatar(child: Icon(Icons.person_outline)),
                   title: Text(visitor['display_name'] as String? ?? _t.homagramUser),
-                  subtitle: Text('@' + (visitor['username'] as String? ?? 'user') +
+                  subtitle: Text('@' + (visitor['username'] as String? ?? _t.feedUserFallback) +
                     (date == null ? '' : ' · ' + persianDate(date))),
                   onTap: () {
                     Navigator.pop(context);
