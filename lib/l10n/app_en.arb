@@ -302,7 +302,6 @@
   "joinPublicChannelFailed": "Could not join the public channel.",
   "joinPrivateChannel": "Join private channel",
   "inviteCode": "Invite code",
-  "64CharCode": "64-character code",
   "enterValid64CharInvite": "Enter a valid 64-character invite code.",
   "joinMembership": "Join",
   "inviteInvalidExpiredRevoked": "This invite code is invalid, expired, or revoked.",
@@ -704,5 +703,6 @@
   "videoPreview": "Video",
   "audioFilePreview": "Audio file",
   "filePreview": "File",
-  "formerAdmin": "Former admin"
+  "formerAdmin": "Former admin",
+  "inviteCode64CharHint": "64-character code"
 }
