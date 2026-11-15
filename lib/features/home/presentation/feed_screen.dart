@@ -6,6 +6,7 @@ import 'package:video_player/video_player.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../app/theme/app_theme.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/data/auth_service.dart';
 import 'create_post_screen.dart';
 import 'public_profile_screen.dart';
@@ -21,6 +22,7 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   late Future<List<Map<String, dynamic>>> _posts;
   String? _myAvatarUrl;
 
@@ -133,10 +135,10 @@ class _FeedScreenState extends State<FeedScreen> {
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
-                  child: Text('چیزی برای گفتن دارید؟', style: TextStyle(color: Color(0xFF8490A4))),
+                  child: Text(_t.feedComposerHint, style: TextStyle(color: Color(0xFF8490A4))),
                 ),
                 HomaGramSpringPress(child: IconButton(
-                  tooltip: 'ایجاد پست',
+                  tooltip: _t.feedCreatePost,
                   onPressed: _createPost,
                   icon: const Icon(Icons.add_circle_rounded, color: HomaGramTheme.turquoise, size: 29),
                 )),
@@ -155,9 +157,9 @@ class _FeedScreenState extends State<FeedScreen> {
             if (snapshot.hasError) {
               return _stateMessage(
                 icon: Icons.cloud_off_outlined,
-                title: 'فید بارگذاری نشد',
-                message: 'اتصال را بررسی کنید و دوباره تلاش کنید.',
-                action: HomaGramSpringPress(child: TextButton.icon(onPressed: _refresh, icon: const Icon(Icons.refresh), label: const Text('تلاش دوباره'))),
+                title: _t.feedLoadFailed,
+                message: _t.feedConnectionRetry,
+                action: HomaGramSpringPress(child: TextButton.icon(onPressed: _refresh, icon: const Icon(Icons.refresh), label: const Text(_t.feedRetry))),
               );
             }
             final posts = snapshot.data ?? [];
@@ -170,14 +172,14 @@ class _FeedScreenState extends State<FeedScreen> {
                   children: [
                     const Icon(Icons.dynamic_feed_outlined, size: 62, color: HomaGramTheme.turquoise),
                     const SizedBox(height: 18),
-                    const Text('هنوز پستی منتشر نشده', textAlign: TextAlign.center,
+                    const Text(_t.feedEmptyTitle, textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 8),
-                    const Text('اولین پست HomaGram را منتشر کنید و فید را شکل دهید.',
+                    const Text(_t.feedEmptyMessage,
                         textAlign: TextAlign.center, style: TextStyle(height: 1.8, color: Color(0xFF7A879B))),
                     const SizedBox(height: 14),
                     Center(child: HomaGramSpringPress(child: FilledButton.icon(onPressed: _createPost,
-                        icon: const Icon(Icons.add), label: const Text('ایجاد اولین پست')))),
+                        icon: const Icon(Icons.add), label: const Text(_t.feedCreateFirstPost)))),
                   ],
                 ),
               );
@@ -221,6 +223,7 @@ class PostCard extends StatefulWidget {
 }
 
 class _PostCardState extends State<PostCard> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   bool _liked = false, _saved = false, _reposted = false, _busy = false, _heartBurst = false;
   Timer? _heartTimer;
   int _likes = 0, _comments = 0;
@@ -265,7 +268,7 @@ class _PostCardState extends State<PostCard> {
       if (mounted) update(!current);
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('عملیات انجام نشد؛ دوباره تلاش کنید.')));
+        const SnackBar(content: Text(_t.feedActionFailed)));
     } finally { if (mounted) setState(() => _busy = false); }
   }
 
@@ -309,12 +312,12 @@ class _PostCardState extends State<PostCard> {
               child: Row(children: [
                 const Icon(Icons.favorite_rounded, color: Colors.pinkAccent),
                 const SizedBox(width: 9),
-                Text('پسندهای این پست', style: Theme.of(ctx).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                Text(_t.feedLikesTitle, style: Theme.of(ctx).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
                 const Spacer(),
                 Text('${rows.length}', style: const TextStyle(fontWeight: FontWeight.w800)),
               ])),
             Expanded(child: rows.isEmpty
-              ? const Center(child: Text('هنوز کسی این پست را نپسندیده است.'))
+              ? const Center(child: Text(_t.feedNoLikes))
               : ListView.separated(
                   itemCount: rows.length, separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (ctx, i) {
@@ -322,7 +325,7 @@ class _PostCardState extends State<PostCard> {
                     final p = byId[id];
                     final name = (p?['display_name'] as String?)?.trim();
                     final username = p?['username'] as String?;
-                    final label = name?.isNotEmpty == true ? name! : (username ?? 'کاربر');
+                    final label = name?.isNotEmpty == true ? name! : (username ?? _t.feedUserFallback);
                     return ListTile(
                       leading: CircleAvatar(
                         backgroundImage: avatarUrls[id] == null ? null : NetworkImage(avatarUrls[id]!),
@@ -338,7 +341,7 @@ class _PostCardState extends State<PostCard> {
       );
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('فهرست پسندها دریافت نشد.')));
+        const SnackBar(content: Text(_t.feedLikesLoadFailed)));
     }
   }
 
@@ -359,18 +362,18 @@ class _PostCardState extends State<PostCard> {
       builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
         const Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 14),
           child: Align(alignment: Alignment.centerRight,
-            child: Text('همرسانی پست', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)))),
+            child: Text(_t.feedSharePost, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)))),
         ListTile(leading: const CircleAvatar(child: Icon(Icons.send_rounded)),
-          title: const Text('ارسال برای کاربران HomaGram'),
-          subtitle: const Text('انتخاب یک یا چند نفر از گفتگوهای داخلی'),
+          title: const Text(_t.feedSendToUsers),
+          subtitle: const Text(_t.feedChooseConversations),
           onTap: () => Navigator.pop(ctx, 'inside')),
         ListTile(leading: const CircleAvatar(child: Icon(Icons.link_rounded)),
-          title: const Text('کپی پیوند پست'),
-          subtitle: const Text('برای ارسال در هر پیام‌رسانی'),
+          title: const Text(_t.feedCopyLink),
+          subtitle: const Text(_t.feedShareOtherApps),
           onTap: () => Navigator.pop(ctx, 'copy')),
         ListTile(leading: const CircleAvatar(child: Icon(Icons.ios_share_rounded)),
-          title: const Text('اشتراک‌گذاری خارج از HomaGram'),
-          subtitle: const Text('ارسال با برنامه‌های دیگر دستگاه'),
+          title: const Text(_t.feedShareOtherApps),
+          subtitle: const Text(_t.feedSendWithApps),
           onTap: () => Navigator.pop(ctx, 'external')),
         const SizedBox(height: 10),
       ])),
@@ -380,16 +383,16 @@ class _PostCardState extends State<PostCard> {
     if (action == 'copy') {
       await Clipboard.setData(ClipboardData(text: link.toString()));
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('پیوند پست کپی شد.')));
+        const SnackBar(content: Text(_t.feedLinkCopied)));
     } else if (action == 'external') {
       try {
         await SharePlus.instance.share(ShareParams(
-          text: 'این پست را در HomaGram ببین:\n$link',
-          subject: 'پست در HomaGram',
+          text: _t.feedShareText(link.toString()),
+          subject: _t.feedShareSubject,
         ));
       } catch (_) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('اشتراک‌گذاری در این دستگاه در دسترس نیست.')));
+          const SnackBar(content: Text(_t.feedShareUnavailable)));
       }
     } else if (action == 'inside') {
       final recipients = await showModalBottomSheet<List<Map<String, dynamic>>>(
@@ -408,20 +411,20 @@ class _PostCardState extends State<PostCard> {
         } catch (_) {}
       }
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(sent == 0 ? 'ارسال پست انجام نشد.' : 'پست برای $sent نفر ارسال شد.')));
+        SnackBar(content: Text(sent == 0 ? _t.feedSendFailed : _t.feedSentCount(sent))));
     }
   }
 
   Future<void> _editCaption() async {
     final controller = TextEditingController(text: widget.post['caption'] as String? ?? '');
     final value = await showDialog<String>(context: context, builder: (ctx) => AlertDialog(
-      title: const Text('ویرایش متن پست'),
+      title: const Text(_t.feedEditCaption),
       content: TextField(controller: controller, autofocus: true, maxLength: 2200,
-        minLines: 2, maxLines: 7, decoration: const InputDecoration(hintText: 'متن پست')),
+        minLines: 2, maxLines: 7, decoration: InputDecoration(hintText: _t.feedCaptionHint)),
       actions: [
-        HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف'))),
+        HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text(_t.feedCancel))),
         HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-          child: const Text('ذخیره تغییرات'))),
+          child: const Text(_t.feedSaveChanges))),
       ],
     ));
     controller.dispose();
@@ -430,23 +433,23 @@ class _PostCardState extends State<PostCard> {
       await AuthService.client.from('posts').update({'caption': value}).eq('id', _postId).eq('author_id', _userId);
       if (mounted) {
         setState(() => widget.post['caption'] = value);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('متن پست ویرایش شد.')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(_t.feedPostUpdated)));
       }
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ویرایش پست انجام نشد.')));
+        const SnackBar(content: Text(_t.feedEditFailed)));
     }
   }
 
   Future<void> _deletePost() async {
     final confirmed = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-      title: const Text('حذف پست'),
-      content: const Text('این پست برای همیشه حذف شود؟'),
+      title: const Text(_t.feedDeletePost),
+      content: const Text(_t.feedDeleteConfirm),
       actions: [
-        HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف'))),
+        HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text(_t.feedCancel))),
         HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, true),
           style: FilledButton.styleFrom(backgroundColor: Colors.red),
-          child: const Text('حذف'))),
+          child: Text(_t.feedDelete))),
       ],
     ));
     if (confirmed != true) return;
@@ -457,25 +460,25 @@ class _PostCardState extends State<PostCard> {
         try { await AuthService.client.storage.from('post-media').remove([path]); } catch (_) {}
       }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('پست حذف شد.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(_t.feedPostDeleted)));
       widget.onDeleted?.call();
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('حذف پست انجام نشد.')));
+        const SnackBar(content: Text(_t.feedDeleteFailed)));
     }
   }
 
   Future<void> _reportPost() async {
     const reasons = <String, String>{
-      'harassment': 'توهین، آزار و تهدید',
-      'copied_content': 'محتوای کپی‌شده',
-      'copyright_claim': 'استفاده از اثر متعلق به شخص دیگر',
-      'violence': 'محتوای خشونت‌آمیز',
-      'inappropriate': 'محتوای غیراخلاقی یا نامناسب',
-      'political_insult': 'محتوای سیاسیِ توهین‌آمیز',
-      'illegal_content': 'محتوای مغایر با قوانین',
-      'spam': 'هرزنامه یا تبلیغات مزاحم',
-      'other': 'سایر موارد',
+      'harassment': _t.feedReportHarassment,
+      'copied_content': _t.feedReportCopied,
+      'copyright_claim': _t.feedReportCopyright,
+      'violence': _t.feedReportViolence,
+      'inappropriate': _t.feedReportInappropriate,
+      'political_insult': _t.feedReportPolitical,
+      'illegal_content': _t.feedReportIllegal,
+      'spam': _t.feedReportSpam,
+      'other': _t.feedReportOther,
     };
     final detailsController = TextEditingController();
     final rightsHolderController = TextEditingController();
@@ -489,9 +492,9 @@ class _PostCardState extends State<PostCard> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('گزارش این محتوا', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+            const Text(_t.feedReportTitle, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
             const SizedBox(height: 7),
-            const Text('موردی را که با قوانین هماگرام مغایرت دارد انتخاب کنید. گزارش شما محرمانه بررسی می‌شود.',
+            const Text(_t.feedReportInstructions,
               style: TextStyle(fontSize: 12, height: 1.7)),
             const SizedBox(height: 10),
             ...reasons.entries.map((e) => RadioListTile<String>(
@@ -505,18 +508,18 @@ class _PostCardState extends State<PostCard> {
             )),
             if (selectedReason == 'copyright_claim') ...[
               const Divider(height: 18),
-              const Text('اثر متعلق به چه کسی است؟',
+              const Text(_t.feedCopyrightOwner,
                 style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
               RadioListTile<String>(
                 value: 'self', groupValue: rightsOwner, dense: true,
                 contentPadding: EdgeInsets.zero,
-                title: const Text('خودم صاحب اثر هستم'),
+                title: const Text(_t.feedIAmOwner),
                 onChanged: (v) => setSheetState(() => rightsOwner = v),
               ),
               RadioListTile<String>(
                 value: 'third_party', groupValue: rightsOwner, dense: true,
                 contentPadding: EdgeInsets.zero,
-                title: const Text('اثر متعلق به شخص دیگری است'),
+                title: const Text(_t.feedOtherOwner),
                 onChanged: (v) => setSheetState(() => rightsOwner = v),
               ),
               if (rightsOwner == 'third_party')
@@ -524,7 +527,7 @@ class _PostCardState extends State<PostCard> {
                   controller: rightsHolderController,
                   maxLength: 160,
                   decoration: const InputDecoration(
-                    labelText: 'نام صاحب اثر (در صورت اطلاع)',
+                    labelText: _t.feedOwnerName,
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -533,8 +536,8 @@ class _PostCardState extends State<PostCard> {
             TextField(
               controller: detailsController, maxLength: 1000, minLines: 2, maxLines: 4,
               decoration: const InputDecoration(
-                labelText: 'توضیحات یا مستندات تکمیلی (اختیاری)',
-                hintText: 'در صورت نیاز، توضیح کوتاهی ارائه کنید.',
+                labelText: _t.feedReportDetails,
+                hintText: _t.feedReportDetailsHint,
                 border: OutlineInputBorder(),
               ),
             ),
@@ -548,7 +551,7 @@ class _PostCardState extends State<PostCard> {
                   'rights_owner': rightsOwner ?? '',
                   'rights_holder_name': rightsHolderController.text.trim(),
                 }),
-              child: const Text('ارسال گزارش'),
+              child: const Text(_t.feedSubmitReport),
             ),
           ],
         ))),
@@ -567,10 +570,10 @@ class _PostCardState extends State<PostCard> {
         'rights_holder_name': (report['rights_holder_name'] ?? '').isEmpty ? null : report['rights_holder_name'],
       });
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('گزارش شما ثبت شد و برای بررسی تیم هماگرام ارسال شد.')));
+        const SnackBar(content: Text(_t.feedReportSuccess)));
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('این محتوا قبلاً گزارش شده یا ثبت گزارش ممکن نیست.')));
+        const SnackBar(content: Text(_t.feedReportFailed)));
     }
   }
 
@@ -578,22 +581,22 @@ class _PostCardState extends State<PostCard> {
     final choice = await showModalBottomSheet<String>(context: context, showDragHandle: true,
       builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
         ListTile(leading: Icon(_saved ? Icons.bookmark_remove_outlined : Icons.bookmark_add_outlined),
-          title: Text(_saved ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره پست'),
+          title: Text(_saved ? _t.feedUnsave : _t.feedSave),
           onTap: () => Navigator.pop(ctx, 'save')),
         ListTile(leading: Icon(_reposted ? Icons.repeat_on : Icons.repeat),
-          title: Text(_reposted ? 'لغو بازنشر' : 'بازنشر در صفحه من'),
+          title: Text(_reposted ? _t.feedUndoRepost : _t.feedRepost),
           onTap: () => Navigator.pop(ctx, 'repost')),
-        ListTile(leading: const Icon(Icons.ios_share_outlined), title: const Text('ارسال پست'),
+        ListTile(leading: const Icon(Icons.ios_share_outlined), title: const Text(_t.feedSendPost),
           onTap: () => Navigator.pop(ctx, 'share')),
         if (widget.post['author_id'] == _userId) ...[
           const Divider(height: 1),
-          ListTile(leading: const Icon(Icons.edit_outlined), title: const Text('ویرایش متن پست'),
+          ListTile(leading: const Icon(Icons.edit_outlined), title: const Text(_t.feedEditCaption),
             onTap: () => Navigator.pop(ctx, 'edit')),
           ListTile(leading: const Icon(Icons.delete_outline, color: Colors.red),
-            title: const Text('حذف پست', style: TextStyle(color: Colors.red)),
+            title: const Text(_t.feedDeletePost, style: TextStyle(color: Colors.red)),
             onTap: () => Navigator.pop(ctx, 'delete')),
         ] else
-          ListTile(leading: const Icon(Icons.flag_outlined), title: const Text('گزارش پست'),
+          ListTile(leading: const Icon(Icons.flag_outlined), title: const Text(_t.feedReportPost),
             onTap: () => Navigator.pop(ctx, 'report')),
       ])));
     if (choice == 'save') await _toggle('saved_posts', _saved, (v) => setState(() => _saved = v));
@@ -631,7 +634,7 @@ class _PostCardState extends State<PostCard> {
             builder: (_) => PublicProfileScreen(userId: post['author_id'] as String))),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(mainAxisSize: MainAxisSize.min, children: [
-                Flexible(child: Text(post['author_display_name'] as String? ?? 'کاربر HomaGram',
+                Flexible(child: Text(post['author_display_name'] as String? ?? _t.feedUserFallback,
                   maxLines: 1, overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13))),
                 const SizedBox(width: 4),
@@ -675,13 +678,13 @@ class _PostCardState extends State<PostCard> {
             child: HomaGramSpringPress(child: TextButton.icon(onPressed: _busy ? null : _like,
               icon: Icon(_liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
                 color: _liked ? Colors.redAccent : const Color(0xFF8792A5), size: 20),
-              label: Text('پسندیدن $_likes'))),
+              label: Text('${_t.feedLike} $_likes'))),
           ),
           HomaGramSpringPress(child: TextButton.icon(onPressed: _commentsPage,
             icon: const Icon(Icons.mode_comment_outlined, size: 19),
-            label: Text('دیدگاه $_comments'))),
+            label: Text('${_t.feedComment} $_comments'))),
           const Spacer(),
-          HomaGramSpringPress(child: IconButton(tooltip: 'ارسال', onPressed: _share, icon: const Icon(Icons.send_outlined))),
+          HomaGramSpringPress(child: IconButton(tooltip: _t.feedSend, onPressed: _share, icon: const Icon(Icons.send_outlined))),
         ])),
       ]),
     );
@@ -696,6 +699,7 @@ class _PostShareSheet extends StatefulWidget {
 }
 
 class _PostShareSheetState extends State<_PostShareSheet> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final _controller = TextEditingController();
   final Map<String, Map<String, dynamic>> _selectedUsers = {};
   List<Map<String, dynamic>> _users = [];
@@ -732,7 +736,7 @@ class _PostShareSheetState extends State<_PostShareSheet> {
       if (!mounted) return;
       setState(() { _users = merged.values.take(30).toList(); _error = null; _loading = false; });
     } catch (_) {
-      if (mounted) setState(() { _loading = false; _error = 'جست‌وجوی کاربران انجام نشد.'; });
+      if (mounted) setState(() { _loading = false; _error = _t.feedUserSearchFailed; });
     }
   }
 
@@ -744,13 +748,13 @@ class _PostShareSheetState extends State<_PostShareSheet> {
       child: Column(children: [
         const Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 12),
           child: Align(alignment: Alignment.centerRight,
-            child: Text('انتخاب گیرندگان', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)))),
+            child: Text(_t.feedSelectRecipients, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)))),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: TextField(
             controller: _controller, onChanged: _searchChanged,
             decoration: InputDecoration(
-              hintText: 'نام یا نام کاربری را جست‌وجو کنید',
+              hintText: _t.feedSearchUsersHint,
               prefixIcon: const Icon(Icons.search_rounded),
               suffixIcon: HomaGramSpringPress(child: IconButton(onPressed: () { _controller.clear(); _search(''); },
                 icon: const Icon(Icons.close_rounded))),
@@ -761,11 +765,11 @@ class _PostShareSheetState extends State<_PostShareSheet> {
         if (_selectedUsers.isNotEmpty)
           Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: Align(alignment: Alignment.centerRight,
-              child: Text('${_selectedUsers.length} نفر انتخاب شده‌اند',
+              child: Text(_t.feedSelectedPeople(_selectedUsers.length),
                 style: const TextStyle(fontWeight: FontWeight.w700)))),
         Expanded(child: _loading ? const Center(child: CircularProgressIndicator())
           : _error != null ? Center(child: Text(_error!))
-          : _users.isEmpty ? const Center(child: Text('برای پیدا کردن کاربران، نام یا نام کاربری را جست‌وجو کنید.'))
+          : _users.isEmpty ? const Center(child: Text(_t.feedSearchUsersPrompt))
           : ListView.separated(
               padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: _users.length,
@@ -799,7 +803,7 @@ class _PostShareSheetState extends State<_PostShareSheet> {
                 Navigator.pop(context, _selectedUsers.values.toList());
               },
               icon: const Icon(Icons.send_rounded),
-              label: Text('ارسال برای ${_selectedUsers.length} نفر'),
+              label: Text(_t.feedSendToCount(_selectedUsers.length)),
             )),
           ),
         )),
@@ -816,6 +820,7 @@ class PostCommentsScreen extends StatefulWidget {
 }
 
 class _PostCommentsScreenState extends State<PostCommentsScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final _controller = TextEditingController();
   List<Map<String, dynamic>> _comments = [];
   bool _loading = true, _sending = false;
@@ -906,10 +911,10 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('دیدگاه‌ها')),
+    appBar: AppBar(title: const Text(_t.feedCommentsTitle)),
     body: Column(children: [
       Expanded(child: _loading ? const Center(child: CircularProgressIndicator())
-        : _comments.isEmpty ? const Center(child: Text('هنوز دیدگاهی ثبت نشده است.'))
+        : _comments.isEmpty ? const Center(child: Text(_t.feedNoComments))
         : ListView.builder(padding: const EdgeInsets.all(14), itemCount: _comments.length,
           itemBuilder: (context, i) {
             final c = _comments[i], p = c['profile'] as Map<String,dynamic>?;
@@ -935,7 +940,7 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
                   const SizedBox(width: 10),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(mainAxisSize: MainAxisSize.min, children: [
-                      Flexible(child: Text(p?['display_name'] as String? ?? 'کاربر',
+                      Flexible(child: Text(p?['display_name'] as String? ?? _t.feedUserFallback,
                         maxLines: 1, overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13))),
                       const SizedBox(width: 4),
@@ -958,9 +963,9 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
                       HomaGramSpringPress(child: TextButton(
                         onPressed: () => setState(() {
                           _replyTo = c['parent_id'] == null ? c['id'] as String : c['parent_id'] as String;
-                          _replyName = p?['display_name'] as String? ?? 'کاربر';
+                          _replyName = p?['display_name'] as String? ?? _t.feedUserFallback;
                         }),
-                        child: const Text('پاسخ'),
+                        child: const Text(_t.feedReply),
                       )),
                     ]),
                   ])),
@@ -970,13 +975,13 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
       SafeArea(top: false, child: Padding(padding: const EdgeInsets.all(12),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           if (_replyTo != null) Row(children: [
-            Expanded(child: Text('پاسخ به $_replyName', style: const TextStyle(fontSize: 12))),
+            Expanded(child: Text(_t.feedReplyTo(_replyName!), style: const TextStyle(fontSize: 12))),
             HomaGramSpringPress(child: IconButton(onPressed: () => setState(() { _replyTo = null; _replyName = null; }),
               icon: const Icon(Icons.close, size: 18))),
           ]),
           Row(children: [
             Expanded(child: TextField(controller: _controller, minLines: 1, maxLines: 4,
-              maxLength: 2000, decoration: const InputDecoration(hintText: 'دیدگاه خود را بنویسید…'))),
+              maxLength: 2000, decoration: const InputDecoration(hintText: _t.feedCommentHint))),
             HomaGramSpringPress(child: IconButton(onPressed: _sending ? null : _send,
               icon: _sending ? const SizedBox(width: 18,height:18,child:CircularProgressIndicator(strokeWidth:2))
                 : const Icon(Icons.send_rounded, color: HomaGramTheme.turquoise))),
