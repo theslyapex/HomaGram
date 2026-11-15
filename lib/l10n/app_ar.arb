@@ -586,5 +586,56 @@
   "deleteForEveryone": "حذف للجميع",
   "deleteCommunityFailed": "تعذر الحذف. المالك الحالي فقط يمكنه حذف هذه المجموعة أو القناة.",
   "leaveConversation": "مغادرة المحادثة",
-  "conversationInfoLoadFailed": "تعذر تحميل تفاصيل المحادثة. تحقق من الاتصال أو صلاحية العضوية."
+  "conversationInfoLoadFailed": "تعذر تحميل تفاصيل المحادثة. تحقق من الاتصال أو صلاحية العضوية.",
+  "filePathUnavailable": "مسار الملف غير متاح.",
+  "imageSavedToGallery": "تم حفظ الصورة في معرض جهازك.",
+  "imageSaveFailed": "تعذر حفظ الصورة. تحقق من إذن المعرض والاتصال.",
+  "videoSaved": "تم حفظ الفيديو بنجاح.",
+  "videoDownloadFailed": "تعذر تنزيل الفيديو. حاول مرة أخرى.",
+  "fileSaved": "تم حفظ الملف بنجاح.",
+  "fileDownloadFailed": "تعذر تنزيل الملف. حاول مرة أخرى.",
+  "imageCannotDisplay": "لا يمكن عرض الصورة.",
+  "secondsRemaining": "الوقت المتبقي: {seconds} ثانية",
+  "@secondsRemaining": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "closeImage": "إغلاق الصورة",
+  "timedImageUnavailable": "هذه الصورة المؤقتة غير متاحة أو تم فتحها من قبل.",
+  "timedImage": "صورة مؤقتة",
+  "viewOnce10Seconds": "عرض لمرة واحدة · لمدة 10 ثوانٍ",
+  "alreadyViewed": "تمت مشاهدتها بالفعل",
+  "viewImage": "عرض الصورة",
+  "mediaUnavailable": "الوسائط غير متاحة.",
+  "downloadImage": "تنزيل الصورة",
+  "downloadVideo": "تنزيل الفيديو",
+  "downloadFile": "تنزيل الملف",
+  "file": "ملف",
+  "replyPrefix": "الرد على: {message}",
+  "@replyPrefix": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "forwardedFrom": "تمت إعادة التوجيه من {name}",
+  "@forwardedFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "messageDeletedBy": "حذف الرسالة بواسطة {name}",
+  "@messageDeletedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }
