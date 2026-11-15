@@ -147,15 +147,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       if (durationMs <= 0 || !mounted) return;
       int selectedMs = (durationMs ~/ 10).clamp(0, durationMs), requestId = 0;
       Uint8List? preview;
-      Future<void> render(int ms, StateSetter update) async {
-        final token = ++requestId;
-        try {
-          final bytes = await VideoThumbnail.thumbnailData(
-            video: media.path, imageFormat: ImageFormat.JPEG, maxWidth: 900, quality: 90, timeMs: ms,
-          );
-          if (bytes != null && token == requestId) update(() => preview = bytes);
-        } catch (_) {}
-      }
+      int? previewMs;
+      bool isRendering = false;
+      String? renderError;
       preview = await VideoThumbnail.thumbnailData(
         video: media.path,
         imageFormat: ImageFormat.JPEG,
@@ -163,6 +157,42 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         quality: 90,
         timeMs: selectedMs,
       );
+      if (preview != null) previewMs = selectedMs;
+
+      Future<void> render(int ms, StateSetter update) async {
+        final token = ++requestId;
+        update(() {
+          isRendering = true;
+          renderError = null;
+        });
+        try {
+          final bytes = await VideoThumbnail.thumbnailData(
+            video: media.path,
+            imageFormat: ImageFormat.JPEG,
+            maxWidth: 900,
+            quality: 90,
+            timeMs: ms,
+          );
+          if (token == requestId) {
+            update(() {
+              if (bytes != null) {
+                preview = bytes;
+                previewMs = ms;
+              } else {
+                renderError = 'استخراج این فریم ممکن نشد؛ زمان دیگری را انتخاب کنید.';
+              }
+              isRendering = false;
+            });
+          }
+        } catch (_) {
+          if (token == requestId) {
+            update(() {
+              renderError = 'نمایش فریم انتخابی ممکن نشد؛ دوباره تلاش کنید.';
+              isRendering = false;
+            });
+          }
+        }
+      }
       final selected = await showModalBottomSheet<Uint8List>(
         context: context, isScrollControlled: true,
         backgroundColor: Theme.of(context).colorScheme.surface,
@@ -178,20 +208,38 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               const SizedBox(height: 14),
               ClipRRect(borderRadius: BorderRadius.circular(18), child: AspectRatio(
                 aspectRatio: 9 / 16,
-                child: preview == null ? const Center(child: CircularProgressIndicator())
+                child: preview == null || previewMs != selectedMs
+                    ? const ColoredBox(
+                        color: Colors.black12,
+                        child: Center(child: CircularProgressIndicator()),
+                      )
                     : Image.memory(preview!, fit: BoxFit.cover))),
-              const SizedBox(height: 14),
+              const SizedBox(height: 8),
+              Text(
+                isRendering ? 'در حال استخراج فریم دقیق…' : '${(selectedMs / 1000).toStringAsFixed(2)} ثانیه از ویدئو',
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+              if (renderError != null) ...[
+                const SizedBox(height: 5),
+                Text(renderError!, style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 11)),
+              ],
+              const SizedBox(height: 8),
               Row(children: [
                 const Icon(Icons.movie_outlined, size: 18),
                 Expanded(child: Slider(
                   value: selectedMs.toDouble(), min: 0, max: durationMs.toDouble(),
-                  onChanged: (value) { selectedMs = value.round(); update(() {}); render(selectedMs, update); },
+                  onChanged: (value) {
+                    selectedMs = value.round();
+                    update(() { isRendering = true; renderError = null; });
+                    render(selectedMs, update);
+                  },
                 )),
                 Text('${(selectedMs / 1000).toStringAsFixed(1)}s', style: const TextStyle(fontSize: 11)),
               ]),
               SizedBox(width: double.infinity, child: HomaGramSpringPress(child: FilledButton(
-                onPressed: preview == null ? null : () => Navigator.pop(sheetContext, preview),
-                child: const Text('انتخاب این فریم')))),
+                onPressed: preview == null || previewMs != selectedMs || isRendering
+                    ? null : () => Navigator.pop(sheetContext, preview),
+                child: const Text('انتخاب همین فریم')))),
             ]),
           ));
         }),
