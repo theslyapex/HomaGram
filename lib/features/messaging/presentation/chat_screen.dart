@@ -1502,14 +1502,14 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   if (isChannel && canManage)
                     IconButton(
-                      tooltip: 'تاریخچه فعالیت‌های کانال',
+                      tooltip: _t.channelActivityHistory,
                       icon: const Icon(Icons.history_rounded),
                       onPressed: () => _showChannelAuditLogs(widget.conversationId),
                     ),
                   if ((isChannel && canManage && channelData['is_public'] == false) ||
                       (isGroup && canManageMembers))
                     IconButton(
-                      tooltip: isGroup ? 'مدیریت لینک‌های دعوت گروه' : 'مدیریت کدهای دعوت',
+                      tooltip: isGroup ? _t.manageGroupInviteLinks : _t.manageChannelInviteCodes,
                       icon: const Icon(Icons.key_rounded),
                       onPressed: () => _manageConversationInvites(
                         widget.conversationId, isGroup: isGroup,
@@ -1517,21 +1517,21 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   if (isGroup && myRole == 'owner')
                     IconButton(
-                      tooltip: 'تنظیم دسترسی‌های گروه',
+                      tooltip: _t.groupPermissions,
                       icon: const Icon(Icons.tune_rounded),
                       onPressed: () => _showGroupPermissions(widget.conversationId, info),
                     ),
                   if ((isGroup || isChannel) && canAddMembers)
                     IconButton(
-                      tooltip: 'افزودن عضو', icon: const Icon(Icons.person_add_alt_1_rounded),
+                      tooltip: _t.addMember, icon: const Icon(Icons.person_add_alt_1_rounded),
                       onPressed: () async {
                         final queryController = TextEditingController();
                         final query = await showDialog<String>(
                           context: context,
                           builder: (ctx) => AlertDialog(
-                            title: const Text('افزودن عضو'),
+                            title: Text(_t.addMember),
                             content: TextField(controller: queryController, autofocus: true,
-                              decoration: const InputDecoration(hintText: 'نام کاربری')),
+                              decoration: const InputDecoration(hintText: _t.username)),
                             actions: [
                               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text(_t.cancel)),
                               FilledButton(onPressed: () => Navigator.pop(ctx, queryController.text),
@@ -1562,7 +1562,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         } catch (error) {
                           debugPrint('Add conversation member failed: $error');
                           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('افزودن عضو انجام نشد؛ ممکن است این کاربر از قبل عضو باشد یا دسترسی لازم را نداشته باشید.')),
+                            SnackBar(content: Text(_t.addMemberFailed)),
                           );
                         }
                       },
@@ -1602,20 +1602,20 @@ class _ChatScreenState extends State<ChatScreen> {
                     return ListTile(
                       leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
                       title: Text(member['display_name'] as String? ?? ''),
-                      subtitle: Text('@${member['username']} • ${role == 'owner' ? 'مالک' : role == 'admin' ? 'مدیر' : 'عضو'}'),
+                      subtitle: Text('@${member['username']} • ${role == 'owner' ? _t.owner : role == 'admin' ? _t.admin : _t.member}'),
                       trailing: canAct
                           ? PopupMenuButton<String>(
                               onSelected: (action) async {
                                 if (action == 'transfer') {
-                                  final displayName = member['display_name'] as String? ?? member['username'] as String? ?? 'این عضو';
+                                  final displayName = member['display_name'] as String? ?? member['username'] as String? ?? _t.thisMember;
                                   final confirmed = await showDialog<bool>(
                                     context: context,
                                     builder: (dialogContext) => AlertDialog(
-                                      title: const Text('انتقال مالکیت کانال'),
-                                      content: Text('مالکیت کانال به $displayName منتقل شود؟ شما پس از انتقال، مدیر کانال خواهید بود و مالک جدید کنترل کامل کانال را در اختیار می‌گیرد.'),
+                                      title: Text(_t.transferChannelOwnership),
+                                      content: Text(_t.transferOwnershipConfirm(displayName)),
                                       actions: [
                                         TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text(_t.cancel)),
-                                        FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('تأیید انتقال')),
+                                        FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: Text(_t.confirmTransfer)),
                                       ],
                                     ),
                                   );
@@ -1627,11 +1627,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                     );
                                     if (sheetContext.mounted) Navigator.pop(sheetContext);
                                     if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('مالکیت کانال با موفقیت منتقل شد.')),
+                                      SnackBar(content: Text(_t.channelOwnershipTransferredSuccess)),
                                     );
                                   } catch (_) {
                                     if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('انتقال مالکیت انجام نشد. فقط مالک فعلی می‌تواند این کار را انجام دهد.')),
+                                      SnackBar(content: Text(_t.ownershipTransferFailed)),
                                     );
                                   }
                                   return;
@@ -1642,19 +1642,19 @@ class _ChatScreenState extends State<ChatScreen> {
                                 } catch (error) {
                                   debugPrint('Group member action failed: $error');
                                   if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('انجام عملیات روی عضو ممکن نشد. سطح دسترسی را بررسی کنید.')),
+                                    SnackBar(content: Text(_t.memberActionFailed)),
                                   );
                                 }
                               },
                               itemBuilder: (_) => [
                                 if (myRole == 'owner' && role == 'member')
-                                  const PopupMenuItem(value: 'promote', child: Text('ارتقا به مدیر')),
+                                  PopupMenuItem(value: 'promote', child: Text(_t.promoteToAdmin)),
                                 if (myRole == 'owner' && role == 'admin')
-                                  const PopupMenuItem(value: 'demote', child: Text('تنزل به عضو')),
+                                  PopupMenuItem(value: 'demote', child: Text(_t.demoteToMember)),
                                 if (isChannel && myRole == 'owner' && role != 'owner')
-                                  const PopupMenuItem(value: 'transfer', child: Text('انتقال مالکیت کانال')),
+                                  PopupMenuItem(value: 'transfer', child: Text(_t.transferChannelOwnershipMenu)),
                                 if (role != 'owner' && (myRole == 'owner' || role == 'member'))
-                                  PopupMenuItem(value: 'remove', child: Text(isChannel ? 'حذف از کانال' : 'حذف از گروه')),
+                                  PopupMenuItem(value: 'remove', child: Text(isChannel ? _t.removeFromChannel : _t.removeFromGroup)),
                               ],
                             )
                           : role == 'owner' ? const Icon(Icons.verified_rounded, size: 18) : null,
@@ -1673,14 +1673,14 @@ class _ChatScreenState extends State<ChatScreen> {
                         side: BorderSide(color: Theme.of(sheetContext).colorScheme.error.withValues(alpha: .55)),
                       ),
                       icon: const Icon(Icons.delete_forever_outlined),
-                      label: Text(isGroup ? 'حذف کامل گروه برای همه اعضا' : 'حذف کامل کانال برای همه اعضا'),
+                      label: Text(isGroup ? _t.deleteGroupForEveryone : _t.deleteChannelForEveryone),
                       onPressed: () async {
                         final confirmed = await showDialog<bool>(
                           context: sheetContext,
                           builder: (dialogContext) => AlertDialog(
-                            title: Text(isGroup ? 'حذف کامل گروه' : 'حذف کامل کانال'),
+                            title: Text(isGroup ? _t.deleteGroup : _t.deleteChannel),
                             content: Text(
-                              'این عملیات ${isGroup ? _t.group : 'کانال'}، پیام‌ها و عضویت تمام اعضا را حذف می‌کند و قابل بازگشت نیست. ادامه می‌دهید؟',
+                              _t.deleteCommunityConfirm(isGroup ? _t.group : _t.channelInfo),
                             ),
                             actions: [
                               TextButton(
@@ -1692,7 +1692,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   backgroundColor: Theme.of(dialogContext).colorScheme.error,
                                 ),
                                 onPressed: () => Navigator.pop(dialogContext, true),
-                                child: const Text('حذف برای همه'),
+                                child: Text(_t.deleteForEveryone),
                               ),
                             ],
                           ),
@@ -1705,7 +1705,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         } catch (error) {
                           debugPrint('Delete owned community failed: $error');
                           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('حذف انجام نشد؛ فقط مالک فعلی می‌تواند این گروه یا کانال را حذف کند.')),
+                            SnackBar(content: Text(_t.deleteCommunityFailed)),
                           );
                         }
                       },
@@ -1723,7 +1723,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       if (mounted) Navigator.pop(context);
                     },
                     icon: const Icon(Icons.logout_rounded),
-                    label: Text(isChannel ? 'خروج از کانال' : isGroup ? 'خروج از گروه' : 'خروج از گفتگو'),
+                    label: Text(isChannel ? _t.leaveChannel : isGroup ? _t.leaveGroup : _t.leaveConversation),
                   )),
                 ),
               ),
@@ -1734,7 +1734,7 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (error) {
       debugPrint('Conversation info sheet failed: $error');
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('اطلاعات گفتگو دریافت نشد. اتصال یا دسترسی عضویت را بررسی کنید.')),
+        SnackBar(content: Text(_t.conversationInfoLoadFailed)),
       );
     }
   }
