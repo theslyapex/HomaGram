@@ -1464,5 +1464,8 @@
         "type": "int"
       }
     }
-  }
+  },
+  "storyOpenLinkFailed": "تعذّر فتح الرابط.",
+  "storyVideoPlaybackFailed": "تعذّر تشغيل الفيديو. تحقق من اتصال الإنترنت وحاول مرة أخرى.",
+  "storyVideoLoading": "جارٍ تحميل الفيديو…"
 }
