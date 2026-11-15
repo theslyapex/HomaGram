@@ -1342,5 +1342,103 @@
   "storyQuestionLengthInvalid": "أدخل نصًا لصندوق الأسئلة يتراوح بين 1 و180 حرفًا.",
   "storyCountdownInvalid": "أدخل عنوانًا ووقتًا صالحين للعد التنازلي.",
   "storyPollInvalid": "أكمل سؤال الاستطلاع وخياراته دون تكرار.",
-  "storyPublishFailed": "تعذّر نشر القصة. تحقق من الاتصال أو تنسيق الوسائط."
+  "storyPublishFailed": "تعذّر نشر القصة. تحقق من الاتصال أو تنسيق الوسائط.",
+  "storyStudioTitle": "استوديو القصص",
+  "storyDrafts": "المسودات",
+  "storySaveDraft": "حفظ المسودة",
+  "storyPreviewPlaceholder": "سيظهر نص قصتك هنا",
+  "storyPollQuestionDefault": "سؤال الاستطلاع",
+  "storyPollOptionDefault": "خيار",
+  "storyQuestionBoxDefault": "مربع الأسئلة",
+  "storyCountdownDefault": "العد التنازلي",
+  "storySmaller": "تصغير",
+  "storyLarger": "تكبير",
+  "storyRotateLeft": "تدوير لليسار",
+  "storyRotateRight": "تدوير لليمين",
+  "storyResetElement": "إعادة ضبط الموضع والحجم",
+  "storyRemoveElement": "إزالة العنصر المحدد",
+  "storyCreateText": "إنشاء قصة نصية",
+  "storyChooseImage": "اختيار صورة",
+  "storyChooseVideo": "اختيار فيديو (حتى 60 ثانية)",
+  "storyBackToMediaStory": "العودة إلى قصة الصورة",
+  "storyMusicTitle": "موسيقى القصة",
+  "storyAddMusic": "إضافة موسيقى من الجهاز",
+  "storySelectedMusic": "الموسيقى المحددة",
+  "storyStopPreview": "إيقاف المعاينة",
+  "storyPlayPreview": "تشغيل المعاينة",
+  "storyRemoveMusic": "إزالة الموسيقى",
+  "storyStartAt": "البدء من",
+  "storyMusicPlaybackNote": "تُشغّل الموسيقى مع قصتك. عند إضافة الموسيقى إلى فيديو، يتم كتم الصوت الأصلي للفيديو.",
+  "storyStickersTitle": "الملصقات",
+  "storyImageOrGif": "صورة أو GIF",
+  "storyRemoveAll": "إزالة الكل",
+  "storyStickerInstructions": "اسحب الملصق إلى المعاينة. استخدم إصبعين لتغيير حجمه أو تدويره. اضغط مطولًا على الملصق لإزالته.",
+  "storyAddPoll": "إضافة استطلاع",
+  "storyPollSubtitle": "يمكن للمشاهدين التصويت في قصتك.",
+  "storyPollQuestionLabel": "سؤال الاستطلاع",
+  "storyPollQuestionHint": "مثلًا، أي تصميم تفضّل؟",
+  "storyPollOptionLabel": "الخيار {number}",
+  "storyRemoveOption": "إزالة الخيار",
+  "storyAddOption": "إضافة خيار",
+  "storyPollInstructions": "يتضمن كل استطلاع من خيارين إلى أربعة خيارات. يمكن لكل شخص التصويت مرة واحدة وتغيير صوته لاحقًا.",
+  "storyAddQuestionBox": "إضافة مربع أسئلة",
+  "storyQuestionBoxSubtitle": "يمكن للمشاهدين إرسال إجابات نصية خاصة إليك.",
+  "storyQuestionBoxLabel": "نص السؤال",
+  "storyQuestionBoxHint": "مثلًا، ما الذي تود معرفته؟",
+  "storyAddCountdown": "إضافة عد تنازلي",
+  "storyCountdownSubtitle": "اعرض عدًا تنازليًا لحدث أو وقت مهم.",
+  "storyCountdownLabel": "عنوان العد التنازلي",
+  "storyCountdownHint": "مثلًا، موعد بدء حدث",
+  "storyDateAndTime": "التاريخ والوقت: {year}/{month}/{day} • {hour}:{minute}",
+  "storyDrawingTool": "أداة الرسم الحر",
+  "storyDrawOnMedia": "ارسم على الوسائط",
+  "storyEnableDrawing": "فعّل الرسم",
+  "storyPen": "قلم",
+  "storyEraser": "ممحاة",
+  "storyUndo": "تراجع",
+  "storyClearAll": "مسح الكل",
+  "storyBrushThickness": "سُمك الفرشاة",
+  "storyOverlayTextLabel": "نص على الصورة أو الفيديو",
+  "storyOverlayTextHint": "اكتب النص، ثم حرّكه أو غيّر حجمه في المعاينة",
+  "storyTextColor": "لون النص",
+  "storyTextFont": "خط النص",
+  "storyOverlayInstructions": "اسحب النص على المعاينة لتحريكه، واستخدم إصبعين لتغيير حجمه.",
+  "storyAudienceTitle": "جمهور القصة",
+  "storyAudienceEveryone": "كل من تسمح لهم إعدادات الخصوصية",
+  "storyAudienceFollowers": "المتابعون فقط",
+  "storyAudienceCloseFriends": "الأصدقاء المقربون فقط",
+  "storyAudienceEveryoneNote": "تظل خصوصية حسابك وقائمة المستخدمين المحظورين مطبقتين.",
+  "storyAudienceFollowersNote": "يمكن فقط للمتابعين المسموح لهم برؤية حسابك مشاهدة هذه القصة.",
+  "storyAudienceCloseFriendsNote": "يمكن فقط للأشخاص في قائمة أصدقائك المقربين الخاصة مشاهدة هذه القصة.",
+  "storyCaptionText": "نص القصة",
+  "storyMediaDescription": "وصف الصورة أو الفيديو (اختياري)",
+  "storyExpiryNote": "تختفي قصتك من العرض العام بعد 24 ساعة وتبقى في أرشيفك الشخصي.",
+  "storyPublishing": "جارٍ النشر…",
+  "storyPublish": "نشر القصة",
+  "@storyPollOptionLabel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyDateAndTime": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      },
+      "month": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "hour": {
+        "type": "String"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  }
 }
