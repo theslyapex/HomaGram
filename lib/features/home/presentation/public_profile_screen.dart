@@ -544,8 +544,13 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           : await client.from('user_follows').select('following_id').eq('follower_id', widget.userId);
       final ids = rows.map<String>((row) => (followers ? row['follower_id'] : row['following_id']) as String).toList();
       final profiles = ids.isEmpty ? <dynamic>[] : await client.from('profiles')
-          .select('id,username,display_name').inFilter('id', ids);
-      final byId = {for (final p in profiles) p['id'] as String: p};
+          .select('id,username,display_name,avatar_path').inFilter('id', ids);
+      final byId = {for (final p in profiles) p['id'] as String: Map<String,dynamic>.from(p)};
+      await Future.wait(byId.values.map((p) async {
+        final path = p['avatar_path'] as String?;
+        if (path == null || path.isEmpty) return;
+        try { p['avatar_url'] = await client.storage.from('avatars').createSignedUrl(path, 1800); } catch (_) {}
+      }));
       final ordered = ids.map((id) => byId[id]).whereType<Map<String, dynamic>>().toList();
       if (!mounted) return;
       await showModalBottomSheet<void>(context: context, showDragHandle: true, isScrollControlled: true,
@@ -559,8 +564,12 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
               ? Center(child: Text(_t.emptyConnections))
               : ListView.builder(itemCount: ordered.length, itemBuilder: (context, index) {
                   final p = ordered[index];
+                  final avatarUrl = p['avatar_url'] as String?;
                   return ListTile(
-                    leading: const CircleAvatar(child: Icon(Icons.person_outline)),
+                    leading: CircleAvatar(
+                      backgroundImage: avatarUrl == null ? null : NetworkImage(avatarUrl),
+                      child: avatarUrl == null ? const Icon(Icons.person_outline) : null,
+                    ),
                     title: Row(mainAxisSize: MainAxisSize.min, children: [
                       Flexible(child: Text(p['display_name'] as String? ?? _t.homagramUser,
                         maxLines: 1, overflow: TextOverflow.ellipsis)),
