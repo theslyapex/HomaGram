@@ -2065,7 +2065,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                   label: Text(_t.storyAddOption),
                 )),
               ),
-            const Text(
+            Text(
               _t.storyPollInstructions,
               style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4)),
             ),
@@ -3122,7 +3122,7 @@ class _StoryMediaState extends State<_StoryMedia> {
         children: [
           const Icon(Icons.cloud_off_rounded, color: Colors.white70, size: 42),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             _t.storyVideoPlaybackFailed,
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.white, height: 1.7),
