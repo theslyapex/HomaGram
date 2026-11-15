@@ -18,6 +18,7 @@ class _AccountPreferencesScreenState extends State<AccountPreferencesScreen> {
   bool _showFollowers = true;
   bool _showFollowing = true;
   bool _showVisitors = true;
+  bool _allowMessageForwarding = true;
   String _theme = 'system';
   List<Map<String, dynamic>> _blocked = [];
   String? _error;
@@ -35,7 +36,7 @@ class _AccountPreferencesScreenState extends State<AccountPreferencesScreen> {
     setState(() { _loading = true; _error = null; });
     try {
       final settings = await _client.from('account_settings')
-          .select('theme,is_private,show_followers,show_following,show_profile_visitors')
+          .select('theme,is_private,show_followers,show_following,show_profile_visitors,allow_message_forwarding')
           .eq('user_id', _userId).maybeSingle();
       final blockRows = await _client.from('user_blocks')
           .select('blocked_id')
@@ -59,6 +60,7 @@ class _AccountPreferencesScreenState extends State<AccountPreferencesScreen> {
         _showFollowers = settings?['show_followers'] as bool? ?? true;
         _showFollowing = settings?['show_following'] as bool? ?? true;
         _showVisitors = settings?['show_profile_visitors'] as bool? ?? true;
+        _allowMessageForwarding = settings?['allow_message_forwarding'] as bool? ?? true;
         _blocked = blocked;
         _loading = false;
       });
@@ -178,6 +180,17 @@ class _AccountPreferencesScreenState extends State<AccountPreferencesScreen> {
                 onChanged: _saving ? null : (value) => _setPrivacy('show_following', value),
                 title: const Text('نمایش دنبال‌شوندگان'),
                 secondary: const Icon(Icons.person_add_alt_rounded),
+              ),
+              const Divider(height: 1),
+              SwitchListTile.adaptive(
+                value: _allowMessageForwarding,
+                onChanged: _saving ? null : (value) {
+                  setState(() => _allowMessageForwarding = value);
+                  _save({'allow_message_forwarding': value});
+                },
+                title: const Text('اجازه فوروارد پیام‌های من'),
+                subtitle: const Text('با خاموش‌کردن این گزینه، دیگران نمی‌توانند پیام متنی شما را به گفتگوی دیگری فوروارد کنند.', style: TextStyle(fontSize: 11)),
+                secondary: const Icon(Icons.forward_to_inbox_outlined),
               ),
               const Divider(height: 1),
               SwitchListTile.adaptive(
