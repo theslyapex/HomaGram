@@ -1077,5 +1077,12 @@
         "type": "String"
       }
     }
-  }
+  },
+  "reelsLoadFailed": "Videos couldn't be loaded.",
+  "reelsEmptyTitle": "No reels yet",
+  "reelsEmptyMessage": "Publish your first short video, up to two minutes long.",
+  "reelsCreateFirst": "Create the first reel",
+  "reelsShareTitle": "Reel on HomaGram",
+  "reelsReportTitle": "Report this reel",
+  "reelsReportSuccess": "The reel was reported for review."
 }
