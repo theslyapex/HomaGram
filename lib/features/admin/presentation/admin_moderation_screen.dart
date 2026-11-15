@@ -62,7 +62,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
         (isVideo ? item.mediaUrl : (item.mediaUrl ?? item.coverUrl));
     if (url == null || url.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t.adminModerationPreviewUnavailable)));
+        SnackBar(content: Text(_t.adminModerationPreviewUnavailable)));
       return;
     }
     if (isVideo) {
@@ -89,8 +89,8 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
                     onPressed: () => controller.value.isPlaying ? controller.pause() : controller.play(),
                     icon: Icon(controller.value.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
                   ),
-                  const Expanded(child: Text(_t.adminModerationReelPreview, style: TextStyle(fontWeight: FontWeight.w800))),
-                  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('بستن')),
+                  Expanded(child: Text(_t.adminModerationReelPreview, style: TextStyle(fontWeight: FontWeight.w800))),
+                  TextButton(onPressed: () => Navigator.pop(ctx), child: Text(_t.adminClose)),
                 ]),
               ]),
             ),
@@ -98,7 +98,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
         );
       } catch (_) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(_t.adminModerationVideoPreviewFailed)));
+          SnackBar(content: Text(_t.adminModerationVideoPreviewFailed)));
       } finally {
         await controller.dispose();
       }
@@ -118,7 +118,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
                   height: 160, child: Center(child: Text(_t.adminModerationImageLoadFailed)))),
             ),
             const SizedBox(height: 10),
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('بستن')),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(_t.adminClose)),
           ]),
         ),
       ),
@@ -131,15 +131,15 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
     final message = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text(_t.adminModerationWarnTitle),
+        title: Text(_t.adminModerationWarnTitle),
         content: TextField(
           controller: controller, minLines: 3, maxLines: 6, maxLength: 900,
-          decoration: const InputDecoration(labelText: _t.adminModerationWarningText, border: OutlineInputBorder()),
+          decoration: InputDecoration(labelText: _t.adminModerationWarningText, border: OutlineInputBorder()),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(_t.feedCancel)),
           FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: const Text(_t.adminModerationSendWarning)),
+            child: Text(_t.adminModerationSendWarning)),
         ],
       ),
     );
@@ -155,21 +155,21 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
     final selected = await showDialog<String>(
       context: context,
       builder: (ctx) => StatefulBuilder(builder: (ctx, update) => AlertDialog(
-        title: const Text(_t.adminModerationBanTitle),
+        title: Text(_t.adminModerationBanTitle),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Text(_t.adminModerationBanInstruction),
+          Text(_t.adminModerationBanInstruction),
           const SizedBox(height: 10),
-          RadioListTile<String>(value: '24h', groupValue: duration, onChanged: (v) => update(() => duration = v!), title: const Text(_t.adminDuration24Hours)),
-          RadioListTile<String>(value: '168h', groupValue: duration, onChanged: (v) => update(() => duration = v!), title: const Text(_t.adminDuration7Days)),
-          RadioListTile<String>(value: '720h', groupValue: duration, onChanged: (v) => update(() => duration = v!), title: const Text(_t.adminDuration30Days)),
-          RadioListTile<String>(value: '876000h', groupValue: duration, onChanged: (v) => update(() => duration = v!), title: const Text(_t.adminDurationLongTerm)),
+          RadioListTile<String>(value: '24h', groupValue: duration, onChanged: (v) => update(() => duration = v!), title: Text(_t.adminDuration24Hours)),
+          RadioListTile<String>(value: '168h', groupValue: duration, onChanged: (v) => update(() => duration = v!), title: Text(_t.adminDuration7Days)),
+          RadioListTile<String>(value: '720h', groupValue: duration, onChanged: (v) => update(() => duration = v!), title: Text(_t.adminDuration30Days)),
+          RadioListTile<String>(value: '876000h', groupValue: duration, onChanged: (v) => update(() => duration = v!), title: Text(_t.adminDurationLongTerm)),
         ]),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(_t.feedCancel)),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Theme.of(ctx).colorScheme.error),
             onPressed: () => Navigator.pop(ctx, duration),
-            child: const Text(_t.adminModerationConfirmBan),
+            child: Text(_t.adminModerationConfirmBan),
           ),
         ],
       )),
@@ -184,14 +184,14 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text(_t.adminModerationProfileCleanupTitle),
-        content: const Text(_t.adminModerationProfileCleanupDescription),
+        title: Text(_t.adminModerationProfileCleanupTitle),
+        content: Text(_t.adminModerationProfileCleanupDescription),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(_t.feedCancel)),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Theme.of(ctx).colorScheme.error),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(_t.adminModerationProfileCleanup),
+            child: Text(_t.adminModerationProfileCleanup),
           ),
         ],
       ),
@@ -207,14 +207,14 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text(_t.adminModerationDeleteTitle),
-        content: const Text(_t.adminModerationDeleteDescription),
+        title: Text(_t.adminModerationDeleteTitle),
+        content: Text(_t.adminModerationDeleteDescription),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(_t.feedCancel)),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Theme.of(ctx).colorScheme.error),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(_t.adminModerationDeleteAndWarn),
+            child: Text(_t.adminModerationDeleteAndWarn),
           ),
         ],
       ),
@@ -241,7 +241,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
       setState(() {});
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t.adminModerationActionFailed)));
+        SnackBar(content: Text(_t.adminModerationActionFailed)));
     } finally {
       if (mounted) setState(() => _working = null);
     }
@@ -262,7 +262,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
     Padding(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
       child: Row(children: [
-        const Expanded(child: Text(_t.adminModerationPublishedContent, style: TextStyle(fontWeight: FontWeight.w900))),
+        Expanded(child: Text(_t.adminModerationPublishedContent, style: TextStyle(fontWeight: FontWeight.w900))),
         DropdownButton<String>(
           value: _type,
           items: [
@@ -283,10 +283,10 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
       Expanded(child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
         Text(_error!, textAlign: TextAlign.center),
         const SizedBox(height: 10),
-        FilledButton.tonal(onPressed: () => _load(reset: true), child: const Text(_t.adminRetry)),
+        FilledButton.tonal(onPressed: () => _load(reset: true), child: Text(_t.adminRetry)),
       ])))
     else if (_loading && _items.isEmpty)
-      const Expanded(child: Center(child: CircularProgressIndicator()))
+      Expanded(child: Center(child: CircularProgressIndicator()))
     else
       Expanded(child: RefreshIndicator(
         onRefresh: () => _load(reset: true),
@@ -382,18 +382,18 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
                     OutlinedButton.icon(
                       onPressed: busy ? null : () => _warn(item),
                       icon: const Icon(Icons.warning_amber_rounded, size: 17),
-                      label: const Text(_t.adminModerationSendWarning),
+                      label: Text(_t.adminModerationSendWarning),
                     ),
                     OutlinedButton.icon(
                       onPressed: busy ? null : () => _ban(item),
                       icon: const Icon(Icons.block_rounded, size: 17),
-                      label: const Text(_t.adminModerationBanTitle),
+                      label: Text(_t.adminModerationBanTitle),
                     ),
                     if (item.type == 'profile')
                       FilledButton.tonalIcon(
                         onPressed: busy ? null : () => _removeProfileContent(item),
                         icon: const Icon(Icons.cleaning_services_outlined, size: 17),
-                        label: const Text(_t.adminModerationProfileCleanup),
+                        label: Text(_t.adminModerationProfileCleanup),
                       )
                     else
                       FilledButton.tonalIcon(
@@ -401,7 +401,7 @@ class _AdminModerationScreenState extends State<AdminModerationScreen> {
                         icon: busy
                           ? const SizedBox(width: 15, height: 15, child: CircularProgressIndicator(strokeWidth: 2))
                           : const Icon(Icons.delete_outline_rounded, size: 17),
-                        label: const Text(_t.adminModerationDeleteTitle),
+                        label: Text(_t.adminModerationDeleteTitle),
                       ),
                   ]),
                 ]),
