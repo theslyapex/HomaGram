@@ -111,8 +111,18 @@ class _AdminVerificationScreenState extends State<AdminVerificationScreen> {
           final item=_items[i];final profile=item['profile'] as Map<String,dynamic>? ?? {};
           final links=item['public_links'] as List? ?? const [];final evidence=item['evidence_urls'] as List? ?? const [];
           return Card(child:Padding(padding:const EdgeInsets.all(14),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-            Text(item['legal_name']?.toString()??_t.adminVerificationNoName,style:const TextStyle(fontWeight:FontWeight.w900,fontSize:16)),
-            Text('@${profile['username']??_t.storyUserFallback} • ${item['applicant_type']=='individual'?_t.verificationIndividual:_t.verificationOrganization}'),
+            Row(children:[
+              CircleAvatar(
+                radius:24,
+                backgroundImage: profile['avatar_url'] is String ? NetworkImage(profile['avatar_url'] as String) : null,
+                child: profile['avatar_url'] is String ? null : const Icon(Icons.person_outline_rounded),
+              ),
+              const SizedBox(width:10),
+              Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+                Text(item['legal_name']?.toString()??_t.adminVerificationNoName,style:const TextStyle(fontWeight:FontWeight.w900,fontSize:16)),
+                Text('@${profile['username']??_t.storyUserFallback} • ${item['applicant_type']=='individual'?_t.verificationIndividual:_t.verificationOrganization}'),
+              ])),
+            ]),
             Text('${_t.verificationCategory}: ${_categoryLabel(item['category']?.toString())}'),
             if((item['phone']??'').toString().isNotEmpty)Text('${_t.verificationPhoneOptional}: ${item['phone']}'),
             if((item['organization_registration_number']??'').toString().isNotEmpty)Text('${_t.verificationRegistrationNumber}: ${item['organization_registration_number']}'),
