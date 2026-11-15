@@ -704,5 +704,60 @@
   "audioFilePreview": "ملف صوتي",
   "filePreview": "ملف",
   "formerAdmin": "مشرف سابق",
-  "inviteCode64CharHint": "رمز مكوّن من 64 حرفًا"
+  "inviteCode64CharHint": "رمز مكوّن من 64 حرفًا",
+  "notificationCenterTitle": "الإشعارات",
+  "notificationSettingsTitle": "إعدادات الإشعارات",
+  "socialNotificationCategory": "التفاعلات الاجتماعية",
+  "socialNotificationCategoryHint": "المتابعات والإعجابات والتعليقات والتفاعلات مع القصص",
+  "messageNotificationCategory": "الرسائل والدعم",
+  "messageNotificationCategoryHint": "الرسائل الخاصة ورسائل المجموعات والدعم",
+  "markAllNotificationsFailed": "تعذر تحديد الإشعارات كمقروءة.",
+  "loadNotificationsFailed": "تعذر تحميل الإشعارات.",
+  "notificationSettingsLoadFailed": "تعذر تحميل إعدادات الإشعارات.",
+  "notificationSettingsSaveFailed": "تعذر حفظ إعدادات الإشعارات.",
+  "yourNotifications": "إشعاراتك",
+  "markAllAsRead": "تحديد الكل كمقروء",
+  "noNewNotifications": "ليست لديك إشعارات جديدة بعد.",
+  "notificationSomeone": "مستخدم",
+  "notificationFollowedYou": "قام بمتابعتك.",
+  "notificationLikedPost": "أُعجب بمنشورك.",
+  "notificationCommentedPost": "علّق على منشورك.",
+  "notificationRepliedComment": "ردّ على تعليقك.",
+  "notificationRepostedPost": "أعاد نشر منشورك.",
+  "notificationReactedStory": "تفاعل مع قصتك.",
+  "notificationMentionedStory": "أشار إليك في قصة.",
+  "notificationSentMessage": "أرسل إليك رسالة.",
+  "notificationSupportRequest": "أرسل طلب دعم.",
+  "notificationSupportReply": "ردّ على طلب الدعم الخاص بك.",
+  "notificationModerationNotice": "أرسل إليك إشعارًا إداريًا.",
+  "notificationReportReviewed": "تمت مراجعة بلاغك.",
+  "notificationGenericActivity": "تفاعل معك.",
+  "notificationJustNow": "الآن",
+  "notificationMinutesAgo": "قبل {count} دقيقة",
+  "notificationHoursAgo": "قبل {count} ساعة",
+  "notificationDaysAgo": "قبل {count} يوم",
+  "supportRequestTitle": "طلب دعم",
+  "supportChatTitle": "دعم HomaGram",
+  "conversationFallback": "محادثة",
+  "@notificationMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@notificationHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@notificationDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

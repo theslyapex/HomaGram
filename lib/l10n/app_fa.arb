@@ -704,5 +704,60 @@
   "audioFilePreview": "فایل صوتی",
   "filePreview": "فایل",
   "formerAdmin": "مدیر سابق",
-  "inviteCode64CharHint": "کد ۶۴ کاراکتری"
+  "inviteCode64CharHint": "کد ۶۴ کاراکتری",
+  "notificationCenterTitle": "اعلان‌ها",
+  "notificationSettingsTitle": "تنظیمات اعلان‌ها",
+  "socialNotificationCategory": "تعاملات اجتماعی",
+  "socialNotificationCategoryHint": "دنبال‌کردن، پسندیدن، دیدگاه و واکنش به استوری",
+  "messageNotificationCategory": "پیام‌ها و پشتیبانی",
+  "messageNotificationCategoryHint": "پیام‌های خصوصی، گروهی و پشتیبانی",
+  "markAllNotificationsFailed": "علامت‌گذاری اعلان‌ها انجام نشد.",
+  "loadNotificationsFailed": "بارگذاری اعلان‌ها با مشکل مواجه شد.",
+  "notificationSettingsLoadFailed": "دریافت تنظیمات اعلان‌ها ناموفق بود.",
+  "notificationSettingsSaveFailed": "ذخیره تنظیمات انجام نشد.",
+  "yourNotifications": "اعلان‌های شما",
+  "markAllAsRead": "خواندن همه",
+  "noNewNotifications": "هنوز اعلان تازه‌ای ندارید.",
+  "notificationSomeone": "یک کاربر",
+  "notificationFollowedYou": "شما را دنبال کرد.",
+  "notificationLikedPost": "از پست شما پسندید.",
+  "notificationCommentedPost": "برای پست شما دیدگاه گذاشت.",
+  "notificationRepliedComment": "به دیدگاه شما پاسخ داد.",
+  "notificationRepostedPost": "پست شما را بازنشر کرد.",
+  "notificationReactedStory": "به استوری شما واکنش نشان داد.",
+  "notificationMentionedStory": "در یک استوری از شما نام برد.",
+  "notificationSentMessage": "برای شما پیام فرستاد.",
+  "notificationSupportRequest": "یک درخواست پشتیبانی ثبت کرد.",
+  "notificationSupportReply": "به درخواست پشتیبانی شما پاسخ داد.",
+  "notificationModerationNotice": "یک اطلاعیه مدیریتی برای شما ارسال کرد.",
+  "notificationReportReviewed": "گزارش شما بررسی شد.",
+  "notificationGenericActivity": "با شما تعامل داشت.",
+  "notificationJustNow": "همین الان",
+  "notificationMinutesAgo": "{count} دقیقه پیش",
+  "notificationHoursAgo": "{count} ساعت پیش",
+  "notificationDaysAgo": "{count} روز پیش",
+  "supportRequestTitle": "درخواست پشتیبانی",
+  "supportChatTitle": "پشتیبانی هماگرام",
+  "conversationFallback": "گفت‌وگو",
+  "@notificationMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@notificationHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@notificationDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -704,5 +704,60 @@
   "audioFilePreview": "Audio file",
   "filePreview": "File",
   "formerAdmin": "Former admin",
-  "inviteCode64CharHint": "64-character code"
+  "inviteCode64CharHint": "64-character code",
+  "notificationCenterTitle": "Notifications",
+  "notificationSettingsTitle": "Notification settings",
+  "socialNotificationCategory": "Social activity",
+  "socialNotificationCategoryHint": "Follows, likes, comments, and story reactions",
+  "messageNotificationCategory": "Messages and support",
+  "messageNotificationCategoryHint": "Private, group, and support messages",
+  "markAllNotificationsFailed": "Could not mark notifications as read.",
+  "loadNotificationsFailed": "Could not load notifications.",
+  "notificationSettingsLoadFailed": "Could not load notification settings.",
+  "notificationSettingsSaveFailed": "Could not save notification settings.",
+  "yourNotifications": "Your notifications",
+  "markAllAsRead": "Mark all as read",
+  "noNewNotifications": "You don't have any new notifications yet.",
+  "notificationSomeone": "A user",
+  "notificationFollowedYou": "followed you.",
+  "notificationLikedPost": "liked your post.",
+  "notificationCommentedPost": "commented on your post.",
+  "notificationRepliedComment": "replied to your comment.",
+  "notificationRepostedPost": "reposted your post.",
+  "notificationReactedStory": "reacted to your story.",
+  "notificationMentionedStory": "mentioned you in a story.",
+  "notificationSentMessage": "sent you a message.",
+  "notificationSupportRequest": "sent a support request.",
+  "notificationSupportReply": "replied to your support request.",
+  "notificationModerationNotice": "sent you a moderation notice.",
+  "notificationReportReviewed": "your report has been reviewed.",
+  "notificationGenericActivity": "interacted with you.",
+  "notificationJustNow": "Just now",
+  "notificationMinutesAgo": "{count} minutes ago",
+  "notificationHoursAgo": "{count} hours ago",
+  "notificationDaysAgo": "{count} days ago",
+  "supportRequestTitle": "Support request",
+  "supportChatTitle": "HomaGram Support",
+  "conversationFallback": "Conversation",
+  "@notificationMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@notificationHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@notificationDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

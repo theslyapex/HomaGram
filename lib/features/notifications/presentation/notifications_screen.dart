@@ -12,6 +12,7 @@ import '../../messaging/presentation/chat_screen.dart';
 import '../../support/data/support_service.dart';
 import '../../support/presentation/support_chat_screen.dart';
 import '../data/notification_service.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -21,6 +22,7 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   late Future<List<Map<String, dynamic>>> _future;
   RealtimeChannel? _channel;
 
@@ -61,7 +63,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('علامت‌گذاری اعلان‌ها انجام نشد.')),
+          SnackBar(content: Text(_t.markAllNotificationsFailed)),
         );
       }
     }
@@ -77,42 +79,42 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         context: context,
         builder: (dialogContext) => StatefulBuilder(
           builder: (context, setDialogState) => AlertDialog(
-            title: const Text('تنظیمات اعلان‌ها'),
+            title: Text(_t.notificationSettingsTitle),
             content: Column(mainAxisSize: MainAxisSize.min, children: [
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('تعاملات اجتماعی'),
-                subtitle: const Text('دنبال‌کردن، پسندیدن، دیدگاه و استوری'),
+                title: Text(_t.socialNotificationCategory),
+                subtitle: Text(_t.socialNotificationCategoryHint),
                 value: social,
                 onChanged: (value) => setDialogState(() => social = value),
               ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('پیام‌ها'),
-                subtitle: const Text('پیام‌های خصوصی، گروهی و پشتیبانی'),
+                title: Text(_t.messageNotificationCategory),
+                subtitle: Text(_t.messageNotificationCategoryHint),
                 value: messages,
                 onChanged: (value) => setDialogState(() => messages = value),
               ),
             ]),
             actions: [
-              HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف'))),
+              HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(_t.cancel))),
               HomaGramSpringPress(child: FilledButton(onPressed: () async {
                 try {
                   await NotificationService.updatePreferences(socialEnabled: social, messagesEnabled: messages);
                   if (dialogContext.mounted) Navigator.pop(dialogContext);
                 } catch (_) {
                   if (dialogContext.mounted) ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(content: Text('ذخیره تنظیمات انجام نشد.')),
+                    SnackBar(content: Text(_t.notificationSettingsSaveFailed)),
                   );
                 }
-              }, child: const Text('ذخیره'))),
+              }, child: Text(_t.save))),
             ],
           ),
         ),
       );
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('دریافت تنظیمات اعلان‌ها ناموفق بود.')),
+        SnackBar(content: Text(_t.notificationSettingsLoadFailed)),
       );
     }
   }
@@ -121,8 +123,25 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final actor = item['actor'] as Map<String, dynamic>?;
     final name = (actor?['display_name'] as String?)?.trim();
     final username = actor?['username'] as String?;
-    final label = name?.isNotEmpty == true ? name! : (username ?? 'یک کاربر');
-    return '$label ${item['message'] ?? 'با شما تعامل داشت.'}';
+    final label = name?.isNotEmpty == true
+        ? name!
+        : (username ?? _t.notificationSomeone);
+    final message = switch (item['type'] as String? ?? '') {
+      'follow' => _t.notificationFollowedYou,
+      'post_like' => _t.notificationLikedPost,
+      'post_comment' => _t.notificationCommentedPost,
+      'comment_reply' => _t.notificationRepliedComment,
+      'post_repost' => _t.notificationRepostedPost,
+      'story_reaction' => _t.notificationReactedStory,
+      'story_mention' => _t.notificationMentionedStory,
+      'message_new' => _t.notificationSentMessage,
+      'support_message' => _t.notificationSupportRequest,
+      'support_reply' => _t.notificationSupportReply,
+      'moderation_notice' => _t.notificationModerationNotice,
+      'report_reviewed' => _t.notificationReportReviewed,
+      _ => (item['message'] as String?) ?? _t.notificationGenericActivity,
+    };
+    return '$label $message';
   }
 
   IconData _icon(String type) {
@@ -148,10 +167,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final date = DateTime.tryParse(value)?.toLocal();
     if (date == null) return '';
     final elapsed = DateTime.now().difference(date);
-    if (elapsed.inMinutes < 1) return 'همین الان';
-    if (elapsed.inHours < 1) return '${elapsed.inMinutes} دقیقه پیش';
-    if (elapsed.inDays < 1) return '${elapsed.inHours} ساعت پیش';
-    if (elapsed.inDays < 7) return '${elapsed.inDays} روز پیش';
+    if (elapsed.inMinutes < 1) return _t.notificationJustNow;
+    if (elapsed.inHours < 1) return _t.notificationMinutesAgo(elapsed.inMinutes);
+    if (elapsed.inDays < 1) return _t.notificationHoursAgo(elapsed.inHours);
+    if (elapsed.inDays < 7) return _t.notificationDaysAgo(elapsed.inDays);
     return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
   }
 
@@ -184,7 +203,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         Navigator.of(context).push(MaterialPageRoute(
           builder: (_) => SupportChatScreen(
             conversationId: entityId,
-            title: 'درخواست پشتیبانی',
+            title: _t.supportRequestTitle,
             isAdmin: true,
           ),
         ));
@@ -192,7 +211,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         Navigator.of(context).push(MaterialPageRoute(
           builder: (_) => SupportChatScreen(
             conversationId: entityId,
-            title: 'پشتیبانی هماگرام',
+            title: _t.supportChatTitle,
           ),
         ));
       }
@@ -201,7 +220,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       final username = actor?['username'] as String?;
       final title = displayName?.isNotEmpty == true
           ? displayName!
-          : (username ?? 'گفت‌وگو');
+          : (username ?? _t.conversationFallback);
       Navigator.of(context).push(MaterialPageRoute(
         builder: (_) => ChatScreen(
           conversationId: entityId,
@@ -221,7 +240,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(title: const Text('اعلان‌ها', style: TextStyle(fontWeight: FontWeight.w900))),
+      appBar: AppBar(title: Text(_t.notificationCenterTitle, style: const TextStyle(fontWeight: FontWeight.w900))),
       body: HomaGramEntrance(child: SafeArea(child: FutureBuilder<List<Map<String, dynamic>>>(
       future: _future,
       builder: (context, snapshot) {
@@ -234,9 +253,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             children: [
               const Icon(Icons.cloud_off_rounded, size: 42, color: Colors.grey),
               const SizedBox(height: 12),
-              const Text('بارگذاری اعلان‌ها با مشکل مواجه شد.'),
+              Text(_t.loadNotificationsFailed),
               const SizedBox(height: 12),
-              HomaGramSpringPress(child: FilledButton.tonal(onPressed: _refresh, child: const Text('تلاش دوباره'))),
+              HomaGramSpringPress(child: FilledButton.tonal(onPressed: _refresh, child: Text(_t.retry))),
             ],
           ));
         }
@@ -247,21 +266,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(18, 12, 18, 8),
             child: Row(children: [
-              const Expanded(child: Text('اعلان‌های شما',
+              Expanded(child: Text(_t.yourNotifications,
                   style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800))),
-              HomaGramSpringPress(child: IconButton(tooltip: 'تنظیمات اعلان‌ها', onPressed: _openPreferences, icon: const Icon(Icons.tune_rounded))),
+              HomaGramSpringPress(child: IconButton(tooltip: _t.notificationSettingsTitle, onPressed: _openPreferences, icon: const Icon(Icons.tune_rounded))),
               if (unread > 0)
-                HomaGramSpringPress(child: TextButton(onPressed: _markAllRead, child: const Text('خواندن همه'))),
+                HomaGramSpringPress(child: TextButton(onPressed: _markAllRead, child: Text(_t.markAllAsRead))),
             ]),
           ),
           Expanded(child: RefreshIndicator(
             onRefresh: _refresh,
             child: items.isEmpty
-                ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
-                    SizedBox(height: 110),
-                    Icon(Icons.notifications_off_outlined, size: 54, color: Colors.grey),
-                    SizedBox(height: 14),
-                    Center(child: Text('هنوز اعلان تازه‌ای ندارید.')),
+                ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: [
+                    const SizedBox(height: 110),
+                    const Icon(Icons.notifications_off_outlined, size: 54, color: Colors.grey),
+                    const SizedBox(height: 14),
+                    Center(child: Text(_t.noNewNotifications)),
                   ])
                 : ListView.separated(
                     physics: const AlwaysScrollableScrollPhysics(),
