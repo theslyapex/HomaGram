@@ -236,7 +236,10 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
       }
       if (!mounted) return;
       Navigator.of(context).push(MaterialPageRoute<void>(
-        builder: (_) => ChatScreen(conversationId: id, title: title),
+        builder: (_) => ChatScreen(
+          conversationId: id,
+          title: title.trim().isEmpty ? _t.privateChannel : title,
+        ),
       ));
       _load(showLoading: false);
     } catch (_) {
