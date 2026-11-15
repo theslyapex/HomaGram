@@ -374,5 +374,13 @@
   "mediaSendingDisabled": "ارسال رسانه در این گروه غیرفعال است",
   "writeMessage": "پیام خود را بنویسید…",
   "messagingDisabled": "ارسال پیام غیرفعال است",
-  "offline": "آفلاین"
+  "offline": "آفلاین",
+  "selectedPeople": "{count} انتخاب‌شده",
+  "@selectedPeople": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
