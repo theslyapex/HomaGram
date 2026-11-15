@@ -281,7 +281,12 @@ class _UserCard extends StatelessWidget {
         child: Row(children: [
           CircleAvatar(
             backgroundColor: colors.primaryContainer,
-            child: Icon(Icons.person_outline_rounded, color: colors.onPrimaryContainer),
+            backgroundImage: user.avatarUrl?.isNotEmpty == true
+                ? NetworkImage(user.avatarUrl!)
+                : null,
+            child: user.avatarUrl?.isNotEmpty == true
+                ? null
+                : Icon(Icons.person_outline_rounded, color: colors.onPrimaryContainer),
           ),
           const SizedBox(width: 12),
           Expanded(child: Column(
