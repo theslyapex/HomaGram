@@ -363,6 +363,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                               const SizedBox(height: 12),
                               TextField(
                                 controller: _birthDate,
+                                onChanged: (_) => setState(() {}),
                                 keyboardType: TextInputType.datetime,
                                 textDirection: TextDirection.ltr,
                                 decoration: const InputDecoration(
