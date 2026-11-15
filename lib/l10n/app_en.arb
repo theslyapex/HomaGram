@@ -1289,5 +1289,51 @@
         "type": "int"
       }
     }
+  },
+  "storyUnsupportedMedia": "This media format isn't supported.",
+  "storyMediaSizeLimit": "Media must be 50 MB or smaller.",
+  "storyMediaPickFailed": "Couldn't select the media.",
+  "storyFileAccessFailed": "Couldn't access the selected file.",
+  "storyStickerSizeLimit": "Stickers must be 5 MB or smaller.",
+  "storyStickerFormats": "Only GIF, JPG, PNG, and WebP files are supported.",
+  "storyStickerLimit": "You can add up to 20 stickers.",
+  "storyStickerPickFailed": "Couldn't select the sticker.",
+  "storyMusicAccessFailed": "Couldn't access the music file.",
+  "storyMusicSizeLimit": "Music must be 15 MB or smaller.",
+  "storyMusicFormats": "Only MP3, M4A, AAC, and WAV files are supported.",
+  "storyMusicLoadFailed": "Couldn't load or preview the music. Choose another file.",
+  "storyMusicPreviewFailed": "Couldn't play the music preview.",
+  "storyCountdownEndDate": "Countdown end date",
+  "storyCountdownEndTime": "End time",
+  "storyCountdownMustBeFuture": "The end time must be in the future.",
+  "storyDraftTextRequired": "Enter story text before saving a draft.",
+  "storyDraftMediaRequired": "Choose an image or video first.",
+  "storyDraftSaved": "Draft saved successfully.",
+  "storyDraftSaveFailed": "Couldn't save the draft. Check storage or your connection.",
+  "storyDraftLoadFailed": "Couldn't load drafts.",
+  "storyNoDrafts": "You haven't saved any drafts yet.",
+  "storyMyDrafts": "My drafts",
+  "storyDraftCount": "{count} items",
+  "storyVideo": "Video",
+  "storyImage": "Image",
+  "storyText": "Text",
+  "storyDraftTitle": "{type} draft",
+  "storyDeleteDraft": "Delete draft",
+  "storyDraftDeleteFailed": "Couldn't delete the draft.",
+  "storyDraftRestored": "Draft restored. You can continue editing.",
+  "storyDraftRestoreFailed": "Couldn't restore the draft.",
+  "@storyDraftCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyDraftTitle": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
   }
 }
