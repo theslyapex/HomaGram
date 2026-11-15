@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -13,6 +14,7 @@ class TwoStepVerificationScreen extends StatefulWidget {
 }
 
 class _TwoStepVerificationScreenState extends State<TwoStepVerificationScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final _code = TextEditingController();
   bool _loading = true;
   bool _busy = false;
@@ -49,7 +51,7 @@ class _TwoStepVerificationScreenState extends State<TwoStepVerificationScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = 'وضعیت تأیید دومرحله‌ای دریافت نشد. اتصال را بررسی کنید.';
+        _error = _t.twoStepLoadFailed;
       });
     }
   }
@@ -70,7 +72,7 @@ class _TwoStepVerificationScreenState extends State<TwoStepVerificationScreen> {
         _code.clear();
       });
     } catch (_) {
-      if (mounted) setState(() => _error = 'شروع فعال‌سازی انجام نشد. کمی بعد دوباره تلاش کنید.');
+      if (mounted) setState(() => _error = _t.twoStepEnrollmentStartFailed);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -90,10 +92,10 @@ class _TwoStepVerificationScreenState extends State<TwoStepVerificationScreen> {
       });
       await _load();
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تأیید دومرحله‌ای با موفقیت فعال شد.')),
+        SnackBar(content: Text(_t.twoStepEnabledSnack)),
       );
     } catch (_) {
-      if (mounted) setState(() => _error = 'کد واردشده معتبر نیست یا منقضی شده است. کد تازه را وارد کنید.');
+      if (mounted) setState(() => _error = _t.twoStepInvalidCode);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -106,11 +108,11 @@ class _TwoStepVerificationScreenState extends State<TwoStepVerificationScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('غیرفعال‌سازی تأیید دومرحله‌ای'),
-        content: const Text('برای خاموش‌کردن این لایه امنیتی، کد فعلی برنامه احراز هویت را وارد و عملیات را تأیید کنید.'),
+        title: Text(_t.twoStepDisableTitle),
+        content: Text(_t.twoStepDisableDescription),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('تأیید و غیرفعال‌سازی')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(_t.feedCancel)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(_t.twoStepConfirmDisable)),
         ],
       ),
     );
@@ -123,10 +125,10 @@ class _TwoStepVerificationScreenState extends State<TwoStepVerificationScreen> {
       _code.clear();
       await _load();
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تأیید دومرحله‌ای غیرفعال شد.')),
+        SnackBar(content: Text(_t.twoStepDisabledSnack)),
       );
     } catch (_) {
-      if (mounted) setState(() => _error = 'غیرفعال‌سازی انجام نشد. کد فعلی را بررسی کنید.');
+      if (mounted) setState(() => _error = _t.twoStepDisableFailed);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -136,7 +138,7 @@ class _TwoStepVerificationScreenState extends State<TwoStepVerificationScreen> {
   Widget build(BuildContext context) {
     final enabled = _factorId != null && _secret == null;
     return Scaffold(
-      appBar: AppBar(title: const Text('تأیید دومرحله‌ای')),
+      appBar: AppBar(title: Text(_t.twoStepTitle)),
       body: HomaGramEntrance(child: ListView(
         padding: const EdgeInsets.all(18),
         children: [
@@ -154,9 +156,9 @@ class _TwoStepVerificationScreenState extends State<TwoStepVerificationScreen> {
               Icon(Icons.shield_moon_rounded, color: Colors.white, size: 34),
               SizedBox(width: 13),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('یک لایه امنیتی بیشتر', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 17)),
+                Text(_t.twoStepSecurityHeading, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 17)),
                 SizedBox(height: 5),
-                Text('پس از رمز عبور، کد زمان‌دار برنامه احراز هویت نیز لازم می‌شود.',
+                Text(_t.twoStepSecurityDescription,
                   style: TextStyle(color: Colors.white70, height: 1.7, fontSize: 11)),
               ])),
             ]),
@@ -166,12 +168,12 @@ class _TwoStepVerificationScreenState extends State<TwoStepVerificationScreen> {
           else if (_error != null && _factorId == null && _secret == null)
             _errorBox()
           else if (_secret != null) ...[
-            _statusCard('در حال راه‌اندازی', 'کلید زیر را در برنامه احراز هویت وارد کنید؛ سپس کد شش‌رقمی را برای تأیید بنویسید.', Icons.qr_code_2_rounded),
+            _statusCard(_t.twoStepSettingUp, _t.twoStepSetupInstructions, Icons.qr_code_2_rounded),
             const SizedBox(height: 12),
             Card(child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                const Text('کلید راه‌اندازی خصوصی', style: TextStyle(fontWeight: FontWeight.w900)),
+                Text(_t.twoStepSecretKey, style: TextStyle(fontWeight: FontWeight.w900)),
                 const SizedBox(height: 8),
                 SelectableText(_secret!, textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 15, letterSpacing: 1.2, fontWeight: FontWeight.w800)),
@@ -179,7 +181,7 @@ class _TwoStepVerificationScreenState extends State<TwoStepVerificationScreen> {
                 OutlinedButton.icon(
                   onPressed: () => Clipboard.setData(ClipboardData(text: _secret!)),
                   icon: const Icon(Icons.copy_rounded),
-                  label: const Text('کپی کلید'),
+                  label: Text(_t.twoStepCopyKey),
                 ),
               ]),
             )),
@@ -189,30 +191,30 @@ class _TwoStepVerificationScreenState extends State<TwoStepVerificationScreen> {
             FilledButton.icon(
               onPressed: _busy ? null : _verifyEnrollment,
               icon: _busy ? const SizedBox(width: 17, height: 17, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.verified_rounded),
-              label: const Text('تأیید و فعال‌سازی'),
+              label: Text(_t.twoStepEnableConfirm),
             ),
             const SizedBox(height: 8),
-            const Text('کلید را فقط در برنامه احراز هویت خود وارد کنید و آن را برای هیچ‌کس نفرستید.',
+            Text(_t.twoStepSecretSafetyNote,
               textAlign: TextAlign.center, style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4))),
           ] else if (enabled) ...[
-            _statusCard('تأیید دومرحله‌ای فعال است', 'برای ورود به هماگرام، علاوه بر روش ورود اصلی، کد برنامه احراز هویت لازم است.',
+            _statusCard(_t.twoStepEnabledTitle, _t.twoStepEnabledDescription,
               Icons.verified_user_rounded),
             const SizedBox(height: 14),
-            _codeField(hint: 'کد فعلی برای غیرفعال‌سازی'),
+            _codeField(hint: _t.twoStepCurrentCodeDisableHint),
             const SizedBox(height: 10),
             OutlinedButton.icon(
               onPressed: _busy ? null : _disable,
               icon: const Icon(Icons.lock_open_rounded),
-              label: const Text('غیرفعال‌سازی با کد فعلی'),
+              label: Text(_t.twoStepDisableWithCode),
             ),
           ] else ...[
-            _statusCard('تأیید دومرحله‌ای خاموش است', 'با فعال‌سازی، ورود به حساب به کد زمان‌دار برنامه احراز هویت نیز نیاز خواهد داشت.',
+            _statusCard(_t.twoStepDisabledTitle, _t.twoStepDisabledDescription,
               Icons.shield_outlined),
             const SizedBox(height: 14),
             FilledButton.icon(
               onPressed: _busy ? null : _beginEnrollment,
               icon: _busy ? const SizedBox(width: 17, height: 17, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.shield_rounded),
-              label: const Text('فعال‌سازی تأیید دومرحله‌ای'),
+              label: Text(_t.twoStepEnable),
             ),
           ],
           if (_error != null && (_factorId != null || _secret != null)) ...[
@@ -220,21 +222,21 @@ class _TwoStepVerificationScreenState extends State<TwoStepVerificationScreen> {
             _errorBox(),
           ],
           const SizedBox(height: 14),
-          const Text('نکته: هماگرام کدهای بازیابی جداگانه ارائه نمی‌کند. دسترسی امن به برنامه احراز هویت خود را حفظ کنید؛ در صورت گم‌شدن دستگاه، از مسیر پشتیبانی درخواست راهنمایی کنید.',
+          Text(_t.twoStepRecoveryCodesNote,
             style: TextStyle(fontSize: 11, height: 1.8, color: Color(0xFF8490A4))),
         ],
       )),
     );
   }
 
-  Widget _codeField({String hint = 'کد شش‌رقمی برنامه احراز هویت'}) => TextField(
+  Widget _codeField({String hint = _t.twoStepCodeHint}) => TextField(
     controller: _code,
     keyboardType: TextInputType.number,
     textAlign: TextAlign.center,
     maxLength: 6,
     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
     decoration: InputDecoration(
-      labelText: hint,
+      labelText: hint ?? _t.twoStepCodeHint,
       counterText: '',
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
     ),
@@ -277,6 +279,7 @@ class MfaChallengeScreen extends StatefulWidget {
 }
 
 class _MfaChallengeScreenState extends State<MfaChallengeScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final _code = TextEditingController();
   String? _factorId;
   String? _error;
@@ -306,7 +309,7 @@ class _MfaChallengeScreenState extends State<MfaChallengeScreen> {
         _loading = false;
       });
     } catch (_) {
-      if (mounted) setState(() { _loading = false; _error = 'عامل امنیتی حساب دریافت نشد.'; });
+      if (mounted) setState(() { _loading = false; _error = _t.twoStepFactorLoadFailed; });
     }
   }
 
@@ -320,7 +323,7 @@ class _MfaChallengeScreenState extends State<MfaChallengeScreen> {
       await Supabase.instance.client.auth.refreshSession();
       if (mounted) widget.onVerified();
     } catch (_) {
-      if (mounted) setState(() => _error = 'کد معتبر نیست یا منقضی شده است. دوباره تلاش کنید.');
+      if (mounted) setState(() => _error = _t.twoStepChallengeInvalidCode);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -335,14 +338,14 @@ class _MfaChallengeScreenState extends State<MfaChallengeScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           const HomaGramLogo(size: 100),
           const SizedBox(height: 18),
-          const Text('تأیید هویت دومرحله‌ای', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
+          Text(_t.twoStepChallengeTitle, style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
           const SizedBox(height: 8),
-          const Text('کد شش‌رقمی برنامه احراز هویت را وارد کنید تا ورود به حساب تکمیل شود.',
+          Text(_t.twoStepChallengeDescription,
             textAlign: TextAlign.center, style: TextStyle(height: 1.8)),
           const SizedBox(height: 18),
           if (_loading) const CircularProgressIndicator()
           else if (_factorId == null)
-            const Text('عامل تأییدشده‌ای پیدا نشد. برای راهنمایی با پشتیبانی تماس بگیرید.', textAlign: TextAlign.center)
+            Text(_t.twoStepNoVerifiedFactor, textAlign: TextAlign.center)
           else ...[
             TextField(
               controller: _code,
@@ -350,12 +353,12 @@ class _MfaChallengeScreenState extends State<MfaChallengeScreen> {
               textAlign: TextAlign.center,
               maxLength: 6,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: const InputDecoration(labelText: 'کد شش‌رقمی', counterText: ''),
+              decoration: InputDecoration(labelText: _t.twoStepSixDigitCode, counterText: ''),
             ),
             const SizedBox(height: 12),
             SizedBox(width: double.infinity, child: FilledButton(
               onPressed: _busy ? null : _verify,
-              child: _busy ? const CircularProgressIndicator() : const Text('تأیید و ورود'),
+              child: _busy ? const CircularProgressIndicator() : Text(_t.twoStepConfirmAndSignIn),
             )),
           ],
           if (_error != null) ...[
@@ -365,7 +368,7 @@ class _MfaChallengeScreenState extends State<MfaChallengeScreen> {
           const SizedBox(height: 12),
           TextButton(
             onPressed: () => Supabase.instance.client.auth.signOut(),
-            child: const Text('خروج از حساب'),
+            child: Text(_t.twoStepSignOut),
           ),
         ]),
       ),
