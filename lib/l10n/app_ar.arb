@@ -1165,5 +1165,11 @@
         "type": "int"
       }
     }
-  }
+  },
+  "homeSettings": "الإعدادات",
+  "homeNotifications": "الإشعارات",
+  "homeAdminPanel": "لوحة الإدارة",
+  "homeTab": "الرئيسية",
+  "homeMessages": "الرسائل",
+  "homeProfile": "الملف الشخصي"
 }
