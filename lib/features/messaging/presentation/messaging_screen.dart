@@ -482,7 +482,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
         await MessagingService.setConversationArchived(item.id, archived: !_showArchived);
         await _load();
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(_showArchived ? 'گفتگو به فهرست اصلی بازگردانده شد.' : 'گفتگو بایگانی شد.'),
+          content: Text(_showArchived ? _t.conversationRestored : _t.conversationArchived),
         ));
       } catch (_) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
@@ -500,7 +500,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
         title: Text(label),
         content: Text(item.kind == 'direct'
           ? _t.deleteConversationExplanation
-          : 'از این ${item.kind == 'group' ? _t.group : 'کانال'} خارج می‌شوید و دیگر در فهرست پیام‌های شما نمایش داده نمی‌شود.'),
+          : _t.leaveConversationExplanation(item.kind == 'group' ? _t.group : _t.channel)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text(_t.cancel)),
           FilledButton(
