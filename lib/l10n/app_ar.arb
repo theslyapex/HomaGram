@@ -1171,5 +1171,16 @@
   "homeAdminPanel": "لوحة الإدارة",
   "homeTab": "الرئيسية",
   "homeMessages": "الرسائل",
-  "homeProfile": "الملف الشخصي"
+  "homeProfile": "الملف الشخصي",
+  "storiesTitle": "القصص",
+  "storiesArchive": "الأرشيف",
+  "storiesRefresh": "تحديث القصص",
+  "storiesYourStory": "قصتك",
+  "storiesMyStory": "قصتي",
+  "storiesAdd": "إضافة",
+  "storiesArchiveTitle": "أرشيف القصص",
+  "storiesReload": "إعادة التحميل",
+  "storiesArchiveFailed": "تعذّر تحميل الأرشيف.",
+  "storiesTryAgain": "حاول مجددًا",
+  "storiesArchiveEmpty": "ليست لديك قصص منتهية الصلاحية بعد."
 }
