@@ -674,5 +674,28 @@
   "startConversation": "ابدأ المحادثة",
   "channelFirstPostHint": "ستظهر منشورات القناة هنا بعد نشر أول منشور.",
   "groupFirstMessageHint": "أرسل أول رسالة إلى المجموعة.",
-  "conversationFirstMessageHint": "أرسل أول رسالة في هذه المحادثة."
+  "conversationFirstMessageHint": "أرسل أول رسالة في هذه المحادثة.",
+  "onlinePeopleCount": "{count} متصل",
+  "@onlinePeopleCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "lastSeenAt": "آخر ظهور {time}",
+  "@lastSeenAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "publicIdHelper": "3–32 حرفًا: أحرف إنجليزية أو أرقام أو شرطات سفلية",
+  "name": "الاسم",
+  "description": "الوصف",
+  "saveSettings": "حفظ الإعدادات",
+  "save": "حفظ",
+  "replyFallback": "رسالة",
+  "userFallback": "مستخدم"
 }
