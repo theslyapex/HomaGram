@@ -84,7 +84,7 @@ class SettingsScreen extends StatelessWidget {
       _SettingEntry(Icons.tune_rounded, _t(context).privacyAndAccountVisibility, _t(context).themePrivacyAndBlockedUsers,
         () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AccountPreferencesScreen()))),
       _SettingEntry(Icons.lock_outline_rounded, _t(context).privacyPolicy, _t(context).accountAndDataProtection,
-        () => _open(context, 'حریم خصوصی و امنیت', _privacy)),
+        () => _open(context, _t(context).privacyPolicy, _privacy(_t(context)))),
       _SettingEntry(Icons.gavel_rounded, _t(context).termsAndConditions, _t(context).homagramTerms,
         () => _open(context, _t(context).termsAndConditions, _terms(_t(context)))),
       _SettingEntry(Icons.groups_2_outlined, _t(context).communityGuidelines, _t(context).allowedBehaviorAndProhibitedContent,
