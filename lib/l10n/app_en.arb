@@ -1799,5 +1799,11 @@
         "type": "String"
       }
     }
-  }
+  },
+  "adminReasonMisinformation": "Misinformation",
+  "adminReasonCopiedContent": "Copied content",
+  "adminReasonCopyright": "Copyright infringement",
+  "adminReasonViolence": "Violent content",
+  "adminReasonPoliticalInsult": "Political insult",
+  "adminReasonIllegal": "Illegal content"
 }
