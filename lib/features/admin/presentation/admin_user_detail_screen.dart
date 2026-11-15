@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../app/presentation/homagram_branding.dart';
 import '../../../core/utils/persian_date.dart';
 import '../data/admin_service.dart';
+import '../../support/presentation/support_chat_screen.dart';
 
 class AdminUserDetailScreen extends StatefulWidget {
   const AdminUserDetailScreen({required this.userId, super.key});
@@ -15,6 +17,8 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
   late Future<Map<String, dynamic>> _future;
   bool _isAdmin = false;
   bool _deleting = false;
+  bool _verified = false;
+  bool _verificationBusy = false;
   @override
   void initState() {
     super.initState();
@@ -24,7 +28,9 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
   Future<void> _checkAdmin() async {
     try {
       final value = await AdminService.isCurrentUserAdmin();
-      if (mounted) setState(() => _isAdmin = value);
+      final profile = await Supabase.instance.client.from('profiles')
+        .select('is_verified').eq('id', widget.userId).maybeSingle();
+      if (mounted) setState(() { _isAdmin = value; _verified = profile?['is_verified'] == true; });
     } catch (_) {}
   }
 
@@ -93,6 +99,32 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
       if (mounted) setState(() => _deleting = false);
     }
   }
+  Future<void> _toggleVerified() async {
+    if (!_isAdmin || _verificationBusy) return;
+    setState(() => _verificationBusy = true);
+    try {
+      await AdminService.setVerified(widget.userId, !_verified);
+      if (mounted) {
+        setState(() => _verified = !_verified);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_verified ? 'نشان تأیید فعال شد.' : 'نشان تأیید لغو شد.')));
+      }
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تغییر وضعیت نشان تأیید انجام نشد.')));
+    } finally { if (mounted) setState(() => _verificationBusy = false); }
+  }
+
+  Future<void> _messageUser() async {
+    if (!_isAdmin) return;
+    try {
+      final id = await AdminService.openSupportForUser(widget.userId);
+      if (!mounted) return;
+      await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) =>
+        SupportChatScreen(conversationId: id, title: 'پشتیبانی کاربر', isAdmin: true)));
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('گفت‌وگوی پشتیبانی ایجاد نشد.')));
+    }
+  }
+
   Future<void> _refresh() async {
     final next = AdminService.loadUserDetail(widget.userId);
     setState(() => _future = next);
@@ -235,6 +267,18 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
             _reportSection('گزارش‌های ثبت‌شده علیه محتوای این کاربر', against, false),
             if (_isAdmin) ...[
               const SizedBox(height: 22),
+              FilledButton.icon(
+                onPressed: _verificationBusy ? null : _toggleVerified,
+                icon: Icon(_verified ? Icons.verified_rounded : Icons.verified_outlined),
+                label: Text(_verified ? 'لغو نشان تأیید' : 'اعطای نشان تأیید'),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: _messageUser,
+                icon: const Icon(Icons.support_agent_rounded),
+                label: const Text('ارسال پیام پشتیبانی به کاربر'),
+              ),
+              const SizedBox(height: 8),
               OutlinedButton.icon(
                 onPressed: _deleting ? null : () => _confirmDelete(d),
                 icon: _deleting
