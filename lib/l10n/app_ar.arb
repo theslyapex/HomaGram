@@ -1289,5 +1289,51 @@
         "type": "int"
       }
     }
+  },
+  "storyUnsupportedMedia": "تنسيق الوسائط هذا غير مدعوم.",
+  "storyMediaSizeLimit": "يجب ألا يتجاوز حجم الوسائط 50 ميغابايت.",
+  "storyMediaPickFailed": "تعذّر اختيار الوسائط.",
+  "storyFileAccessFailed": "تعذّر الوصول إلى الملف المحدد.",
+  "storyStickerSizeLimit": "يجب ألا يتجاوز حجم الملصق 5 ميغابايت.",
+  "storyStickerFormats": "تُدعم ملفات GIF وJPG وPNG وWebP فقط.",
+  "storyStickerLimit": "يمكنك إضافة 20 ملصقًا كحد أقصى.",
+  "storyStickerPickFailed": "تعذّر اختيار الملصق.",
+  "storyMusicAccessFailed": "تعذّر الوصول إلى ملف الموسيقى.",
+  "storyMusicSizeLimit": "يجب ألا يتجاوز حجم الموسيقى 15 ميغابايت.",
+  "storyMusicFormats": "تُدعم ملفات MP3 وM4A وAAC وWAV فقط.",
+  "storyMusicLoadFailed": "تعذّر تحميل الموسيقى أو معاينتها. اختر ملفًا آخر.",
+  "storyMusicPreviewFailed": "تعذّر تشغيل معاينة الموسيقى.",
+  "storyCountdownEndDate": "تاريخ انتهاء العد التنازلي",
+  "storyCountdownEndTime": "وقت الانتهاء",
+  "storyCountdownMustBeFuture": "يجب أن يكون وقت الانتهاء في المستقبل.",
+  "storyDraftTextRequired": "أدخل نص القصة أولًا لحفظ المسودة.",
+  "storyDraftMediaRequired": "اختر صورة أو فيديو أولًا.",
+  "storyDraftSaved": "تم حفظ المسودة بنجاح.",
+  "storyDraftSaveFailed": "تعذّر حفظ المسودة. تحقق من مساحة التخزين أو الاتصال.",
+  "storyDraftLoadFailed": "تعذّر تحميل المسودات.",
+  "storyNoDrafts": "لم تحفظ أي مسودات بعد.",
+  "storyMyDrafts": "مسوداتي",
+  "storyDraftCount": "{count} عناصر",
+  "storyVideo": "فيديو",
+  "storyImage": "صورة",
+  "storyText": "نص",
+  "storyDraftTitle": "مسودة {type}",
+  "storyDeleteDraft": "حذف المسودة",
+  "storyDraftDeleteFailed": "تعذّر حذف المسودة.",
+  "storyDraftRestored": "تمت استعادة المسودة. يمكنك متابعة التعديل.",
+  "storyDraftRestoreFailed": "تعذّرت استعادة المسودة.",
+  "@storyDraftCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyDraftTitle": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
   }
 }
