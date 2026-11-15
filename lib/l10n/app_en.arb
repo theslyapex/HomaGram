@@ -759,5 +759,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "newNotificationInHomagram": "You have a new notification on HomaGram.",
+  "viewNotification": "View"
 }

@@ -759,5 +759,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "newNotificationInHomagram": "یک اعلان تازه در هماگرام دارید.",
+  "viewNotification": "مشاهده"
 }

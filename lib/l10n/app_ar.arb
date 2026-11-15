@@ -759,5 +759,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "newNotificationInHomagram": "لديك إشعار جديد في HomaGram.",
+  "viewNotification": "عرض"
 }

@@ -34,6 +34,7 @@ class HomaGramApp extends StatefulWidget {
 }
 
 class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final AppLinks _appLinks = AppLinks();
   StreamSubscription<Uri>? _linkSubscription;
   StreamSubscription<dynamic>? _authSubscription;
@@ -276,6 +277,37 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
     _setPresence(state == AppLifecycleState.resumed);
   }
 
+  String _localizedPushBody(RemoteMessage message) {
+    final actor = (message.data['actor_name'] ??
+            message.data['display_name'] ??
+            message.data['sender_name'] ??
+            '')
+        .toString()
+        .trim();
+    final localized = switch (message.data['type']?.toString() ?? '') {
+      'follow' => _t.notificationFollowedYou,
+      'post_like' => _t.notificationLikedPost,
+      'post_comment' => _t.notificationCommentedPost,
+      'comment_reply' => _t.notificationRepliedComment,
+      'post_repost' => _t.notificationRepostedPost,
+      'story_reaction' => _t.notificationReactedStory,
+      'story_mention' => _t.notificationMentionedStory,
+      'message_new' => _t.notificationSentMessage,
+      'support_message' => _t.notificationSupportRequest,
+      'support_reply' => _t.notificationSupportReply,
+      'moderation_notice' => _t.notificationModerationNotice,
+      'report_reviewed' => _t.notificationReportReviewed,
+      _ => null,
+    };
+    if (localized != null) {
+      return actor.isEmpty ? localized : '$actor $localized';
+    }
+    final body = message.notification?.body?.trim();
+    return body == null || body.isEmpty
+        ? _t.newNotificationInHomagram
+        : body;
+  }
+
   void _showForegroundPush(RemoteMessage message) {
     if (AuthService.client.auth.currentSession == null) return;
     final context = homagramNavigatorKey.currentContext;
@@ -287,12 +319,10 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
       SnackBar(
-        content: Text(body == null || body.isEmpty
-            ? 'اعلان تازه‌ای در HomaGram دارید.'
-            : body),
+        content: Text(_localizedPushBody(message)),
         duration: const Duration(seconds: 5),
         action: SnackBarAction(
-          label: 'مشاهده',
+          label: _t.viewNotification,
           onPressed: () => _handlePushOpen(message),
         ),
       ),
@@ -327,7 +357,7 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
         MaterialPageRoute<void>(
           builder: (_) => SupportChatScreen(
             conversationId: id,
-            title: isAdmin ? 'درخواست پشتیبانی' : 'پشتیبانی هماگرام',
+            title: isAdmin ? _t.supportRequestTitle : _t.supportChatTitle,
             isAdmin: isAdmin,
           ),
         ),
