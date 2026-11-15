@@ -57,11 +57,11 @@ class _MessagingScreenState extends State<MessagingScreen> {
         content: TextField(
           controller: controller,
           autofocus: true,
-          maxLength: 64,
+          maxLength: 100,
           textDirection: TextDirection.ltr,
           decoration: const InputDecoration(
-            labelText: 'کد دعوت گروه',
-            hintText: 'کد ۶۴ رقمی را وارد کنید',
+            labelText: 'کد یا لینک دعوت گروه',
+            hintText: 'کد ۶۴ نویسه‌ای یا لینک دعوت را وارد کنید',
           ),
         ),
         actions: [
