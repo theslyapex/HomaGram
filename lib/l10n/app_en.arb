@@ -962,5 +962,120 @@
         "type": "String"
       }
     }
+  },
+  "feedComposerHint": "What would you like to share?",
+  "feedCreatePost": "Create post",
+  "feedLoadFailed": "Feed could not be loaded",
+  "feedConnectionRetry": "Check your connection and try again.",
+  "feedRetry": "Try again",
+  "feedEmptyTitle": "No posts yet",
+  "feedEmptyMessage": "Publish the first HomaGram post and shape your feed.",
+  "feedCreateFirstPost": "Create the first post",
+  "feedActionFailed": "The action couldn't be completed. Try again.",
+  "feedLikesTitle": "Likes on this post",
+  "feedNoLikes": "No one has liked this post yet.",
+  "feedUserFallback": "User",
+  "feedLikesLoadFailed": "Couldn't load the likes list.",
+  "feedSharePost": "Share post",
+  "feedSendToUsers": "Send to HomaGram users",
+  "feedChooseConversations": "Choose one or more people from your conversations",
+  "feedCopyLink": "Copy post link",
+  "feedShareOtherApps": "Share outside HomaGram",
+  "feedSendWithApps": "Send using other apps on your device",
+  "feedLinkCopied": "Post link copied.",
+  "feedShareText": "View this post on HomaGram:\n{link}",
+  "feedShareSubject": "Post on HomaGram",
+  "feedShareUnavailable": "Sharing isn't available on this device.",
+  "feedShareMessage": "I sent you this post.",
+  "feedSendFailed": "Couldn't send the post.",
+  "feedSentCount": "Post sent to {count} people.",
+  "feedEditCaption": "Edit post text",
+  "feedCaptionHint": "Post text",
+  "feedCancel": "Cancel",
+  "feedSaveChanges": "Save changes",
+  "feedPostUpdated": "Post text updated.",
+  "feedEditFailed": "Couldn't edit the post.",
+  "feedDeletePost": "Delete post",
+  "feedDeleteConfirm": "Delete this post permanently?",
+  "feedDelete": "Delete",
+  "feedPostDeleted": "Post deleted.",
+  "feedDeleteFailed": "Couldn't delete the post.",
+  "feedReportHarassment": "Harassment, abuse or threats",
+  "feedReportCopied": "Copied content",
+  "feedReportCopyright": "Someone else's copyrighted work",
+  "feedReportViolence": "Violent content",
+  "feedReportInappropriate": "Inappropriate content",
+  "feedReportPolitical": "Abusive political content",
+  "feedReportIllegal": "Content that violates the law",
+  "feedReportSpam": "Spam or unwanted advertising",
+  "feedReportOther": "Other",
+  "feedReportTitle": "Report this content",
+  "feedReportInstructions": "Select the option that violates HomaGram rules. Your report will be reviewed confidentially.",
+  "feedCopyrightOwner": "Who owns this work?",
+  "feedIAmOwner": "I own this work",
+  "feedOtherOwner": "This work belongs to someone else",
+  "feedOwnerName": "Creator's name (if known)",
+  "feedReportDetails": "Additional details or evidence (optional)",
+  "feedReportDetailsHint": "Add a brief explanation if needed.",
+  "feedSubmitReport": "Submit report",
+  "feedReportSuccess": "Your report was submitted to the HomaGram team for review.",
+  "feedReportFailed": "This content was already reported or the report couldn't be submitted.",
+  "feedUnsave": "Remove from saved",
+  "feedSave": "Save post",
+  "feedUndoRepost": "Undo repost",
+  "feedRepost": "Repost to my profile",
+  "feedSendPost": "Send post",
+  "feedEditPost": "Edit post text",
+  "feedReportPost": "Report post",
+  "feedLike": "Like",
+  "feedComment": "Comment",
+  "feedSend": "Send",
+  "feedUserSearchFailed": "Couldn't search for users.",
+  "feedSelectRecipients": "Select recipients",
+  "feedSearchUsersHint": "Search by name or username",
+  "feedSelectedPeople": "{count} people selected",
+  "feedSearchUsersPrompt": "Search for people by name or username.",
+  "feedSendToCount": "Send to {count} people",
+  "feedCommentLikeFailed": "Couldn't like the comment.",
+  "feedCommentFailed": "Couldn't submit the comment.",
+  "feedCommentsTitle": "Comments",
+  "feedNoComments": "No comments yet.",
+  "feedReply": "Reply",
+  "feedReplyTo": "Replying to {name}",
+  "feedCommentHint": "Write a comment…",
+  "@feedShareText": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "@feedSentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@feedSelectedPeople": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@feedSendToCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@feedReplyTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }
