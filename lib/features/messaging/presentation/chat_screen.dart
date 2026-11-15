@@ -704,13 +704,15 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Future<void> _manageChannelInvites(String conversationId) async {
+  Future<void> _manageConversationInvites(String conversationId, {required bool isGroup}) async {
     var invites = <Map<String, dynamic>>[];
     var loading = true;
     String? loadError;
 
     try {
-      invites = await MessagingService.loadChannelInvites(conversationId);
+      invites = isGroup
+          ? await MessagingService.loadGroupInvites(conversationId)
+          : await MessagingService.loadChannelInvites(conversationId);
       loading = false;
     } catch (_) {
       loading = false;
@@ -728,7 +730,9 @@ class _ChatScreenState extends State<ChatScreen> {
           Future<void> reload() async {
             setSheetState(() { loading = true; loadError = null; });
             try {
-              final rows = await MessagingService.loadChannelInvites(conversationId);
+              final rows = isGroup
+                  ? await MessagingService.loadGroupInvites(conversationId)
+                  : await MessagingService.loadChannelInvites(conversationId);
               if (!sheetContext.mounted) return;
               setSheetState(() { invites = rows; loading = false; });
             } catch (_) {
@@ -791,7 +795,10 @@ class _ChatScreenState extends State<ChatScreen> {
             if (values == null || !sheetContext.mounted) return;
 
             try {
-              final token = await MessagingService.createChannelInvite(
+              final token = isGroup
+                  ? await MessagingService.createGroupInvite(
+                      conversationId, expiresInHours: values[0], maxUses: values[1])
+                  : await MessagingService.createChannelInvite(
                 conversationId,
                 expiresInHours: values[0],
                 maxUses: values[1],
@@ -849,7 +856,11 @@ class _ChatScreenState extends State<ChatScreen> {
             );
             if (confirmed != true || !sheetContext.mounted) return;
             try {
-              await MessagingService.revokeChannelInvite(inviteId);
+              if (isGroup) {
+                await MessagingService.revokeGroupInvite(inviteId);
+              } else {
+                await MessagingService.revokeChannelInvite(inviteId);
+              }
               await reload();
             } catch (_) {
               if (sheetContext.mounted) {
@@ -875,7 +886,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 padding: EdgeInsets.fromLTRB(18, 4, 18, 12),
                 child: Align(
                   alignment: Alignment.centerRight,
-                  child: Text('مدیریت کدهای دعوت', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                  child: Text(isGroup ? 'مدیریت لینک‌های دعوت گروه' : 'مدیریت کدهای دعوت کانال', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                 ),
               ),
               Padding(
@@ -883,7 +894,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: SizedBox(width: double.infinity, child: FilledButton.icon(
                   onPressed: createInvite,
                   icon: const Icon(Icons.add_link_rounded),
-                  label: const Text('ساخت یا تمدید کد دعوت'),
+                  label: Text(isGroup ? 'ساخت لینک دعوت گروه' : 'ساخت کد دعوت کانال'),
                 )),
               ),
               const SizedBox(height: 8),
@@ -932,12 +943,103 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  Future<void> _showGroupPermissions(
+    String conversationId,
+    Map<String, dynamic> initial,
+  ) async {
+    var membersCanSendMessages = initial['members_can_send_messages'] as bool? ?? true;
+    var membersCanSendMedia = initial['members_can_send_media'] as bool? ?? true;
+    var membersCanAddMembers = initial['members_can_add_members'] as bool? ?? false;
+    var adminsCanChangeInfo = initial['admins_can_change_info'] as bool? ?? true;
+    var adminsCanManageMembers = initial['admins_can_manage_members'] as bool? ?? true;
+    final values = await showDialog<List<bool>>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: const Text('دسترسی‌های گروه'),
+          content: SizedBox(
+            width: 420,
+            child: SingleChildScrollView(
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                const Align(alignment: Alignment.centerRight,
+                  child: Text('دسترسی اعضا', style: TextStyle(fontWeight: FontWeight.w900))),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('ارسال پیام متنی'),
+                  value: membersCanSendMessages,
+                  onChanged: (v) => setDialogState(() => membersCanSendMessages = v),
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('ارسال تصویر و فایل'),
+                  value: membersCanSendMedia,
+                  onChanged: (v) => setDialogState(() => membersCanSendMedia = v),
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('افزودن اعضای جدید'),
+                  subtitle: const Text('در صورت فعال بودن، اعضای عادی هم می‌توانند افراد را دعوت کنند.'),
+                  value: membersCanAddMembers,
+                  onChanged: (v) => setDialogState(() => membersCanAddMembers = v),
+                ),
+                const Divider(height: 22),
+                const Align(alignment: Alignment.centerRight,
+                  child: Text('اختیارات مدیران', style: TextStyle(fontWeight: FontWeight.w900))),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('ویرایش نام، توضیحات و تصویر'),
+                  value: adminsCanChangeInfo,
+                  onChanged: (v) => setDialogState(() => adminsCanChangeInfo = v),
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('مدیریت اعضا و لینک‌های دعوت'),
+                  value: adminsCanManageMembers,
+                  onChanged: (v) => setDialogState(() => adminsCanManageMembers = v),
+                ),
+              ]),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, [
+                membersCanSendMessages, membersCanSendMedia, membersCanAddMembers,
+                adminsCanChangeInfo, adminsCanManageMembers,
+              ]),
+              child: const Text('ذخیره دسترسی‌ها'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (values == null || !mounted) return;
+    try {
+      await MessagingService.updateGroupPermissions(
+        conversationId: conversationId,
+        membersCanSendMessages: values[0],
+        membersCanSendMedia: values[1],
+        membersCanAddMembers: values[2],
+        adminsCanChangeInfo: values[3],
+        adminsCanManageMembers: values[4],
+      );
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('دسترسی‌های گروه به‌روزرسانی شد.')),
+      );
+    } catch (error) {
+      debugPrint('Group permissions update failed: $error');
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ذخیره دسترسی‌ها انجام نشد. فقط مالک گروه می‌تواند این تنظیمات را تغییر دهد.')),
+      );
+    }
+  }
+
   Future<void> _showConversationInfo() async {
     try {
       // Fetch the conversation row separately from its optional channel row.
       // A nested PostgREST relationship can fail for group/direct conversations.
       final info = await Supabase.instance.client.from('conversations')
-          .select('kind,title,photo_path,description')
+          .select('kind,title,photo_path,description,members_can_send_messages,members_can_send_media,members_can_add_members,admins_can_change_info,admins_can_manage_members')
           .eq('id', widget.conversationId).single();
       final isGroup = info['kind'] == 'group';
       final isChannel = info['kind'] == 'channel';
