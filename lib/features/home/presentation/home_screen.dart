@@ -178,9 +178,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     contentPadding: EdgeInsets.zero,
                     leading: CircleAvatar(
                       backgroundColor: active ? colors.primaryContainer : colors.surfaceContainerHighest,
-                      child: Text(initial, style: TextStyle(
+                      backgroundImage: account.avatarUrl == null ? null : NetworkImage(account.avatarUrl!),
+                      child: account.avatarUrl == null ? Text(initial, style: TextStyle(
                         color: active ? colors.onPrimaryContainer : colors.onSurfaceVariant,
-                        fontWeight: FontWeight.w800)),
+                        fontWeight: FontWeight.w800)) : null,
                     ),
                     title: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontWeight: FontWeight.w800)),
