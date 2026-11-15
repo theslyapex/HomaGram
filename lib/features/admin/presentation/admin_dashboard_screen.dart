@@ -487,6 +487,7 @@ class _MessageReportsTabState extends State<_MessageReportsTab> {
   bool _loading = true;
   String? _error;
   String? _working;
+  String _filter = 'pending';
   @override
   void initState() { super.initState(); _load(); }
   Future<void> _load() async {
@@ -516,18 +517,41 @@ class _MessageReportsTabState extends State<_MessageReportsTab> {
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) return _RetryView(message: _error!, onRetry: _load);
-    return RefreshIndicator(
+    final visibleItems = _items.where((item) {
+      if (_filter == 'all') return true;
+      if (_filter == 'pending') return item['status'] == 'pending';
+      return item['status'] != 'pending';
+    }).toList();
+    return Column(children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 2),
+        child: Row(children: [
+          Expanded(child: Text('بررسی‌نشده: ${_items.where((r) => r['status'] == 'pending').length}',
+            style: const TextStyle(fontWeight: FontWeight.w800))),
+          SegmentedButton<String>(
+            segments: const [
+              ButtonSegment(value: 'pending', label: Text('بررسی‌نشده')),
+              ButtonSegment(value: 'reviewed', label: Text('بررسی‌شده')),
+              ButtonSegment(value: 'all', label: Text('همه')),
+            ],
+            selected: {_filter},
+            onSelectionChanged: (value) => setState(() => _filter = value.first),
+            showSelectedIcon: false,
+          ),
+        ]),
+      ),
+      Expanded(child: RefreshIndicator(
       onRefresh: _load,
-      child: _items.isEmpty
+      child: visibleItems.isEmpty
         ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
             SizedBox(height: 100), Icon(Icons.verified_outlined, size: 48),
             SizedBox(height: 12), Center(child: Text('گزارش پیام ثبت نشده است.')),
           ])
         : ListView.separated(
-            padding: const EdgeInsets.all(14), itemCount: _items.length,
+            padding: const EdgeInsets.all(14), itemCount: visibleItems.length,
             separatorBuilder: (_, __) => const SizedBox(height: 9),
             itemBuilder: (context, index) {
-              final item = _items[index];
+              final item = visibleItems[index];
               final id = item['report_id'] as String;
               final pending = item['status'] == 'pending';
               return Card(child: Padding(
@@ -565,7 +589,8 @@ class _MessageReportsTabState extends State<_MessageReportsTab> {
               ));
             },
           ),
-    );
+      )),
+    ]);
   }
 }
 String _messageReason(String value) => switch(value) {
@@ -584,7 +609,7 @@ class _ReportStatus extends StatelessWidget {
         ? Theme.of(context).colorScheme.onSurfaceVariant
         : const Color(0xFF20A77A);
     final label = switch (status) {
-      'pending' => 'در انتظار',
+      'pending' => 'بررسی‌نشده',
       'dismissed' => 'رد شده',
       'actioned' => 'اقدام شده',
       'reviewed' => 'بررسی شده',
