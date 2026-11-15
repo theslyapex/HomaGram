@@ -144,6 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     return Scaffold(
+      extendBody: true,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         titleSpacing: 20,
