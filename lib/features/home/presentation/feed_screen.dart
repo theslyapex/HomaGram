@@ -405,7 +405,7 @@ class _PostCardState extends State<PostCard> {
         try {
           final conversationId = await MessagingService.createDirectConversation(recipient['id'] as String);
           await MessagingService.sendTextMessage(
-            conversationId, 'HOMAGRAM_POST:$_postId\nاین پست را برای شما فرستادم.',
+            conversationId, 'HOMAGRAM_POST:$_postId\n${_t.feedShareMessage}',
           );
           sent++;
         } catch (_) {}
@@ -889,7 +889,7 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
       });
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ثبت پسند دیدگاه انجام نشد.')),
+        SnackBar(content: Text(_t.feedCommentLikeFailed)),
       );
     } finally { if (mounted) setState(() => _likeBusy = false); }
   }
@@ -905,7 +905,7 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
       _controller.clear(); _replyTo = null; _replyName = null; await _load();
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ثبت دیدگاه انجام نشد.')));
+        SnackBar(content: Text(_t.feedCommentFailed)));
     } finally { if (mounted) setState(() => _sending = false); }
   }
 
@@ -934,7 +934,7 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
                     radius: 19,
                     backgroundImage: c['avatar_url'] == null ? null : NetworkImage(c['avatar_url'] as String),
                     child: c['avatar_url'] == null
-                        ? Text(((p?['display_name'] as String?) ?? 'ک').characters.first)
+                        ? Text(((p?['display_name'] as String?) ?? 'U').characters.first)
                         : null,
                   ),
                   const SizedBox(width: 10),
