@@ -382,7 +382,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
                                       ),
                                       title: Row(children: [
                                         Expanded(
-                                          child: Text(item.title, maxLines: 1,
+                                          child: Text(item.title.trim().isEmpty ? _t.adminCommunityUntitled : item.title, maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(fontWeight: FontWeight.w900)),
                                         ),
@@ -474,7 +474,7 @@ class _AdminCommunitiesScreenState extends State<AdminCommunitiesScreen> {
                                               mainAxisSize: MainAxisSize.min,
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                Text(item.title,
+                                                Text(item.title.trim().isEmpty ? _t.adminCommunityUntitled : item.title,
                                                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                                                 const SizedBox(height: 8),
                                                 Text(_t.adminCommunityId(item.id), textDirection: TextDirection.ltr),
