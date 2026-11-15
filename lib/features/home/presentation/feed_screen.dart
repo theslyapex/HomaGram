@@ -725,16 +725,26 @@ class _PostShareSheetState extends State<_PostShareSheet> {
     try {
       final client = AuthService.client;
       final uid = client.auth.currentUser!.id;
-      final byUsername = await client.from('profiles').select('id,username,display_name')
+      final byUsername = await client.from('profiles').select('id,username,display_name,avatar_path')
         .neq('id', uid).ilike('username', '%$term%').limit(20);
-      final byName = await client.from('profiles').select('id,username,display_name')
+      final byName = await client.from('profiles').select('id,username,display_name,avatar_path')
         .neq('id', uid).ilike('display_name', '%$term%').limit(20);
       final merged = <String, Map<String, dynamic>>{};
       for (final row in [...byUsername, ...byName]) {
         merged[row['id'] as String] = Map<String, dynamic>.from(row);
       }
+      final results = merged.values.take(30).toList();
+      await Future.wait(results.map((user) async {
+        final path = user['avatar_path'] as String?;
+        if (path == null || path.isEmpty) return;
+        try {
+          user['avatar_url'] = await client.storage.from('avatars').createSignedUrl(path, 1800);
+        } catch (_) {
+          user['avatar_url'] = null;
+        }
+      }));
       if (!mounted) return;
-      setState(() { _users = merged.values.take(30).toList(); _error = null; _loading = false; });
+      setState(() { _users = results; _error = null; _loading = false; });
     } catch (_) {
       if (mounted) setState(() { _loading = false; _error = _t.feedUserSearchFailed; });
     }
@@ -782,7 +792,14 @@ class _PostShareSheetState extends State<_PostShareSheet> {
                 final username = (user['username'] as String?)?.trim() ?? '';
                 final label = name != null && name.isNotEmpty ? name : username;
                 return ListTile(
-                  leading: CircleAvatar(child: Text(label.isEmpty ? '?' : label.characters.first.toUpperCase())),
+                  leading: CircleAvatar(
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    backgroundImage: user['avatar_url'] is String
+                        ? NetworkImage(user['avatar_url'] as String)
+                        : null,
+                    child: user['avatar_url'] is String ? null : Text(
+                      label.isEmpty ? '?' : label.characters.first.toUpperCase()),
+                  ),
                   title: Text(name != null && name.isNotEmpty ? name : '@$username',
                     maxLines: 1, overflow: TextOverflow.ellipsis),
                   subtitle: Text('@$username', textDirection: TextDirection.ltr),
