@@ -382,6 +382,59 @@ class MessagingService {
     });
   }
 
+  static Future<String> createGroupInvite(
+    String conversationId, {
+    int expiresInHours = 168,
+    int maxUses = 100,
+  }) async {
+    final result = await _client.rpc('create_group_invite', params: {
+      'p_conversation_id': conversationId,
+      'p_expires_in_hours': expiresInHours,
+      'p_max_uses': maxUses,
+    });
+    return result as String;
+  }
+
+  static Future<List<Map<String, dynamic>>> loadGroupInvites(
+    String conversationId,
+  ) async {
+    final rows = await _client.rpc('list_group_invites', params: {
+      'p_conversation_id': conversationId,
+    });
+    return (rows as List)
+        .map((row) => Map<String, dynamic>.from(row as Map))
+        .toList();
+  }
+
+  static Future<void> revokeGroupInvite(String inviteId) async {
+    await _client.rpc('revoke_group_invite', params: {'p_invite_id': inviteId});
+  }
+
+  static Future<String> joinGroupByInvite(String token) async {
+    final result = await _client.rpc('join_group_by_invite', params: {
+      'p_token': token.trim().toLowerCase(),
+    });
+    return result as String;
+  }
+
+  static Future<void> updateGroupPermissions({
+    required String conversationId,
+    required bool membersCanSendMessages,
+    required bool membersCanSendMedia,
+    required bool membersCanAddMembers,
+    required bool adminsCanChangeInfo,
+    required bool adminsCanManageMembers,
+  }) async {
+    await _client.rpc('update_group_permissions', params: {
+      'p_conversation_id': conversationId,
+      'p_members_can_send_messages': membersCanSendMessages,
+      'p_members_can_send_media': membersCanSendMedia,
+      'p_members_can_add_members': membersCanAddMembers,
+      'p_admins_can_change_info': adminsCanChangeInfo,
+      'p_admins_can_manage_members': adminsCanManageMembers,
+    });
+  }
+
   static Future<void> updateGroupDetails({
     required String conversationId,
     required String title,
