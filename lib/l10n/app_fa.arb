@@ -586,5 +586,56 @@
   "deleteForEveryone": "حذف برای همه",
   "deleteCommunityFailed": "حذف انجام نشد؛ فقط مالک فعلی می‌تواند این گروه یا کانال را حذف کند.",
   "leaveConversation": "خروج از گفتگو",
-  "conversationInfoLoadFailed": "اطلاعات گفتگو دریافت نشد. اتصال یا دسترسی عضویت را بررسی کنید."
+  "conversationInfoLoadFailed": "اطلاعات گفتگو دریافت نشد. اتصال یا دسترسی عضویت را بررسی کنید.",
+  "filePathUnavailable": "مسیر فایل در دسترس نیست.",
+  "imageSavedToGallery": "تصویر در گالری دستگاه ذخیره شد.",
+  "imageSaveFailed": "ذخیره تصویر انجام نشد؛ دسترسی گالری و اتصال را بررسی کنید.",
+  "videoSaved": "ویدئو با موفقیت ذخیره شد.",
+  "videoDownloadFailed": "دانلود ویدئو انجام نشد؛ دوباره تلاش کنید.",
+  "fileSaved": "فایل با موفقیت ذخیره شد.",
+  "fileDownloadFailed": "دانلود فایل انجام نشد؛ دوباره تلاش کنید.",
+  "imageCannotDisplay": "تصویر قابل نمایش نیست.",
+  "secondsRemaining": "زمان باقی‌مانده: {seconds} ثانیه",
+  "@secondsRemaining": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "closeImage": "بستن تصویر",
+  "timedImageUnavailable": "تصویر زمان‌دار قابل مشاهده نیست یا قبلاً باز شده است.",
+  "timedImage": "تصویر زمان‌دار",
+  "viewOnce10Seconds": "فقط یک‌بار · نمایش ۱۰ ثانیه‌ای",
+  "alreadyViewed": "قبلاً مشاهده شده",
+  "viewImage": "مشاهده تصویر",
+  "mediaUnavailable": "رسانه در دسترس نیست.",
+  "downloadImage": "دانلود تصویر",
+  "downloadVideo": "دانلود ویدئو",
+  "downloadFile": "دانلود فایل",
+  "file": "فایل",
+  "replyPrefix": "پاسخ به: {message}",
+  "@replyPrefix": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "forwardedFrom": "فوروارد از {name}",
+  "@forwardedFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "messageDeletedBy": "پیام حذف شده توسط {name}",
+  "@messageDeletedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }
