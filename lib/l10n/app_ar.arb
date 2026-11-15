@@ -1597,5 +1597,213 @@
   "adminVerificationStartReview": "بدء المراجعة",
   "adminVerificationRequestInfo": "طلب معلومات",
   "adminVerificationApprove": "موافقة",
-  "adminVerificationReject": "رفض الطلب"
+  "adminVerificationReject": "رفض الطلب",
+  "adminTitle": "إدارة HomaGram",
+  "adminOverview": "نظرة عامة",
+  "adminUsers": "المستخدمون",
+  "adminContentModeration": "الإشراف على المحتوى",
+  "adminPostReports": "بلاغات المنشورات",
+  "adminMessageReports": "بلاغات الرسائل",
+  "adminAuditLogs": "سجل المسؤولين",
+  "adminVerificationTab": "التوثيق",
+  "adminCommunities": "المجموعات والقنوات",
+  "adminVerificationHeading": "مراجعة طلبات شارة التوثيق",
+  "adminVerificationDescription": "راجع مستندات الأفراد والمؤسسات وأدر حالة الطلبات.",
+  "adminVerificationOpenRequests": "فتح الطلبات",
+  "adminStatsLoadFailed": "تعذّر تحميل إحصاءات الإدارة.",
+  "adminMetricUsers": "المستخدمون",
+  "adminMetricPosts": "المنشورات",
+  "adminMetricStories": "القصص",
+  "adminMetricReels": "ريلز",
+  "adminMetricMessages": "الرسائل",
+  "adminMetricGroups": "المجموعات",
+  "adminMetricChannels": "القنوات",
+  "adminMetricPendingReports": "البلاغات المعلقة",
+  "adminMetricOpenSupport": "محادثات الدعم المفتوحة",
+  "adminControlCenter": "مركز تحكم HomaGram",
+  "adminControlCenterSubtitle": "إدارة المستخدمين والمحتوى والبلاغات",
+  "adminOverallStats": "الإحصاءات العامة",
+  "adminStatsSecurityNote": "تُقرأ الإحصاءات مباشرة من قاعدة البيانات، وتُفرض الصلاحيات على الخادم.",
+  "adminUsersLoadFailed": "تعذّر تحميل قائمة المستخدمين.",
+  "adminSearchUsersHint": "البحث بالاسم أو اسم المستخدم",
+  "adminClearSearch": "مسح البحث",
+  "adminNoUsersFound": "لم يتم العثور على مستخدمين.",
+  "adminUnknownUser": "مستخدم HomaGram",
+  "adminNoUsername": "بلا اسم مستخدم",
+  "adminUserIdJoined": "المعرّف: {id}… • تاريخ الانضمام: {date}",
+  "adminReportsLoadFailed": "تعذّر تحميل البلاغات.",
+  "adminReportReviewFailed": "تعذّر حفظ مراجعة البلاغ.",
+  "adminPendingCount": "قيد الانتظار: {count}",
+  "adminFilterPending": "قيد الانتظار",
+  "adminFilterReviewed": "تمت المراجعة",
+  "adminFilterAll": "الكل",
+  "adminNoPostReports": "لا توجد بلاغات منشورات.",
+  "adminPostWithoutCaption": "منشور بلا وصف",
+  "adminReportDetails": "تفاصيل البلاغ: {details}",
+  "adminReporterClaimsOwnership": "المبلّغ يدّعي ملكية العمل",
+  "adminThirdPartyOwnsWork": "العمل مملوك لشخص آخر",
+  "adminRightsOwner": "ملكية الحقوق: {value}",
+  "adminRightsHolderName": "صاحب الحقوق: {name}",
+  "adminUnknown": "غير معروف",
+  "adminContentOwner": "صاحب المحتوى: {name} • @{username}",
+  "adminPostIdDate": "معرّف المنشور: {id}… • {date}",
+  "adminReporterId": "معرّف المبلّغ: {id}",
+  "adminManagerNote": "ملاحظة المسؤول: {note}",
+  "adminDismissReport": "رفض البلاغ",
+  "adminMarkReviewed": "تمت المراجعة",
+  "adminActionCompleted": "تم اتخاذ إجراء",
+  "adminMessageReportsLoadFailed": "تعذّر تحميل بلاغات الرسائل.",
+  "adminNoMessageReports": "لا توجد بلاغات رسائل.",
+  "adminMessageWithoutText": "الرسالة بلا نص أو تحتوي على مرفق",
+  "adminMessageReportDetails": "التفاصيل: {details}",
+  "adminMessageId": "معرّف الرسالة: {id}",
+  "adminReasonSpam": "رسائل مزعجة",
+  "adminReasonHarassment": "مضايقة وإساءة",
+  "adminReasonThreat": "تهديد",
+  "adminReasonPrivacy": "انتهاك الخصوصية",
+  "adminReasonInappropriate": "محتوى غير مناسب",
+  "adminReasonOther": "أخرى",
+  "adminReasonMisinformation": "معلومات مضللة",
+  "adminReasonCopiedContent": "محتوى منسوخ",
+  "adminReasonCopyright": "انتهاك حقوق الملكية",
+  "adminReasonViolence": "محتوى عنيف",
+  "adminReasonPoliticalInsult": "إساءة سياسية",
+  "adminReasonIllegal": "محتوى مخالف للقانون",
+  "adminStatusDismissed": "مرفوض",
+  "adminStatusActioned": "تم اتخاذ إجراء",
+  "adminAuditLoadFailed": "تعذّر تحميل سجل الإدارة.",
+  "adminUnknownTime": "وقت غير معروف",
+  "adminAuditPostReportReviewed": "مراجعة بلاغ منشور",
+  "adminAuditMessageReportReviewed": "مراجعة بلاغ رسالة",
+  "adminAuditUserSuspended": "تعليق الحساب",
+  "adminAuditUserUnsuspended": "رفع تعليق الحساب",
+  "adminAuditEmpty": "لا يوجد سجل إداري بعد.",
+  "adminManager": "المسؤول",
+  "adminAuditActor": "نفّذ الإجراء: {name}",
+  "adminAuditTarget": "المستخدم المعني: {name}",
+  "adminAuditDetails": "التفاصيل: {details}",
+  "adminAuditActorId": "معرّف المسؤول: {id}",
+  "adminAuditTargetId": "معرّف المستخدم: {id}",
+  "adminRetry": "حاول مرة أخرى",
+  "@adminPendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminUserIdJoined": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminReportDetails": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminRightsOwner": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminRightsHolderName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminContentOwner": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminPostIdDate": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminReporterId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminManagerNote": {
+    "placeholders": {
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMessageReportDetails": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMessageId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminAuditActor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminAuditTarget": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminAuditDetails": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminAuditActorId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminAuditTargetId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  }
 }
