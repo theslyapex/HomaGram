@@ -1059,6 +1059,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             mimeType: mimeType,
                           );
                           if (!mounted) return;
+                          infoPhotoUrl = url;
                           setState(() => _conversationPhotoUrl = url);
                           if (sheetContext.mounted) setSheetState(() {});
                           ScaffoldMessenger.of(context).showSnackBar(
