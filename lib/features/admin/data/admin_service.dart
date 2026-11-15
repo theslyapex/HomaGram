@@ -131,6 +131,44 @@ class AdminService {
     throw StateError('User deletion was not confirmed by the server');
   }
 
+  static Future<void> setVerified(String userId, bool verified, {String? note}) async {
+    await _client.rpc('admin_set_verified', params: {
+      'p_user_id': userId, 'p_verified': verified, 'p_note': note,
+    });
+  }
+
+  static Future<List<Map<String, dynamic>>> loadVerificationRequests({String status = 'pending'}) async {
+    final rows = await _client.from('verification_requests')
+      .select('id,user_id,applicant_type,category,legal_name,phone,organization_registration_number,organization_national_id,public_links,explanation,evidence_paths,status,review_note,created_at')
+      .eq('status', status).order('created_at', ascending: true).limit(100);
+    final result = rows.map((row) => Map<String, dynamic>.from(row)).toList();
+    if (result.isEmpty) return result;
+    final ids = result.map((r) => r['user_id'] as String).toSet().toList();
+    final profiles = await _client.from('profiles')
+      .select('id,username,display_name').inFilter('id', ids);
+    final byId = {for (final p in profiles) p['id'] as String: Map<String,dynamic>.from(p)};
+    for (final row in result) {
+      row['profile'] = byId[row['user_id']];
+      final signed = <String>[];
+      for (final path in (row['evidence_paths'] as List? ?? const [])) {
+        try { signed.add(await _client.storage.from('verification-evidence').createSignedUrl(path.toString(), 900)); } catch (_) {}
+      }
+      row['evidence_urls'] = signed;
+    }
+    return result;
+  }
+
+  static Future<void> reviewVerification(String requestId, String status, {String? note}) async {
+    await _client.rpc('admin_review_verification', params: {
+      'p_request_id': requestId, 'p_status': status, 'p_note': note,
+    });
+  }
+
+  static Future<String> openSupportForUser(String userId) async {
+    final result = await _client.rpc('admin_get_or_create_support_conversation', params: {'p_user_id': userId});
+    return result.toString();
+  }
+
   static Future<void> reviewMessageReport(String id, String status) async {
     await _client.rpc('admin_review_message_report', params: {
       'p_report_id': id, 'p_status': status, 'p_review_note': null,
