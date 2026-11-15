@@ -26,5 +26,39 @@
   "verificationResent": "تم طلب إعادة إرسال رسالة التحقق.",
   "passwordRecovery": "استعادة كلمة المرور",
   "accountEmail": "البريد الإلكتروني للحساب",
-  "settings": "الإعدادات"
+  "settings": "الإعدادات",
+  "resendFailed": "تعذرت إعادة إرسال البريد الإلكتروني. حاول مرة أخرى لاحقًا.",
+  "recoveryIfExists": "إذا كان هناك حساب مرتبط بهذا البريد الإلكتروني، فسيتم إرسال رابط الاستعادة.",
+  "recoveryFailed": "تعذر إرسال طلب الاستعادة. حاول مرة أخرى لاحقًا.",
+  "checkYourEmail": "تحقق من بريدك الإلكتروني",
+  "afterVerification": "بعد التحقق، ارجع إلى التطبيق وسجّل الدخول.",
+  "sending": "جارٍ الإرسال…",
+  "resendEmail": "إعادة إرسال البريد الإلكتروني",
+  "backToSignIn": "العودة إلى تسجيل الدخول",
+  "createNewAccount": "إنشاء حساب جديد",
+  "signInTitle": "تسجيل الدخول إلى حسابك",
+  "joinCommunity": "انضم إلى مجتمع HomaGram.",
+  "signInToContinue": "سجّل الدخول للمتابعة.",
+  "emailAddress": "عنوان البريد الإلكتروني",
+  "enterDisplayName": "أدخل الاسم المعروض.",
+  "max50Characters": "يُسمح بحد أقصى 50 حرفًا.",
+  "enterValidEmail": "أدخل عنوان بريد إلكتروني صالحًا.",
+  "passwordMinLength": "يجب ألا تقل كلمة المرور عن 10 أحرف.",
+  "passwordTooLong": "كلمة المرور طويلة جدًا.",
+  "confirmPasswordRequired": "يرجى تأكيد كلمة المرور.",
+  "passwordsDoNotMatch": "كلمتا المرور غير متطابقتين.",
+  "usernameCannotChange": "لا يمكن تغيير اسم المستخدم حاليًا بعد إنشاء الحساب. اختره بعناية.",
+  "pleaseWait": "يرجى الانتظار…",
+  "createAccount": "إنشاء حساب",
+  "alreadyHaveAccount": "لديك حساب بالفعل؟ سجّل الدخول",
+  "noAccountSignUp": "ليس لديك حساب؟ أنشئ حسابًا",
+  "termsNotice": "بالمتابعة، فإنك توافق على شروط HomaGram وسياسة الخصوصية.",
+  "tagline": "تواصل يتجاوز الحدود",
+  "yourEmail": "بريدك الإلكتروني",
+  "verificationSentTo": "تم إرسال رابط التحقق إلى {email}. بعد التحقق، ارجع إلى التطبيق وسجّل الدخول.",
+  "@verificationSentTo": {
+    "placeholders": {
+      "email": {}
+    }
+  }
 }
