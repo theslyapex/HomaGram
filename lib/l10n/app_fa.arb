@@ -1289,5 +1289,51 @@
         "type": "int"
       }
     }
+  },
+  "storyUnsupportedMedia": "فرمت این رسانه پشتیبانی نمی‌شود.",
+  "storyMediaSizeLimit": "حجم رسانه باید حداکثر ۵۰ مگابایت باشد.",
+  "storyMediaPickFailed": "انتخاب رسانه انجام نشد.",
+  "storyFileAccessFailed": "دسترسی به فایل انتخاب‌شده ممکن نشد.",
+  "storyStickerSizeLimit": "حجم استیکر باید حداکثر ۵ مگابایت باشد.",
+  "storyStickerFormats": "فقط فایل‌های GIF، JPG، PNG و WebP پشتیبانی می‌شوند.",
+  "storyStickerLimit": "حداکثر ۲۰ استیکر می‌توانید اضافه کنید.",
+  "storyStickerPickFailed": "انتخاب استیکر انجام نشد.",
+  "storyMusicAccessFailed": "دسترسی به فایل موسیقی ممکن نشد.",
+  "storyMusicSizeLimit": "حجم موسیقی باید حداکثر ۱۵ مگابایت باشد.",
+  "storyMusicFormats": "فقط فایل‌های MP3، M4A، AAC و WAV پشتیبانی می‌شوند.",
+  "storyMusicLoadFailed": "بارگذاری یا پیش‌نمایش موسیقی انجام نشد. فایل دیگری انتخاب کنید.",
+  "storyMusicPreviewFailed": "پخش پیش‌نمایش موسیقی انجام نشد.",
+  "storyCountdownEndDate": "تاریخ پایان شمارش معکوس",
+  "storyCountdownEndTime": "ساعت پایان",
+  "storyCountdownMustBeFuture": "زمان پایان باید در آینده باشد.",
+  "storyDraftTextRequired": "برای ذخیره پیش‌نویس، ابتدا متن استوری را وارد کنید.",
+  "storyDraftMediaRequired": "ابتدا یک تصویر یا ویدئو انتخاب کنید.",
+  "storyDraftSaved": "پیش‌نویس با موفقیت ذخیره شد.",
+  "storyDraftSaveFailed": "ذخیره پیش‌نویس انجام نشد. فضای ذخیره‌سازی یا اتصال را بررسی کنید.",
+  "storyDraftLoadFailed": "دریافت پیش‌نویس‌ها انجام نشد.",
+  "storyNoDrafts": "هنوز پیش‌نویسی ذخیره نکرده‌ای.",
+  "storyMyDrafts": "پیش‌نویس‌های من",
+  "storyDraftCount": "{count} مورد",
+  "storyVideo": "ویدئو",
+  "storyImage": "تصویر",
+  "storyText": "متنی",
+  "storyDraftTitle": "پیش‌نویس {type}",
+  "storyDeleteDraft": "حذف پیش‌نویس",
+  "storyDraftDeleteFailed": "حذف پیش‌نویس انجام نشد.",
+  "storyDraftRestored": "پیش‌نویس بازیابی شد؛ می‌توانی ویرایش را ادامه بدهی.",
+  "storyDraftRestoreFailed": "بازیابی پیش‌نویس انجام نشد.",
+  "@storyDraftCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyDraftTitle": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
   }
 }
