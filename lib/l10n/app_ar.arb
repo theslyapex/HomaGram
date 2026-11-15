@@ -1440,5 +1440,29 @@
         "type": "String"
       }
     }
+  },
+  "storyCountdownComplete": "حان الوقت!",
+  "storyDays": "أيام",
+  "storyHours": "ساعات",
+  "storyMinutesUnit": "دقائق",
+  "storySecondsUnit": "ثوانٍ",
+  "storyQuestionResponses": "عرض الردود • {count}",
+  "storyWriteAnswer": "كتابة رد",
+  "storyPollDefault": "استطلاع",
+  "storyVoteCount": "{count} أصوات",
+  "storyChoosePollOption": "اختر خيارًا للتصويت.",
+  "@storyQuestionResponses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyVoteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }
