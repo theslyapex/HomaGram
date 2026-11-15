@@ -1440,5 +1440,29 @@
         "type": "String"
       }
     }
+  },
+  "storyCountdownComplete": "زمانش فرا رسیده!",
+  "storyDays": "روز",
+  "storyHours": "ساعت",
+  "storyMinutesUnit": "دقیقه",
+  "storySecondsUnit": "ثانیه",
+  "storyQuestionResponses": "مشاهده پاسخ‌ها • {count}",
+  "storyWriteAnswer": "نوشتن پاسخ",
+  "storyPollDefault": "نظرسنجی",
+  "storyVoteCount": "{count} رأی",
+  "storyChoosePollOption": "برای ثبت رأی یکی از گزینه‌ها را انتخاب کنید.",
+  "@storyQuestionResponses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyVoteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }
