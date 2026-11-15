@@ -81,11 +81,11 @@ class _AccountPreferencesScreenState extends State<AccountPreferencesScreen> {
     if (_saving) return;
     setState(() => _saving = true);
     try {
-      await _client.from('account_settings').upsert({
-        'user_id': _userId,
-        ...values,
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      });
+      // The signup trigger creates this row. UPDATE is permitted by the
+      // account_settings grants; upsert also requires INSERT permission.
+      await _client.from('account_settings')
+          .update(values)
+          .eq('user_id', _userId);
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('ذخیره تنظیمات انجام نشد. دوباره تلاش کنید.')),
