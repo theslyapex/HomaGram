@@ -2237,8 +2237,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Row(children: [
-                  Icon(Icons.visibility_outlined, size: 20),
+                Row(children: [
+                  const Icon(Icons.visibility_outlined, size: 20),
                   SizedBox(width: 8),
                   Text(_t.storyAudienceTitle, style: TextStyle(fontWeight: FontWeight.w800)),
                 ]),
@@ -2250,7 +2250,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                     border: OutlineInputBorder(),
                     contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   ),
-                  items: const [
+                  items: [
                     DropdownMenuItem(value: 'everyone', child: Text(_t.storyAudienceEveryone)),
                     DropdownMenuItem(value: 'followers', child: Text(_t.storyAudienceFollowers)),
                     DropdownMenuItem(value: 'close_friends', child: Text(_t.storyAudienceCloseFriends)),
