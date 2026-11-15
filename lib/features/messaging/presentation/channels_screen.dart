@@ -13,6 +13,7 @@ class ChannelsScreen extends StatefulWidget {
 }
 
 class _ChannelsScreenState extends State<ChannelsScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   List<Map<String, dynamic>> _communities = [];
   final TextEditingController _search = TextEditingController();
   Timer? _searchDebounce;
@@ -37,7 +38,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
       setState(() { _communities = rows; _loading = false; _error = null; });
     } catch (_) {
       if (!mounted) return;
-      setState(() { _loading = false; _error = 'جست‌وجوی گروه‌ها و کانال‌های عمومی انجام نشد.'; });
+      setState(() { _loading = false; _error = _t.publicCommunitiesSearchFailed; });
     }
   }
 
@@ -67,13 +68,13 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
         title: const Row(children: [
           Icon(Icons.lock_outline_rounded),
           SizedBox(width: 8),
-          Expanded(child: Text('کد دعوت کانال خصوصی')),
+          Expanded(child: Text(_t.privateChannelInviteCode)),
         ]),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('این کد تا ۷ روز معتبر است و حداکثر ۱۰۰ بار قابل استفاده است. فقط برای افرادی بفرستید که می‌خواهید عضو کانال شوند.'),
+            Text(_t.privateChannelInviteExplanation),
             const SizedBox(height: 14),
             SelectableText(
               token,
@@ -88,18 +89,18 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                   await Clipboard.setData(ClipboardData(text: token));
                   if (ctx.mounted) {
                     ScaffoldMessenger.of(ctx).showSnackBar(
-                      const SnackBar(content: Text('کد دعوت کپی شد.')),
+                      SnackBar(content: Text(_t.inviteCodeCopied)),
                     );
                   }
                 },
                 icon: const Icon(Icons.copy_rounded),
-                label: const Text('کپی کد دعوت'),
+                label: Text(_t.copyInviteCode),
               )),
             ),
           ],
         ),
         actions: [
-          HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('متوجه شدم'))),
+          HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text(_t.gotIt))),
         ],
       ),
     );
@@ -116,7 +117,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('ساخت کانال'),
+          title: Text(_t.createChannel),
           content: Form(
             key: formKey,
             child: SingleChildScrollView(
@@ -124,38 +125,38 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                 TextFormField(
                   controller: title,
                   maxLength: 100,
-                  decoration: const InputDecoration(labelText: 'نام کانال'),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'نام کانال را وارد کنید' : null,
+                  decoration: const InputDecoration(labelText: _t.channelName),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? _t.enterChannelName : null,
                 ),
                 TextFormField(
                   controller: slug,
                   maxLength: 32,
-                  decoration: const InputDecoration(labelText: 'شناسه کانال', prefixText: '@'),
+                  decoration: const InputDecoration(labelText: _t.channelSlug, prefixText: '@'),
                   validator: (v) => (v == null || !RegExp(r'^[a-zA-Z0-9_]{3,32}$').hasMatch(v.trim()))
-                      ? '۳ تا ۳۲ حرف انگلیسی، عدد یا زیرخط' : null,
+                      ? _t.slugRules : null,
                 ),
                 TextFormField(
                   controller: description,
                   maxLength: 500,
                   maxLines: 3,
-                  decoration: const InputDecoration(labelText: 'توضیحات (اختیاری)'),
+                  decoration: const InputDecoration(labelText: _t.descriptionOptional),
                 ),
                 const SizedBox(height: 8),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   value: isPublic,
                   onChanged: (value) => setDialogState(() => isPublic = value),
-                  title: Text(isPublic ? 'کانال عمومی' : 'کانال خصوصی'),
+                  title: Text(isPublic ? _t.publicChannel : _t.privateChannel),
                   subtitle: Text(isPublic
-                      ? 'همه کاربران می‌توانند آن را پیدا کنند و عضو شوند.'
-                      : 'فقط با کد دعوت می‌توان به کانال پیوست.'),
+                      ? _t.publicChannelDiscoverableHint
+                      : _t.privateChannelInviteOnlyHint),
                   secondary: Icon(isPublic ? Icons.public_rounded : Icons.lock_rounded),
                 ),
               ]),
             ),
           ),
           actions: [
-            HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف'))),
+            HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text(_t.cancel))),
             HomaGramSpringPress(child: FilledButton(
               onPressed: () {
                 if (formKey.currentState!.validate()) {
@@ -167,7 +168,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                   });
                 }
               },
-              child: const Text('ساخت کانال'),
+              child: const Text(_t.createChannel),
             )),
           ],
         ),
@@ -198,7 +199,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
         } catch (_) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('کانال ساخته شد، اما ایجاد کد دعوت انجام نشد. از بخش مدیریت کانال دوباره تلاش کنید.')),
+              const SnackBar(content: Text(_t.channelCreatedInviteFailed)),
             );
           }
         }
@@ -212,7 +213,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ساخت کانال انجام نشد؛ ممکن است شناسه قبلاً استفاده شده باشد.')),
+          const SnackBar(content: Text(_t.channelCreateFailedSlugTaken)),
         );
       }
     } finally {
@@ -241,8 +242,8 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(kind == 'group'
-              ? 'عضویت در گروه عمومی انجام نشد.'
-              : 'عضویت در کانال عمومی انجام نشد.')),
+              ? _t.joinPublicGroupFailed
+              : _t.joinPublicChannelFailed)),
         );
       }
     }
@@ -254,7 +255,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     final code = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('ورود به کانال خصوصی'),
+        title: const Text(_t.joinPrivateChannel),
         content: Form(
           key: formKey,
           child: TextFormField(
@@ -263,21 +264,21 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
             maxLength: 64,
             textDirection: TextDirection.ltr,
             decoration: const InputDecoration(
-              labelText: 'کد دعوت',
-              hintText: 'کد ۶۴ کاراکتری',
+              labelText: _t.inviteCode,
+              hintText: _t.64CharCode,
               counterText: '',
             ),
             validator: (value) => value == null || !RegExp(r'^[0-9a-fA-F]{64}$').hasMatch(value.trim())
-                ? 'کد دعوت معتبر ۶۴ کاراکتری وارد کنید.' : null,
+                ? _t.enterValid64CharInvite : null,
           ),
         ),
         actions: [
-          HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف'))),
+          HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text(_t.cancel))),
           HomaGramSpringPress(child: FilledButton(
             onPressed: () {
               if (formKey.currentState!.validate()) Navigator.pop(ctx, controller.text.trim());
             },
-            child: const Text('عضویت'),
+            child: const Text(_t.joinMembership),
           )),
         ],
       ),
@@ -295,7 +296,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('کد دعوت نامعتبر، منقضی یا غیرفعال است.')),
+          const SnackBar(content: Text(_t.inviteInvalidExpiredRevoked)),
         );
       }
     }
@@ -306,16 +307,16 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('کشف عمومی'),
+        title: const Text(_t.publicExplore),
         actions: [
           HomaGramSpringPress(child: IconButton(
             onPressed: _joinByCode,
-            tooltip: 'ورود با کد دعوت خصوصی',
+            tooltip: _t.joinWithPrivateInvite,
             icon: const Icon(Icons.key_rounded),
           )),
           HomaGramSpringPress(child: IconButton(
             onPressed: _create,
-            tooltip: 'ساخت کانال',
+            tooltip: _t.createChannel,
             icon: const Icon(Icons.add_circle_outline),
           )),
         ],
@@ -328,12 +329,12 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'گروه‌ها و کانال‌های عمومی را پیدا کن',
+                  _t.discoverPublicGroupsChannels,
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  'با نام، شناسه یا توضیحات جست‌وجو کن و مستقیم عضو شو.',
+                  _t.searchAndJoinCommunitiesHint,
                   style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
                 ),
                 const SizedBox(height: 14),
@@ -346,10 +347,10 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                     _load();
                   },
                   decoration: InputDecoration(
-                    hintText: 'جست‌وجوی گروه یا کانال',
+                    hintText: _t.searchGroupOrChannel,
                     prefixIcon: const Icon(Icons.search_rounded),
                     suffixIcon: _search.text.isEmpty ? null : IconButton(
-                      tooltip: 'پاک کردن جست‌وجو',
+                      tooltip: _t.clearSearch,
                       onPressed: () {
                         _search.clear();
                         _load();
@@ -369,17 +370,17 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                   spacing: 8,
                   children: [
                     ChoiceChip(
-                      label: const Text('همه'),
+                      label: const Text(_t.all),
                       selected: _filter == 'all',
                       onSelected: (_) => _setFilter('all'),
                     ),
                     ChoiceChip(
-                      label: const Text('گروه‌ها'),
+                      label: const Text(_t.groups),
                       selected: _filter == 'group',
                       onSelected: (_) => _setFilter('group'),
                     ),
                     ChoiceChip(
-                      label: const Text('کانال‌ها'),
+                      label: const Text(_t.channels),
                       selected: _filter == 'channel',
                       onSelected: (_) => _setFilter('channel'),
                     ),
@@ -403,7 +404,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                           Center(child: Text(_error!)),
                           Center(child: TextButton(
                             onPressed: _load,
-                            child: const Text('تلاش دوباره'),
+                            child: const Text(_t.tryAgain),
                           )),
                         ])
                       : _communities.isEmpty
@@ -415,13 +416,13 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                                 const SizedBox(height: 14),
                                 Center(
                                   child: Text(_search.text.trim().isEmpty
-                                      ? 'هنوز مورد عمومی‌ای برای نمایش وجود ندارد.'
-                                      : 'نتیجه‌ای برای این جست‌وجو پیدا نشد.'),
+                                      ? _t.noPublicItemsYet
+                                      : _t.communitySearchNoResults),
                                 ),
                                 const SizedBox(height: 8),
                                 Center(
                                   child: Text(
-                                    'گروه‌ها و کانال‌های خصوصی در این بخش نمایش داده نمی‌شوند.',
+                                    _t.privateCommunitiesNotShown,
                                     textAlign: TextAlign.center,
                                     style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
                                   ),
@@ -430,7 +431,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                                 Center(child: HomaGramSpringPress(child: FilledButton.icon(
                                   onPressed: _create,
                                   icon: const Icon(Icons.add_rounded),
-                                  label: const Text('ساخت کانال عمومی'),
+                                  label: const Text(_t.createPublicChannel),
                                 ))),
                               ],
                             )
@@ -470,7 +471,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          '@$slug  •  ${isGroup ? 'گروه' : 'کانال'}  •  $count عضو',
+                                          '@$slug  •  ${isGroup ? _t.group : 'کانال'}  •  $count عضو',
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
@@ -484,7 +485,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
                                   ),
                                   trailing: HomaGramSpringPress(child: FilledButton.tonal(
                                     onPressed: () => _openCommunity(item),
-                                    child: Text(isMember ? 'باز کردن' : 'عضویت'),
+                                    child: Text(isMember ? _t.open : _t.joinMembership),
                                   )),
                                   onTap: () => _openCommunity(item),
                                 );
