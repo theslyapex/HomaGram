@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/theme/app_theme.dart';
 import '../data/auth_service.dart';
 import '../../home/data/story_service.dart';
+import '../../verification/presentation/verification_request_screen.dart';
 
 class ProfileHomeScreen extends StatefulWidget {
   const ProfileHomeScreen({this.onCompleted, super.key});
@@ -344,6 +345,14 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                 ),
                               ),
                               const SizedBox(height: 12),
+                              OutlinedButton.icon(
+                                onPressed: _saving ? null : () => Navigator.of(context).push(
+                                  MaterialPageRoute<void>(builder: (_) => const VerificationRequestScreen()),
+                                ),
+                                icon: const Icon(Icons.verified_user_outlined),
+                                label: const Text('درخواست نشان تأیید حساب'),
+                              ),
+                              const SizedBox(height: 8),
                               HomaGramSpringPress(child: FilledButton(
                                 onPressed: _saving ? null : _saveProfile,
                                 child: Text(_saving
