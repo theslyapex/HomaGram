@@ -134,7 +134,7 @@ class _FeedScreenState extends State<FeedScreen> {
                       : null,
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Text(_t.feedComposerHint, style: TextStyle(color: Color(0xFF8490A4))),
                 ),
                 HomaGramSpringPress(child: IconButton(
