@@ -2325,11 +2325,11 @@ class _ChatScreenState extends State<ChatScreen> {
 
 class _EmptyChat extends StatelessWidget {
   const _EmptyChat({required this.kind});
-  AppLocalizations get _t => AppLocalizations.of(context)!;
   final String kind;
 
   @override
   Widget build(BuildContext context) {
+    final _t = AppLocalizations.of(context)!;
     final isChannel = kind == 'channel';
     final isGroup = kind == 'group';
     final title = isChannel
