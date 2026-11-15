@@ -49,10 +49,9 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
     if (confirmed != true || !context.mounted) return;
+    final initialMessage = _t(context).formalAccountDeletionMessage;
     Navigator.of(context).push(MaterialPageRoute<void>(
-      builder: (_) => const SupportChatScreen(
-        initialMessage: _t(context).formalAccountDeletionMessage,
-      ),
+      builder: (_) => SupportChatScreen(initialMessage: initialMessage),
     ));
   }
 
