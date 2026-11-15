@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:video_trimmer/video_trimmer.dart';
 
 class VideoTrimScreen extends StatefulWidget {
@@ -13,6 +14,7 @@ class VideoTrimScreen extends StatefulWidget {
 }
 
 class _VideoTrimScreenState extends State<VideoTrimScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final Trimmer _trimmer = Trimmer();
   double _startValue = 0;
   double _endValue = 0;
@@ -45,7 +47,7 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = 'این ویدئو قابل ویرایش نیست.';
+        _error = _t.videoTrimUnsupported;
       });
     }
   }
@@ -99,7 +101,7 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
       if (!mounted) return;
       setState(() => _saving = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('برش و ذخیره ویدئو انجام نشد. دوباره تلاش کنید.')),
+        SnackBar(content: Text(_t.videoTrimSaveFailed)),
       );
     }
   }
@@ -114,7 +116,7 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('ویرایش ویدئو')),
+      appBar: AppBar(title: Text(_t.videoTrimTitle)),
       body: SafeArea(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
@@ -126,10 +128,10 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
                           (constraints.maxHeight * 0.39).clamp(210.0, 330.0);
                       return Column(
                         children: [
-                          const Padding(
-                            padding: EdgeInsets.fromLTRB(20, 10, 20, 12),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
                             child: Text(
-                              'دو دستگیره را جابه‌جا کنید تا ابتدا و انتهای بخش دلخواه ویدئو مشخص شود.',
+                              _t.videoTrimInstructions,
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: Color(0xFF8490A4),
@@ -169,7 +171,7 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
                                         style: theme.textTheme.labelLarge,
                                       ),
                                       Text(
-                                        'انتخاب بازه ویدئو',
+                                        _t.videoTrimRange,
                                         style: theme.textTheme.titleSmall,
                                       ),
                                       Text(
@@ -205,7 +207,7 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
                                     ),
                                   ),
                                   Text(
-                                    'مدت انتخاب‌شده: ${_formatTime(_endValue - _startValue)}  •  حداکثر ۰۲:۰۰ دقیقه',
+                                    _t.videoTrimDuration(_formatTime(_endValue - _startValue), _formatTime(120000)),
                                     style: theme.textTheme.bodySmall?.copyWith(
                                       color: theme.colorScheme.onSurfaceVariant,
                                     ),
@@ -249,8 +251,8 @@ class _VideoTrimScreenState extends State<VideoTrimScreen> {
                                     : const Icon(Icons.check_rounded),
                                 label: Text(
                                   _saving
-                                      ? 'در حال آماده‌سازی...'
-                                      : 'تأیید برش ویدئو',
+                                      ? _t.videoTrimPreparing
+                                      : _t.videoTrimConfirm,
                                 ),
                               ),
                             ),
