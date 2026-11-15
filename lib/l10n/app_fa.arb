@@ -2240,5 +2240,8 @@
         "type": "String"
       }
     }
-  }
+  },
+  "usernameRequired": "نام کاربری را وارد کنید.",
+  "usernameInvalid": "نام کاربری باید ۳ تا ۲۴ نویسه و شامل حروف انگلیسی کوچک، عدد یا زیرخط باشد.",
+  "adminCommunityUntitled": "بدون عنوان"
 }
