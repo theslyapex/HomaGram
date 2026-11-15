@@ -193,7 +193,7 @@ class _AuthScreenState extends State<AuthScreen> {
       const SizedBox(height: 14),
       _field(_username, _strings.username, Icons.alternate_email, direction: TextDirection.ltr,
         hint: 'your_name', validator: (value) {
-          final error = validateHomagramUsername(value);
+          final error = validateHomagramUsername(value, accountEmail: _email.text);
           return switch (error) {
             'usernameRequired' => _strings.usernameRequired,
             'usernameInvalid' => _strings.usernameInvalid,
