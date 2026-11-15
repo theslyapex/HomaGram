@@ -345,6 +345,7 @@ class _StoryCountdownCard extends StatefulWidget {
 }
 
 class _StoryCountdownCardState extends State<_StoryCountdownCard> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   Timer? _ticker;
   DateTime? _target;
 
@@ -399,20 +400,20 @@ class _StoryCountdownCardState extends State<_StoryCountdownCard> {
             const Icon(Icons.timer_rounded, color: Color(0xFF62E5D0), size: 18),
             const SizedBox(width: 7),
             Flexible(child: Text(
-              widget.countdown['title'] as String? ?? 'شمارش معکوس',
+              widget.countdown['title'] as String? ?? _t.storyCountdownDefault,
               maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800),
             )),
           ]),
           const SizedBox(height: 9),
           if (completed)
-            const Text('زمانش فرا رسیده!', style: TextStyle(color: Color(0xFF62E5D0), fontWeight: FontWeight.w900))
+            Text(_t.storyCountdownComplete, style: TextStyle(color: Color(0xFF62E5D0), fontWeight: FontWeight.w900))
           else
             Row(children: [
-              if (days > 0) unit('$days', 'روز'),
-              unit(_two(hours), 'ساعت'),
-              unit(_two(minutes), 'دقیقه'),
-              unit(_two(seconds), 'ثانیه'),
+              if (days > 0) unit('$days', _t.storyDays),
+              unit(_two(hours), _t.storyHours),
+              unit(_two(minutes), _t.storyMinutesUnit),
+              unit(_two(seconds), _t.storySecondsUnit),
             ]),
         ]),
       ),
@@ -429,6 +430,7 @@ class _StoryQuestionBoxCard extends StatelessWidget {
   final bool busy;
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final count = (question['response_count'] as num?)?.toInt() ?? 0;
     return Material(
       color: const Color(0xE9161D2B), borderRadius: BorderRadius.circular(18),
@@ -437,12 +439,12 @@ class _StoryQuestionBoxCard extends StatelessWidget {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           const Icon(Icons.question_answer_rounded, color: Color(0xFF62E5D0), size: 22),
           const SizedBox(height: 5),
-          Text(question['prompt'] as String? ?? 'باکس پرسش', textAlign: TextAlign.center, maxLines: 3,
+          Text(question['prompt'] as String? ?? t.storyQuestionBoxDefault, textAlign: TextAlign.center, maxLines: 3,
             overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
           SizedBox(width: double.infinity, child: HomaGramSpringPress(child: OutlinedButton(
             onPressed: busy ? null : (isOwner ? onViewResponses : onRespond),
-            child: Text(isOwner ? 'مشاهده پاسخ‌ها • $count' : 'نوشتن پاسخ'),
+            child: Text(isOwner ? t.storyQuestionResponses(count) : t.storyWriteAnswer),
           ))),
         ]),
       ),
@@ -465,6 +467,7 @@ class _StoryPollCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final options = (poll['options'] as List? ?? const [])
         .map((value) => value.toString()).toList();
     final counts = (poll['counts'] as List? ?? const [])
@@ -486,7 +489,7 @@ class _StoryPollCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              poll['question'] as String? ?? 'نظرسنجی',
+              poll['question'] as String? ?? t.storyPollDefault,
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -508,15 +511,15 @@ class _StoryPollCard extends StatelessWidget {
             if (showResults) ...[
               const SizedBox(height: 8),
               Text(
-                '$total رأی',
+                t.storyVoteCount(total),
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.white70, fontSize: 11),
               ),
             ] else
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  'برای ثبت رأی یکی از گزینه‌ها را انتخاب کنید.',
+                  t.storyChoosePollOption,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white60, fontSize: 10),
                 ),
@@ -1967,7 +1970,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               ]),
             ),
             if (_musicDuration.inMilliseconds > 5000)
-              Row(children: [Text(_t.storyStartAt), Expanded(child: Slider(min: 0, max: (_musicDuration.inMilliseconds - 5000).toDouble(), value: _musicStartMs.clamp(0, _musicDuration.inMilliseconds - 5000).toDouble(), onChanged: _busy ? null : (value) async { setState(() => _musicStartMs = value.round()); await _musicPreview?.pause(); await _musicPreview?.seekTo(Duration(milliseconds: _musicStartMs)); })), Text('${(_musicStartMs / 1000).toStringAsFixed(0)}ث')]),
+              Row(children: [Text(_t.storyStartAt), Expanded(child: Slider(min: 0, max: (_musicDuration.inMilliseconds - 5000).toDouble(), value: _musicStartMs.clamp(0, _musicDuration.inMilliseconds - 5000).toDouble(), onChanged: _busy ? null : (value) async { setState(() => _musicStartMs = value.round()); await _musicPreview?.pause(); await _musicPreview?.seekTo(Duration(milliseconds: _musicStartMs)); })), Text(_t.storySeconds((_musicStartMs / 1000).round()))]),
             Row(children: [const Icon(Icons.volume_down_rounded, size: 19), Expanded(child: Slider(min: 0, max: 1, value: _musicVolume, onChanged: _busy ? null : (value) async { setState(() => _musicVolume = value); await _musicPreview?.setVolume(value); })), const Icon(Icons.volume_up_rounded, size: 19)]),
             Text(_t.storyMusicPlaybackNote, style: TextStyle(fontSize: 11, height: 1.7, color: Color(0xFF8490A4))),
           ],
