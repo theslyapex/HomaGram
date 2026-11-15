@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
@@ -383,109 +385,394 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
     final author = (widget.reel['author_display_name'] as String?)?.trim();
     final username = widget.reel['author_username'] as String? ?? '';
     final caption = (widget.reel['caption'] as String? ?? '').trim();
-    final createdAt = DateTime.tryParse(widget.reel['created_at'] as String? ?? '')?.toLocal();
-    return Stack(fit: StackFit.expand, children: [
-      const ColoredBox(color: Colors.black),
-      if (controller != null && controller.value.isInitialized)
-        Center(
-          child: GestureDetector(
-            onTap: _togglePlayback,
-            child: AspectRatio(
-              aspectRatio: controller.value.aspectRatio,
-              child: VideoPlayer(controller),
+    final createdAt = DateTime.tryParse(
+      widget.reel['created_at'] as String? ?? '',
+    )?.toLocal();
+    final safeTop = MediaQuery.paddingOf(context).top;
+    final safeBottom = MediaQuery.paddingOf(context).bottom;
+    final avatarUrl = widget.reel['avatar_url'] as String?;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const ColoredBox(color: Colors.black),
+        if (controller != null && controller.value.isInitialized)
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _togglePlayback,
+              child: ClipRect(
+                child: FittedBox(
+                  fit: BoxFit.cover,
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    width: controller.value.size.width,
+                    height: controller.value.size.height,
+                    child: VideoPlayer(controller),
+                  ),
+                ),
+              ),
+            ),
+          )
+        else if (_loading)
+          Stack(
+            fit: StackFit.expand,
+            children: [
+              if (widget.reel['cover_url'] != null)
+                Image.network(
+                  widget.reel['cover_url'] as String,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) =>
+                      const ColoredBox(color: Colors.black),
+                ),
+              const Center(
+                child: CircularProgressIndicator(
+                  color: HomaGramTheme.turquoise,
+                  strokeWidth: 2.5,
+                ),
+              ),
+            ],
+          )
+        else
+          const Center(
+            child: Icon(Icons.video_file_outlined,
+              color: Colors.white54, size: 54),
+          ),
+
+        // Subtle cinematic contrast keeps controls readable over bright footage.
+        Positioned.fill(
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: .42),
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: .12),
+                    Colors.black.withValues(alpha: .78),
+                  ],
+                  stops: const [0, .25, .55, 1],
+                ),
+              ),
             ),
           ),
-        )
-      else if (_loading)
-        Stack(fit: StackFit.expand, children: [
-          if (widget.reel['cover_url'] != null)
-            Image.network(widget.reel['cover_url'] as String, fit: BoxFit.cover),
-          const Center(child: CircularProgressIndicator(color: HomaGramTheme.turquoise)),
-        ])
-      else
-        const Center(child: Icon(Icons.video_file_outlined, color: Colors.white54, size: 54)),
-      Positioned.fill(child: IgnorePointer(child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter,
-            colors: [Colors.black.withValues(alpha: .32), Colors.transparent,
-              Colors.black.withValues(alpha: .68)],
-            stops: const [0, .38, 1]),
         ),
-      ))),
-      if (_showPlay)
-        const Center(child: Icon(Icons.play_arrow_rounded, size: 76, color: Colors.white)),
-      Positioned(
-        left: 14, right: 82, bottom: 22,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          InkWell(
-            onTap: _openProfile,
-            child: Row(children: [
-              CircleAvatar(
-                radius: 17,
-                backgroundImage: widget.reel['avatar_url'] == null
-                    ? null : NetworkImage(widget.reel['avatar_url'] as String),
-                child: widget.reel['avatar_url'] == null
-                    ? const Icon(Icons.person_outline, size: 18) : null,
+
+        Positioned(
+          top: safeTop + 10,
+          left: 16,
+          right: 16,
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: .34),
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(color: Colors.white.withValues(alpha: .18)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.play_circle_fill_rounded,
+                      color: HomaGramTheme.turquoise, size: 18),
+                    SizedBox(width: 7),
+                    Text('HOMAGRAM  /  REELS',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        letterSpacing: 1.1,
+                        fontWeight: FontWeight.w900,
+                      )),
+                  ],
+                ),
               ),
-              const SizedBox(width: 9),
-              Expanded(child: Text(
-                author == null || author.isEmpty ? '@$username' : author,
-                maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
-              )),
-              HomaGramVerifiedBadge(userId: widget.reel['author_id'] as String?, size: 17),
-              if (widget.reel['is_mine'] != true)
-                HomaGramSpringPress(child: OutlinedButton(
-                  onPressed: _openProfile,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Colors.white70),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-                    minimumSize: Size.zero,
+              const Spacer(),
+              if (_showPlay)
+                Container(
+                  padding: const EdgeInsets.all(9),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: .35),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white.withValues(alpha: .18)),
                   ),
-                  child: Text(_t.reelsViewProfile, style: TextStyle(fontSize: 10)),
-                )),
-            ]),
+                  child: const Icon(Icons.pause_rounded,
+                    color: Colors.white, size: 18),
+                ),
+            ],
           ),
-          if (caption.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Text(caption, maxLines: 4, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white, height: 1.5, fontSize: 13)),
-          ],
-          const SizedBox(height: 8),
-          Text(
-            createdAt == null ? 'HomaGram • Reels' : 'HomaGram • Reels  •  ${persianDateTime(createdAt)}',
-            style: const TextStyle(color: Colors.white70, fontSize: 10),
+        ),
+
+        if (_showPlay)
+          Center(
+            child: Container(
+              width: 76,
+              height: 76,
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: .42),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white.withValues(alpha: .24)),
+              ),
+              child: const Icon(Icons.play_arrow_rounded,
+                size: 48, color: Colors.white),
+            ),
           ),
-        ]),
-      ),
-      Positioned(
-        right: 10, bottom: 28,
-        child: Column(children: [
-          _action(Icons.favorite_rounded, _likes.toString(),
-            color: _liked ? Colors.pinkAccent : Colors.white, onTap: _toggleLike),
-          const SizedBox(height: 18),
-          _action(Icons.mode_comment_outlined, _comments.toString(), onTap: _openComments),
-          const SizedBox(height: 18),
-          _action(Icons.share_outlined, _t.reelsShare, onTap: _share),
-          const SizedBox(height: 18),
-          _action(Icons.flag_outlined, _t.reelsReport, onTap: _reportReel),
-        ]),
-      ),
-    ]);
+
+        Positioned(
+          left: 14,
+          right: 82,
+          bottom: safeBottom + 16,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ui.ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 13),
+                decoration: BoxDecoration(
+                  color: const Color(0xD9161C2B),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: .17),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: .2),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [
+                                HomaGramTheme.turquoise,
+                                Color(0xFF8C72FF),
+                              ],
+                            ),
+                          ),
+                          child: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: const Color(0xFF29344B),
+                            backgroundImage: avatarUrl == null
+                                ? null : NetworkImage(avatarUrl),
+                            child: avatarUrl == null
+                                ? const Icon(Icons.person_rounded,
+                                    color: Colors.white, size: 20)
+                                : null,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: InkWell(
+                            onTap: _openProfile,
+                            borderRadius: BorderRadius.circular(10),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 3),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          author == null || author.isEmpty
+                                              ? '@$username' : author,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      HomaGramVerifiedBadge(
+                                        userId: widget.reel['author_id'] as String?,
+                                        size: 15,
+                                      ),
+                                    ],
+                                  ),
+                                  if (username.isNotEmpty)
+                                    Text(
+                                      '@$username',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (widget.reel['is_mine'] != true)
+                          OutlinedButton(
+                            onPressed: _openProfile,
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: BorderSide(
+                                color: Colors.white.withValues(alpha: .55),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 11, vertical: 7,
+                              ),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              visualDensity: VisualDensity.compact,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              _t.reelsViewProfile,
+                              style: const TextStyle(
+                                fontSize: 10, fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    if (caption.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        caption,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          height: 1.55,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Icon(Icons.movie_creation_outlined,
+                          size: 13, color: HomaGramTheme.turquoise),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            createdAt == null
+                                ? 'HomaGram Reels'
+                                : 'HomaGram Reels  •  ${persianDateTime(createdAt)}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white60,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        Positioned(
+          right: 11,
+          bottom: safeBottom + 24,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _action(
+                Icons.favorite_rounded,
+                _likes.toString(),
+                color: _liked ? Colors.pinkAccent : Colors.white,
+                onTap: _toggleLike,
+              ),
+              const SizedBox(height: 17),
+              _action(
+                Icons.mode_comment_rounded,
+                _comments.toString(),
+                onTap: _openComments,
+              ),
+              const SizedBox(height: 17),
+              _action(
+                Icons.share_rounded,
+                _t.reelsShare,
+                onTap: _share,
+              ),
+              const SizedBox(height: 17),
+              _action(
+                Icons.flag_outlined,
+                _t.reelsReport,
+                onTap: _reportReel,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
-  Widget _action(IconData icon, String label, {Color color = Colors.white, required VoidCallback onTap}) =>
-    InkWell(
+  Widget _action(
+    IconData icon,
+    String label, {
+    Color color = Colors.white,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
-        child: Column(children: [
-          Icon(icon, color: color, size: 29),
-          const SizedBox(height: 4),
-          Text(label, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
-        ]),
+      borderRadius: BorderRadius.circular(22),
+      child: SizedBox(
+        width: 54,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: .38),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: .2),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: .18),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+                shadows: [Shadow(color: Colors.black87, blurRadius: 6)],
+              ),
+            ),
+          ],
+        ),
       ),
     );
-}
+  }
