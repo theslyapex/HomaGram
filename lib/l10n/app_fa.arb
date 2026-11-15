@@ -1111,5 +1111,59 @@
         "type": "String"
       }
     }
+  },
+  "highlightManageCollection": "مدیریت مجموعه هایلایت",
+  "highlightEditTitleStories": "ویرایش عنوان و استوری‌ها",
+  "highlightDelete": "حذف هایلایت",
+  "highlightDeleteConfirm": "هایلایت «{title}» حذف شود؟ استوری‌های آرشیو شما حذف نمی‌شوند.",
+  "highlightDeleteFailed": "حذف هایلایت انجام نشد.",
+  "highlightReorderFailed": "مرتب‌سازی هایلایت‌ها انجام نشد.",
+  "highlightNew": "جدید",
+  "highlightCoverTooLarge": "تصویر کاور باید کمتر از ۵ مگابایت باشد.",
+  "highlightCoverFailed": "انتخاب یا بارگذاری تصویر کاور انجام نشد.",
+  "highlightTitleLength": "عنوان هایلایت باید ۱ تا ۳۰ نویسه باشد.",
+  "highlightSelectStory": "حداقل یک استوری انتخاب کنید.",
+  "highlightSaveFailed": "ساخت هایلایت انجام نشد. دوباره تلاش کنید.",
+  "highlightCreate": "ساخت هایلایت",
+  "highlightEdit": "ویرایش هایلایت",
+  "highlightArchiveLoadFailed": "آرشیو استوری‌ها بارگذاری نشد.",
+  "highlightNoStories": "هنوز استوری فعالی یا آرشیوشده‌ای برای هایلایت ندارید.",
+  "highlightTitleLabel": "عنوان هایلایت",
+  "highlightTitleHint": "مثلاً سفرها، پروژه‌ها، لحظه‌ها",
+  "highlightCustomCover": "کاور اختصاصی هایلایت",
+  "highlightCoverDescription": "یک تصویر از گالری انتخاب کن یا کاور یکی از استوری‌ها را نگه دار.",
+  "highlightChooseGallery": "انتخاب از گالری",
+  "highlightRemoveCover": "حذف تصویر انتخابی",
+  "highlightSelectedStories": "استوری‌های فعال و آرشیوشده • {count} انتخاب | ★ انتخاب کاور",
+  "highlightSaving": "در حال ذخیره...",
+  "highlightCreateCount": "ساخت هایلایت ({count})",
+  "highlightSaveCount": "ذخیره تغییرات ({count})",
+  "@highlightDeleteConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "@highlightSelectedStories": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@highlightCreateCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@highlightSaveCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }
