@@ -1261,5 +1261,33 @@
         "type": "String"
       }
     }
+  },
+  "storySeconds": "{count} sec",
+  "storyMinutes": "{count} min",
+  "storyMinutesAndSeconds": "{minutes} min {seconds} sec",
+  "storyWatchLabel": "Watched",
+  "@storySeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyMinutesAndSeconds": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
   }
 }
