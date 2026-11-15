@@ -384,10 +384,19 @@ class _MessagingScreenState extends State<MessagingScreen> {
                                   leading: CircleAvatar(
                                     radius: 25,
                                     backgroundColor: colors.primaryContainer,
-                                    child: Icon(
-                                      item.kind == 'group' ? Icons.groups_rounded : Icons.person_rounded,
-                                      color: colors.onPrimaryContainer,
-                                    ),
+                                    backgroundImage: item.photoUrl != null
+                                        ? NetworkImage(item.photoUrl!)
+                                        : null,
+                                    child: item.photoUrl == null
+                                        ? Icon(
+                                            item.kind == 'group'
+                                                ? Icons.groups_rounded
+                                                : item.kind == 'channel'
+                                                    ? Icons.campaign_rounded
+                                                    : Icons.person_rounded,
+                                            color: colors.onPrimaryContainer,
+                                          )
+                                        : null,
                                   ),
                                   title: Row(mainAxisSize: MainAxisSize.min, children: [
                                     Flexible(child: Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
