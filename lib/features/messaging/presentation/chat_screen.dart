@@ -1780,7 +1780,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final createdAt = DateTime.tryParse(message['created_at'] as String? ?? '');
     final canEdit = mine && createdAt != null &&
         DateTime.now().difference(createdAt) <= const Duration(hours: 2);
-    final canModerate = _conversationKind == 'direct' ? mine :
+    final canModerate = _conversationKind == 'direct' ||
         mine || _myConversationRole == 'owner' || _myConversationRole == 'admin';
     final canPin = _conversationKind == 'direct' ||
         _myConversationRole == 'owner' || _myConversationRole == 'admin';
