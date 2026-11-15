@@ -23,7 +23,7 @@ String persianDate(DateTime date) {
   final yday = jdn - jalaliNewYear + 1;
   final jm = yday <= 186 ? ((yday - 1) ~/ 31) + 1 : ((yday - 187) ~/ 30) + 7;
   final jd = yday <= 186 ? ((yday - 1) % 31) + 1 : ((yday - 187) % 30) + 1;
-  final value = '${jy.toString().padLeft(4, '0')}/${jm.toString().padLeft(2, '0')}/${jd.toString().padLeft(2, '0')}';
+  final value = '\${jy.toString().padLeft(4, '0')}/\${jm.toString().padLeft(2, '0')}/\${jd.toString().padLeft(2, '0')}';
   const digits = '۰۱۲۳۴۵۶۷۸۹';
   return value.replaceAllMapped(RegExp(r'[0-9]'), (match) => digits[int.parse(match.group(0)!)]);
 }
@@ -39,9 +39,8 @@ int _jalaliToJdn(int jy, int jm, int jd) {
       1948320;
 }
 
-
 String persianTime(DateTime date) {
-  final value = '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  final value = '\${date.hour.toString().padLeft(2, '0')}:\${date.minute.toString().padLeft(2, '0')}';
   const digits = '۰۱۲۳۴۵۶۷۸۹';
   return value.replaceAllMapped(
     RegExp(r'[0-9]'),
@@ -49,10 +48,9 @@ String persianTime(DateTime date) {
   );
 }
 
-String persianDateTime(DateTime date) => '${persianDate(date)} • ${persianTime(date)}';
+String persianDateTime(DateTime date) => '\${persianDate(date)} • \${persianTime(date)}';
 
-
-/// Converts a user-entered Jalali date (for example ۱۳۸۳/۱۱/۱۴) to Gregorian.
+/// Converts a Jalali date such as ۱۳۸۳/۱۱/۱۴ to a Gregorian DateTime.
 DateTime? parsePersianDate(String input) {
   const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
   const arabicDigits = '٠١٢٣٤٥٦٧٨٩';
@@ -61,45 +59,21 @@ DateTime? parsePersianDate(String input) {
     normalized = normalized.replaceAll(persianDigits[i], '$i');
     normalized = normalized.replaceAll(arabicDigits[i], '$i');
   }
-  final match = RegExp(r'^(\d{4})[/-](\d{1,2})[/-](\d{1,2}).firstMatch(normalized);
+  final match = RegExp(r'^(\d{4})[/-](\d{1,2})[/-](\d{1,2})$').firstMatch(normalized);
   if (match == null) return null;
   final jy = int.parse(match.group(1)!);
   final jm = int.parse(match.group(2)!);
   final jd = int.parse(match.group(3)!);
   if (jy < 1300 || jy > 1600 || jm < 1 || jm > 12 || jd < 1) return null;
-  final firstDay = _jalaliToJdn(jy, jm, 1);
-  final nextMonth = jm == 12 ? _jalaliToJdn(jy + 1, 1, 1) : _jalaliToJdn(jy, jm + 1, 1);
-  if (jd > nextMonth - firstDay) return null;
-  final g = _jdnToGregorian(firstDay + jd - 1);
-  final result = DateTime(g.$1, g.$2, g.$3);
-  if (result.isAfter(DateTime.now())) return null;
-  return result;
-}
 
-(int, int, int) _jdnToGregorian(int jdn) {
-  var l = jdn + 68569;
-  final n = (4 * l) ~/ 146097;
-  l -= (146097 * n + 3) ~/ 4;
-  final i = (4000 * (l + 1)) ~/ 1461001;
-  l = l - (1461 * i) ~/ 4 + 31;
-  final j = (80 * l) ~/ 2447;
-  final day = l - (2447 * j) ~/ 80;
-  l = j ~/ 11;
-  final month = j + 2 - 12 * l;
-  final year = 100 * (n - 49) + i + l;
-  return (year, month, day);
-}
-).firstMatch(normalized);
-  if (match == null) return null;
-  final jy = int.parse(match.group(1)!);
-  final jm = int.parse(match.group(2)!);
-  final jd = int.parse(match.group(3)!);
-  if (jy < 1300 || jy > 1600 || jm < 1 || jm > 12 || jd < 1) return null;
   final firstDay = _jalaliToJdn(jy, jm, 1);
-  final nextMonth = jm == 12 ? _jalaliToJdn(jy + 1, 1, 1) : _jalaliToJdn(jy, jm + 1, 1);
+  final nextMonth = jm == 12
+      ? _jalaliToJdn(jy + 1, 1, 1)
+      : _jalaliToJdn(jy, jm + 1, 1);
   if (jd > nextMonth - firstDay) return null;
-  final g = _jdnToGregorian(firstDay + jd - 1);
-  final result = DateTime(g.$1, g.$2, g.$3);
+
+  final gregorian = _jdnToGregorian(firstDay + jd - 1);
+  final result = DateTime(gregorian.$1, gregorian.$2, gregorian.$3);
   if (result.isAfter(DateTime.now())) return null;
   return result;
 }
