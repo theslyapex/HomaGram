@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/theme/app_theme.dart';
@@ -12,6 +13,7 @@ class AccountPreferencesScreen extends StatefulWidget {
 }
 
 class _AccountPreferencesScreenState extends State<AccountPreferencesScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   bool _loading = true;
   bool _saving = false;
   bool _private = false;
@@ -68,7 +70,7 @@ class _AccountPreferencesScreenState extends State<AccountPreferencesScreen> {
     } catch (_) {
       if (mounted) setState(() {
         _loading = false;
-        _error = 'تنظیمات حساب دریافت نشد. اتصال را بررسی کنید.';
+        _error = _t.accountPreferencesLoadFailed;
       });
     }
   }
@@ -90,7 +92,7 @@ class _AccountPreferencesScreenState extends State<AccountPreferencesScreen> {
           .eq('user_id', _userId);
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ذخیره تنظیمات انجام نشد. دوباره تلاش کنید.')),
+        SnackBar(content: Text(_t.accountPreferencesSaveFailed)),
       );
       await _load();
     } finally {
@@ -125,60 +127,60 @@ class _AccountPreferencesScreenState extends State<AccountPreferencesScreen> {
       if (mounted) setState(() => _blocked.removeWhere((row) => row['id'] == id));
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('رفع مسدودسازی انجام نشد.')),
+        SnackBar(content: Text(_t.accountPreferencesUnblockFailed)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('حریم خصوصی و نمایش حساب')),
+    appBar: AppBar(title: Text(_t.accountPreferencesTitle)),
     body: HomaGramEntrance(child: _loading
       ? const Center(child: CircularProgressIndicator())
       : _error != null
         ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
             Text(_error!),
-            TextButton(onPressed: _load, child: const Text('تلاش دوباره')),
+            TextButton(onPressed: _load, child: Text(_t.adminRetry)),
           ]))
         : ListView(padding: const EdgeInsets.all(16), children: [
-            const Text('نمایش و ظاهر', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+            Text(_t.accountAppearance, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
             const SizedBox(height: 8),
             Card(child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
               child: DropdownButtonFormField<String>(
                 initialValue: _theme,
-                decoration: const InputDecoration(labelText: 'پوسته برنامه', border: InputBorder.none),
-                items: const [
-                  DropdownMenuItem(value: 'system', child: Text('مطابق تنظیم دستگاه')),
-                  DropdownMenuItem(value: 'light', child: Text('روشن')),
-                  DropdownMenuItem(value: 'dark', child: Text('تیره')),
+                decoration: InputDecoration(labelText: _t.accountTheme, border: InputBorder.none),
+                items: [
+                  DropdownMenuItem(value: 'system', child: Text(_t.accountThemeSystem)),
+                  DropdownMenuItem(value: 'light', child: Text(_t.accountThemeLight)),
+                  DropdownMenuItem(value: 'dark', child: Text(_t.accountThemeDark)),
                 ],
                 onChanged: _saving ? null : (value) { if (value != null) _setTheme(value); },
               ),
             )),
             const SizedBox(height: 18),
-            const Text('حریم خصوصی حساب', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+            Text(_t.accountPrivacy, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
             const SizedBox(height: 8),
             Card(child: Column(children: [
               SwitchListTile.adaptive(
                 value: _private,
                 onChanged: _saving ? null : (value) => _setPrivacy('is_private', value),
-                title: const Text('حساب خصوصی'),
-                subtitle: const Text('برای دنبال‌کردن شما، درخواست دنبال‌کردن لازم است.', style: TextStyle(fontSize: 11)),
+                title: Text(_t.accountPrivate),
+                subtitle: Text(_t.accountPrivateDescription, style: TextStyle(fontSize: 11)),
                 secondary: const Icon(Icons.lock_outline_rounded),
               ),
               const Divider(height: 1),
               SwitchListTile.adaptive(
                 value: _showFollowers,
                 onChanged: _saving ? null : (value) => _setPrivacy('show_followers', value),
-                title: const Text('نمایش دنبال‌کنندگان'),
+                title: Text(_t.accountShowFollowers),
                 secondary: const Icon(Icons.people_outline_rounded),
               ),
               const Divider(height: 1),
               SwitchListTile.adaptive(
                 value: _showFollowing,
                 onChanged: _saving ? null : (value) => _setPrivacy('show_following', value),
-                title: const Text('نمایش دنبال‌شوندگان'),
+                title: Text(_t.accountShowFollowing),
                 secondary: const Icon(Icons.person_add_alt_rounded),
               ),
               const Divider(height: 1),
@@ -188,46 +190,46 @@ class _AccountPreferencesScreenState extends State<AccountPreferencesScreen> {
                   setState(() => _allowMessageForwarding = value);
                   _save({'allow_message_forwarding': value});
                 },
-                title: const Text('اجازه فوروارد پیام‌های من'),
-                subtitle: const Text('با خاموش‌کردن این گزینه، دیگران نمی‌توانند پیام متنی شما را به گفتگوی دیگری فوروارد کنند.', style: TextStyle(fontSize: 11)),
+                title: Text(_t.accountAllowForwarding),
+                subtitle: Text(_t.accountForwardingDescription, style: TextStyle(fontSize: 11)),
                 secondary: const Icon(Icons.forward_to_inbox_outlined),
               ),
               const Divider(height: 1),
               SwitchListTile.adaptive(
                 value: _showVisitors,
                 onChanged: _saving ? null : (value) => _setPrivacy('show_profile_visitors', value),
-                title: const Text('ثبت بازدیدکنندگان پروفایل'),
-                subtitle: const Text('با خاموش‌کردن این گزینه، فهرست بازدیدها برای پروفایل شما ثبت نمی‌شود.', style: TextStyle(fontSize: 11)),
+                title: Text(_t.accountTrackVisitors),
+                subtitle: Text(_t.accountVisitorsDescription, style: TextStyle(fontSize: 11)),
                 secondary: const Icon(Icons.visibility_outlined),
               ),
             ])),
             const SizedBox(height: 18),
             Row(children: [
-              const Expanded(child: Text('حساب‌های مسدودشده', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16))),
+              Expanded(child: Text(_t.accountBlockedUsers, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16))),
               Text('${_blocked.length}', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w800)),
             ]),
             const SizedBox(height: 8),
             Card(child: _blocked.isEmpty
-              ? const Padding(padding: EdgeInsets.all(16), child: Text('در حال حاضر حسابی را مسدود نکرده‌اید.',
+              ? Padding(padding: EdgeInsets.all(16), child: Text(_t.accountNoBlockedUsers,
                   style: TextStyle(fontSize: 12)))
               : Column(children: [
                   for (final profile in _blocked)
                     ListTile(
                       leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
                       title: Row(children: [
-                        Flexible(child: Text(profile['display_name'] as String? ?? 'کاربر هماگرام',
+                        Flexible(child: Text(profile['display_name'] as String? ?? _t.adminUnknownUser,
                           maxLines: 1, overflow: TextOverflow.ellipsis)),
                         const SizedBox(width: 4),
                         HomaGramVerifiedBadge(userId: profile['id'] as String?),
                       ]),
-                      subtitle: Text('@${profile['username'] ?? 'user'}'),
+                      subtitle: Text('@${profile['username'] ?? _t.adminNoUsername}'),
                       trailing: TextButton(
                         onPressed: () => _unblock(profile),
-                        child: const Text('رفع مسدودی'),
+                        child: Text(_t.accountUnblock),
                       ),
                     ),
                 ])),
-            if (_saving) const Padding(
+            if (_saving) Padding(
               padding: EdgeInsets.only(top: 12),
               child: LinearProgressIndicator(minHeight: 2),
             ),
