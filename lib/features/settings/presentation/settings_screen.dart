@@ -148,7 +148,7 @@ class SettingsScreen extends StatelessWidget {
           style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
         )),
         const SizedBox(height: 14),
-        const Text('نسخه ۱.۰ • بازبینی محتوایی: ۲۳ آبان ۱۴۰۵. این مقررات باید همراه با قوانین آمره و تصمیم مراجع صالح تفسیر شوند؛ هیچ بندی حقوقی را که قانون قابل اسقاط نمی‌داند محدود نمی‌کند.',
+        const Text('نسخه ۱.۰ • بازبینی محتوایی: ۲۳ آبان ۱۴۰۵. استفاده از خدمات هماگرام تابع این مقررات و قوانین لازم‌الاجراست و هیچ‌یک از مفاد آن، حقوقی را که به موجب قانون قابل اسقاط نیستند، سلب یا محدود نمی‌کند.',
           textAlign: TextAlign.center, style: TextStyle(fontSize: 10, height: 1.7, color: Color(0xFF8490A4))),
       ])),
     );
