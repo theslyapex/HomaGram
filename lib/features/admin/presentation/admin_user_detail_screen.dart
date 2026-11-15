@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../app/presentation/homagram_branding.dart';
@@ -14,6 +15,7 @@ class AdminUserDetailScreen extends StatefulWidget {
 }
 
 class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   late Future<Map<String, dynamic>> _future;
   bool _isAdmin = false;
   bool _deleting = false;
@@ -41,14 +43,14 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
     final first = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('حذف حساب کاربر؟'),
-        content: Text('آیا مطمئن هستید حساب ${name?.isNotEmpty == true ? name : (username ?? widget.userId)} حذف شود؟ این عملیات برگشت‌پذیر نیست و داده‌های وابسته به حساب نیز طبق روابط پایگاه داده حذف خواهند شد.'),
+        title: Text(_t.adminDeleteAccountConfirmTitle),
+        content: Text(_t.adminDeleteAccountQuestion(name?.isNotEmpty == true ? name! : (username ?? widget.userId))),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('انصراف')),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('بله، ادامه بده'),
+            child: Text(_t.adminContinueDelete),
           ),
         ],
       ),
@@ -59,23 +61,23 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
     final second = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(builder: (ctx, setDialogState) => AlertDialog(
-        title: const Text('تأیید نهایی حذف'),
+        title: Text(_t.adminFinalDeleteConfirm),
         content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('برای جلوگیری از حذف اشتباهی، عبارت «حذف حساب» را دقیقاً وارد کنید.'),
+          Text(_t.adminDeleteAccountInstruction(_t.adminDeleteAccountPhrase)),
           const SizedBox(height: 12),
           TextField(
             controller: controller,
             autofocus: true,
             onChanged: (_) => setDialogState(() {}),
-            decoration: const InputDecoration(labelText: 'عبارت تأیید'),
+            decoration: InputDecoration(labelText: _t.adminDeleteAccountField),
           ),
         ]),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('بازگشت')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('بازگشت')),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: controller.text.trim() == 'حذف حساب' ? () => Navigator.pop(ctx, true) : null,
-            child: const Text('حذف دائمی حساب'),
+            onPressed: controller.text.trim() == _t.adminDeleteAccountPhrase ? () => Navigator.pop(ctx, true) : null,
+            child: Text(_t.adminDeleteAccountPermanent),
           ),
         ],
       )),
@@ -88,12 +90,12 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
       await AdminService.deleteUser(widget.userId);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('حساب کاربر حذف شد.')),
+        SnackBar(content: Text(_t.adminUserDeleted)),
       );
       Navigator.of(context).pop(true);
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('حذف حساب انجام نشد. ممکن است حساب مدیر یا دارای محدودیت حفاظتی باشد.')),
+        SnackBar(content: Text(_t.adminDeleteAccountFailed)),
       );
     } finally {
       if (mounted) setState(() => _deleting = false);
@@ -106,10 +108,10 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
       await AdminService.setVerified(widget.userId, !_verified);
       if (mounted) {
         setState(() => _verified = !_verified);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_verified ? 'نشان تأیید فعال شد.' : 'نشان تأیید لغو شد.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_verified ? _t.adminVerificationEnabled : _t.adminVerificationDisabled)));
       }
     } catch (_) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تغییر وضعیت نشان تأیید انجام نشد.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t.adminVerificationToggleFailed)));
     } finally { if (mounted) setState(() => _verificationBusy = false); }
   }
 
@@ -119,9 +121,9 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
       final id = await AdminService.openSupportForUser(widget.userId);
       if (!mounted) return;
       await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) =>
-        SupportChatScreen(conversationId: id, title: 'پشتیبانی کاربر', isAdmin: true)));
+        SupportChatScreen(conversationId: id, title: _t.adminUserSupportTitle, isAdmin: true)));
     } catch (_) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('گفت‌وگوی پشتیبانی ایجاد نشد.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t.adminUserSupportFailed)));
     }
   }
 
@@ -132,25 +134,25 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
   }
   String _date(dynamic value) {
     final d = value is String ? DateTime.tryParse(value)?.toLocal() : null;
-    return d == null ? 'نامشخص' : persianDate(d);
+    return d == null ? _t.adminUnknown : persianDate(d);
   }
   String _duration(dynamic value) {
     final seconds = (value as num?)?.toInt() ?? 0;
-    return '${seconds ~/ 3600} ساعت و ${(seconds % 3600) ~/ 60} دقیقه';
+    return _t.adminDurationHoursAndMinutes(seconds ~/ 3600, (seconds % 3600) ~/ 60);
   }
   int _n(Map<String,dynamic> data, String key) => (data[key] as num?)?.toInt() ?? 0;
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('پرونده کاربر', style: TextStyle(fontWeight: FontWeight.w900))),
+    appBar: AppBar(title: Text(_t.adminUserFileTitle, style: TextStyle(fontWeight: FontWeight.w900))),
     body: FutureBuilder<Map<String,dynamic>>(
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
         if (snapshot.hasError || !snapshot.hasData) return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Text('اطلاعات کاربر دریافت نشد.'),
+          Text(_t.adminUserDataLoadFailed),
           const SizedBox(height: 10),
-          FilledButton.tonal(onPressed: _refresh, child: const Text('تلاش دوباره')),
+          FilledButton.tonal(onPressed: _refresh, child: Text(_t.adminRetry)),
         ]));
         final d = snapshot.data!;
         final name = (d['display_name'] as String?)?.trim();
@@ -158,18 +160,18 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
         final submitted = (d['reports_submitted'] as List? ?? const []).cast<Map>();
         final against = (d['reports_against'] as List? ?? const []).cast<Map>();
         final metrics = <(String,String,IconData)>[
-          ('پست‌ها', '${_n(d,'posts')}', Icons.grid_view_rounded),
-          ('ریلز', '${_n(d,'reels')}', Icons.video_collection_outlined),
-          ('استوری‌ها', '${_n(d,'stories')}', Icons.auto_awesome_outlined),
-          ('دیدگاه‌ها', '${_n(d,'comments')}', Icons.mode_comment_outlined),
-          ('پسندهای دریافتی', '${_n(d,'likes_received')}', Icons.favorite_border_rounded),
-          ('دنبال‌کننده‌ها', '${_n(d,'followers')}', Icons.people_outline_rounded),
-          ('دنبال‌شونده‌ها', '${_n(d,'following')}', Icons.person_add_alt_rounded),
-          ('پیام‌های ارسال‌شده', '${_n(d,'messages_sent')}', Icons.chat_bubble_outline_rounded),
-          ('گزارش‌های ثبت‌شده', '${_n(d,'reports_made')}', Icons.outbox_outlined),
-          ('گزارش‌های دریافتی پست', '${_n(d,'reports_received')}', Icons.flag_outlined),
-          ('گزارش پیام ثبت‌شده', '${_n(d,'message_reports_made')}', Icons.outbox_outlined),
-          ('گزارش پیام دریافتی', '${_n(d,'message_reports_received')}', Icons.report_gmailerrorred_outlined),
+          (_t.adminMetricPosts, '${_n(d,'posts')}', Icons.grid_view_rounded),
+          (_t.adminMetricReels, '${_n(d,'reels')}', Icons.video_collection_outlined),
+          (_t.adminMetricStories, '${_n(d,'stories')}', Icons.auto_awesome_outlined),
+          (_t.adminMetricComments, '${_n(d,'comments')}', Icons.mode_comment_outlined),
+          (_t.adminMetricLikesReceived, '${_n(d,'likes_received')}', Icons.favorite_border_rounded),
+          (_t.adminMetricFollowers, '${_n(d,'followers')}', Icons.people_outline_rounded),
+          (_t.adminMetricFollowing, '${_n(d,'following')}', Icons.person_add_alt_rounded),
+          (_t.adminMetricMessages, '${_n(d,'messages_sent')}', Icons.chat_bubble_outline_rounded),
+          (_t.adminMetricReportsSubmitted, '${_n(d,'reports_made')}', Icons.outbox_outlined),
+          (_t.adminMetricPostReportsReceived, '${_n(d,'reports_received')}', Icons.flag_outlined),
+          (_t.adminMetricMessageReportsSubmitted, '${_n(d,'message_reports_made')}', Icons.outbox_outlined),
+          (_t.adminMetricMessageReportsReceived, '${_n(d,'message_reports_received')}', Icons.report_gmailerrorred_outlined),
         ];
         return RefreshIndicator(
           onRefresh: _refresh,
@@ -186,33 +188,33 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
                   const SizedBox(width: 12),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(mainAxisSize: MainAxisSize.min, children: [
-                      Flexible(child: Text(name?.isNotEmpty == true ? name! : 'کاربر هماگرام',
+                      Flexible(child: Text(name?.isNotEmpty == true ? name! : _t.adminUnknownUser,
                         maxLines: 1, overflow: TextOverflow.ellipsis,
                         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 17))),
                       const SizedBox(width: 4),
                       HomaGramVerifiedBadge(userId: widget.userId, size: 16),
                     ]),
-                    Text('@${username ?? 'بدون نام کاربری'}',
+                    Text('@${username ?? _t.adminNoUsername}',
                       style: const TextStyle(color: Colors.white70, fontSize: 12)),
                   ])),
                 ]),
                 const SizedBox(height: 15),
-                const Text('شناسه یکتای حساب', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                Text(_t.adminUniqueAccountId, style: TextStyle(color: Colors.white70, fontSize: 11)),
                 SelectableText(widget.userId, textDirection: TextDirection.ltr,
                   style: const TextStyle(color: Colors.white, fontSize: 11, height: 1.8)),
                 const Divider(color: Colors.white24, height: 22),
-                _headerInfo('تاریخ عضویت', _date(d['created_at'])),
+                _headerInfo(_t.adminJoinedAt, _date(d['created_at'])),
                 const SizedBox(height: 6),
-                _headerInfo('آخرین ورود ثبت‌شده', _date(d['last_sign_in_at'])),
+                _headerInfo(_t.adminLastSignIn, _date(d['last_sign_in_at'])),
                 if ((d['bio'] as String?)?.trim().isNotEmpty == true) ...[
                   const SizedBox(height: 8),
-                  const Text('معرفی کاربر', style: TextStyle(color: Colors.white70, fontSize: 10)),
+                  Text(_t.adminUserBio, style: TextStyle(color: Colors.white70, fontSize: 10)),
                   const SizedBox(height: 3),
                   Text(d['bio'] as String, style: const TextStyle(color: Colors.white, fontSize: 11, height: 1.6)),
                 ],
                 if ((d['website_url'] as String?)?.trim().isNotEmpty == true) ...[
                   const SizedBox(height: 6),
-                  _headerInfo('وب‌سایت', d['website_url'] as String),
+                  _headerInfo(_t.adminWebsite, d['website_url'] as String),
                 ],
               ]),
             ),
@@ -225,17 +227,17 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
                 const Icon(Icons.timer_outlined, color: HomaGramTheme.turquoise, size: 27),
                 const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('مجموع زمان فعالیت ثبت‌شده', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+                  Text(_t.adminActivityTotal, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
                   const SizedBox(height: 4),
                   Text(_duration(d['activity_seconds']), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
                   const SizedBox(height: 3),
-                  const Text('محاسبه از نسخه دارای ثبت فعالیت؛ آمار گذشته در دسترس نیست.',
+                  Text(_t.adminActivityTrackingNote,
                     style: TextStyle(fontSize: 10, height: 1.5, color: Color(0xFF8490A4))),
                 ])),
               ]),
             ),
             const SizedBox(height: 18),
-            const Text('عملکرد حساب', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+            Text(_t.adminAccountPerformance, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
             const SizedBox(height: 10),
             LayoutBuilder(builder: (context, box) {
               final columns = box.maxWidth > 600 ? 3 : 2;
@@ -262,21 +264,21 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
               );
             }),
             const SizedBox(height: 18),
-            _reportSection('گزارش‌هایی که این کاربر ثبت کرده', submitted, true),
+            _reportSection(_t.adminUserSubmittedReports, submitted, true),
             const SizedBox(height: 12),
-            _reportSection('گزارش‌های ثبت‌شده علیه محتوای این کاربر', against, false),
+            _reportSection(_t.adminReportsAgainstUser, against, false),
             if (_isAdmin) ...[
               const SizedBox(height: 22),
               FilledButton.icon(
                 onPressed: _verificationBusy ? null : _toggleVerified,
                 icon: Icon(_verified ? Icons.verified_rounded : Icons.verified_outlined),
-                label: Text(_verified ? 'لغو نشان تأیید' : 'اعطای نشان تأیید'),
+                label: Text(_verified ? _t.adminRevokeVerification : _t.adminGrantVerification),
               ),
               const SizedBox(height: 8),
               OutlinedButton.icon(
                 onPressed: _messageUser,
                 icon: const Icon(Icons.support_agent_rounded),
-                label: const Text('ارسال پیام پشتیبانی به کاربر'),
+                label: Text(_t.adminSendSupportMessage),
               ),
               const SizedBox(height: 8),
               OutlinedButton.icon(
@@ -284,7 +286,7 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
                 icon: _deleting
                     ? const SizedBox(width: 17, height: 17, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.person_remove_alt_1_rounded),
-                label: Text(_deleting ? 'در حال حذف حساب…' : 'حذف حساب کاربر'),
+                label: Text(_deleting ? _t.adminDeletingAccount : _t.adminDeleteUserAccount),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.red,
                   side: const BorderSide(color: Colors.redAccent),
@@ -310,7 +312,7 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
       if (reports.isEmpty)
         Container(width: double.infinity, padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(color: Theme.of(context).cardTheme.color, borderRadius: BorderRadius.circular(16)),
-          child: const Text('موردی ثبت نشده است.', style: TextStyle(fontSize: 12)))
+          child: Text(_t.adminNoReports, style: TextStyle(fontSize: 12)))
       else
         for (final report in reports)
           Card(margin: const EdgeInsets.only(bottom: 8), child: Padding(
@@ -327,14 +329,14 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
               if (((report['post_caption'] as String?)?.isNotEmpty ?? false) ||
                   ((report['message_body'] as String?)?.isNotEmpty ?? false)) ...[
                 const SizedBox(height: 5),
-                Text('محتوای گزارش‌شده: ${report['post_caption'] ?? report['message_body']}',
+                Text(_t.adminReportedContent(report['post_caption'] ?? report['message_body']),
                   maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, color: Color(0xFF8490A4))),
               ],
               const SizedBox(height: 5),
-              Text('تاریخ: ${_date(report['created_at'])}',
+              Text(_t.adminReportDate(_date(report['created_at'])),
                 style: const TextStyle(fontSize: 10, color: Color(0xFF8490A4))),
               if (!submitted && report['reporter_id'] != null)
-                Text('شناسه گزارش‌دهنده: ${report['reporter_id']}',
+                Text(_t.adminReporterId(report['reporter_id'].toString()),
                   style: const TextStyle(fontSize: 9, color: Color(0xFF8490A4))),
             ]),
           )),
@@ -342,13 +344,13 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
   );
   Widget _status(String value) {
     final color = value == 'pending' ? Colors.orange : (value == 'actioned' ? Colors.redAccent : Colors.green);
-    final label = switch(value) {'pending' => 'در انتظار', 'reviewed' => 'بررسی شده', 'dismissed' => 'رد شده', 'actioned' => 'اقدام شده', _ => value};
+    final label = switch(value) {'pending' => _t.adminFilterPending, 'reviewed' => _t.adminFilterReviewed, 'dismissed' => _t.adminStatusDismissed, 'actioned' => _t.adminStatusActioned, _ => value};
     return Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(color: color.withValues(alpha: .12), borderRadius: BorderRadius.circular(20)),
       child: Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w700)));
   }
   String _reason(String reason) => switch(reason) {
-    'spam' => 'هرزنامه', 'harassment' => 'آزار و اذیت', 'misinformation' => 'اطلاعات نادرست',
-    'inappropriate' => 'محتوای نامناسب', 'other' => 'سایر موارد', _ => reason,
+    'spam' => _t.adminReasonSpam, 'harassment' => _t.adminReasonHarassment, 'misinformation' => _t.adminReasonMisinformation,
+    'inappropriate' => _t.adminReasonInappropriate, 'other' => _t.adminReasonOther, _ => reason,
   };
 }
