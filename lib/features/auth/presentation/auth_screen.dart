@@ -1,3 +1,4 @@
+import '../../../app/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/theme/app_theme.dart';
@@ -126,6 +127,8 @@ class _AuthScreenState extends State<AuthScreen> {
           padding: const EdgeInsets.all(22),
           child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 480),
             child: Column(children: [
+              const Align(alignment: Alignment.centerRight, child: LanguagePicker(compact: true)),
+              const SizedBox(height: 12),
               const HomaGramEntrance(child: HomaGramLogo(size: 116)),
               const SizedBox(height: 12),
               const HomaGramEntrance(
