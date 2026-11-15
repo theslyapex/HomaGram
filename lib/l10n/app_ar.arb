@@ -1182,5 +1182,84 @@
   "storiesReload": "إعادة التحميل",
   "storiesArchiveFailed": "تعذّر تحميل الأرشيف.",
   "storiesTryAgain": "حاول مجددًا",
-  "storiesArchiveEmpty": "ليست لديك قصص منتهية الصلاحية بعد."
+  "storiesArchiveEmpty": "ليست لديك قصص منتهية الصلاحية بعد.",
+  "storyVoteFailed": "تعذّر تسجيل التصويت؛ ربما انتهى وقت الاستطلاع.",
+  "storyAnswerQuestion": "الإجابة عن السؤال",
+  "storyYourAnswer": "إجابتك",
+  "storyCancel": "إلغاء",
+  "storySend": "إرسال",
+  "storyAnswerSent": "تم إرسال إجابتك.",
+  "storyAnswerFailed": "تعذّر إرسال الإجابة؛ ربما انتهت صلاحية القصة.",
+  "storyAudienceResponses": "ردود الجمهور • {count}",
+  "storyNoResponses": "لم تصل أي إجابات بعد.",
+  "storyUserFallback": "مستخدم",
+  "storyPrivateReply": "رد خاص",
+  "storyQuestionReplyMessage": "الرد على سؤال قصتك: {message}",
+  "storyPrivateReplySent": "تم إرسال الرد الخاص.",
+  "storyMessageSendFailed": "تعذّر إرسال الرسالة.",
+  "storyReactionSent": "تم تسجيل تفاعلك.",
+  "storyReactionFailed": "تعذّر تسجيل التفاعل.",
+  "storyReplyToStory": "الرد على القصة",
+  "storyYourMessage": "رسالتك",
+  "storyReplyMessage": "الرد على القصة: {message}",
+  "storyReplySentPrivately": "تم إرسال ردك كرسالة خاصة.",
+  "storyReplyFailed": "تعذّر إرسال ردك.",
+  "storyAnalytics": "إحصاءات القصة وتحليلها",
+  "storyViews": "المشاهدات",
+  "storyReactions": "التفاعلات",
+  "storyAverageWatch": "متوسط وقت المشاهدة",
+  "storyTotalWatchTime": "إجمالي وقت المشاهدة: {time}",
+  "storyViewerList": "قائمة المشاهدين • {count}",
+  "storyNoViews": "لم يتم تسجيل أي مشاهدة بعد.",
+  "storyUnknownTime": "وقت غير معروف",
+  "storyWatchedFor": "مدة المشاهدة: {time}",
+  "storyAnalyticsFailed": "تعذّر تحميل إحصاءات القصة.",
+  "storyDeleteTitle": "حذف القصة",
+  "storyDeleteConfirm": "هل تريد حذف هذه القصة؟",
+  "storyDelete": "حذف",
+  "storyDeleteFailed": "تعذّر حذف القصة.",
+  "storyPublishTimeUnknown": "وقت النشر غير معروف",
+  "storyViewAudience": "عرض المشاهدين",
+  "@storyAudienceResponses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyQuestionReplyMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "@storyReplyMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "@storyTotalWatchTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@storyViewerList": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyWatchedFor": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }
