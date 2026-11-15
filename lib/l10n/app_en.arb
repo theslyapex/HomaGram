@@ -1464,5 +1464,8 @@
         "type": "int"
       }
     }
-  }
+  },
+  "storyOpenLinkFailed": "Couldn't open the link.",
+  "storyVideoPlaybackFailed": "Video playback failed. Check your internet connection and try again.",
+  "storyVideoLoading": "Loading video…"
 }
