@@ -8,6 +8,7 @@ import '../../support/presentation/support_chat_screen.dart';
 import '../../support/presentation/support_inbox_screen.dart';
 import 'chat_screen.dart';
 import 'channels_screen.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class MessagingScreen extends StatefulWidget {
   const MessagingScreen({super.key});
@@ -17,6 +18,7 @@ class MessagingScreen extends StatefulWidget {
 }
 
 class _MessagingScreenState extends State<MessagingScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   List<ConversationPreview> _items = [];
   RealtimeChannel? _channel;
   bool _loading = true;
@@ -45,7 +47,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = 'فهرست گفتگوها دریافت نشد. اتصال را بررسی کنید.';
+        _error = _t.inboxLoadFailed;
       });
     }
   }
@@ -55,22 +57,22 @@ class _MessagingScreenState extends State<MessagingScreen> {
     final token = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('پیوستن به گروه'),
+        title: Text(_t.joinGroup),
         content: TextField(
           controller: controller,
           autofocus: true,
           maxLength: 100,
           textDirection: TextDirection.ltr,
           decoration: const InputDecoration(
-            labelText: 'کد یا لینک دعوت گروه',
-            hintText: 'کد ۶۴ نویسه‌ای یا لینک دعوت را وارد کنید',
+            labelText: _t.groupInviteCodeOrLink,
+            hintText: _t.enter64CharInvite,
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text(_t.cancel)),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
-            child: const Text('پیوستن'),
+            child: const Text(_t.join),
           ),
         ],
       ),
@@ -85,7 +87,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
     }
     if (!RegExp(r'^[0-9a-fA-F]{64}$').hasMatch(inviteToken)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('کد یا لینک دعوت معتبر نیست.')),
+        SnackBar(content: Text(_t.invalidInviteCodeOrLink)),
       );
       return;
     }
@@ -96,7 +98,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
           .select('title')
           .eq('id', conversationId)
           .single();
-      final title = row['title'] as String? ?? 'گروه';
+      final title = row['title'] as String? ?? _t.group;
       await _load();
       if (!mounted) return;
       Navigator.of(context).push(MaterialPageRoute<void>(
@@ -105,7 +107,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
     } catch (error) {
       debugPrint('Join group by invite failed: $error');
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('پیوستن انجام نشد؛ کد ممکن است منقضی، لغوشده یا تکمیل‌شده باشد.')),
+        const SnackBar(content: Text(_t.joinGroupFailed)),
       );
     }
   }
@@ -119,7 +121,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
     );
     if (!mounted || id == null) return;
     await _load();
-    var title = 'گروه جدید';
+    var title = _t.newGroup;
     for (final item in _items) {
       if (item.id == id) { title = item.title; break; }
     }
@@ -138,7 +140,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
     );
     if (!mounted || id == null) return;
     await _load();
-    var title = 'گفت‌وگوی خصوصی';
+    var title = _t.privateConversation;
     for (final item in _items) {
       if (item.id == id) {
         title = item.title;
@@ -158,7 +160,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('باز کردن پشتیبانی ممکن نشد.')),
+          const SnackBar(content: Text(_t.openSupportFailed)),
         );
       }
     }
@@ -188,27 +190,27 @@ class _MessagingScreenState extends State<MessagingScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('پیام‌ها', style: TextStyle(fontWeight: FontWeight.w900)),
+        title: Text(_t.messages, style: TextStyle(fontWeight: FontWeight.w900)),
         actions: [
           HomaGramSpringPress(child: IconButton(
-            tooltip: 'کشف عمومی',
+            tooltip: _t.publicExplore,
             onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
               builder: (_) => const ChannelsScreen(),
             )),
             icon: const Icon(Icons.campaign_outlined),
           )),
           HomaGramSpringPress(child: IconButton(
-            tooltip: 'پیوستن با کد دعوت گروه',
+            tooltip: _t.joinGroupWithInvite,
             onPressed: _joinGroupByInvite,
             icon: const Icon(Icons.key_rounded),
           )),
           HomaGramSpringPress(child: IconButton(
-            tooltip: 'ساخت گروه',
+            tooltip: _t.createGroup,
             onPressed: _newGroup,
             icon: const Icon(Icons.group_add_outlined),
           )),
           HomaGramSpringPress(child: IconButton(
-            tooltip: 'گفت‌وگوی جدید',
+            tooltip: _t.newConversation,
             onPressed: _newChat,
             icon: const Icon(Icons.edit_outlined),
           )),
@@ -255,13 +257,13 @@ class _MessagingScreenState extends State<MessagingScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(children: [
-                          Flexible(child: Text('پشتیبانی هماگرام',
+                          Flexible(child: Text(_t.homagramSupport,
                             style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900))),
                           SizedBox(width: 6),
                           Icon(Icons.verified_rounded, size: 16, color: Color(0xFF65D9F0)),
                         ]),
                         SizedBox(height: 5),
-                        Text('ارتباط مستقیم با تیم پشتیبانی',
+                        Text(_t.directSupportContact,
                           style: TextStyle(color: Color(0xFFD5DDF5), fontSize: 11)),
                       ],
                     )),
@@ -275,7 +277,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                   child: HomaGramSpringPress(child: TextButton.icon(
                     onPressed: _openSupportInbox,
                     icon: const Icon(Icons.inbox_outlined, size: 18),
-                    label: const Text('مدیریت درخواست‌های پشتیبانی'),
+                    label: Text(_t.manageSupportRequests),
                   )),
                 ),
             ]),
@@ -287,7 +289,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
               onChanged: (value) => setState(() => _searchTerm = value),
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
-                hintText: 'جست‌وجوی نام گفتگو، گروه یا کانال',
+                hintText: _t.searchConversationsGroupsChannels,
                 prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: _searchTerm.isEmpty ? null : IconButton(
                   onPressed: () { _searchController.clear(); setState(() => _searchTerm = ''); },
@@ -307,7 +309,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                     child: Row(children: [
                       const Icon(Icons.archive_rounded, size: 19),
                       const SizedBox(width: 8),
-                      const Expanded(child: Text('گفت‌وگوهای بایگانی‌شده',
+                      const Expanded(child: Text(_t.archivedConversations,
                         style: TextStyle(fontWeight: FontWeight.w800))),
                       TextButton.icon(
                         onPressed: () {
@@ -315,7 +317,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                           _load();
                         },
                         icon: const Icon(Icons.arrow_forward_rounded, size: 18),
-                        label: const Text('بازگشت'),
+                        label: const Text(_t.back),
                       ),
                     ]),
                   )
@@ -338,7 +340,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                       ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: [
                           const SizedBox(height: 120),
                           Center(child: Text(_error!)),
-                          Center(child: HomaGramSpringPress(child: TextButton(onPressed: _load, child: const Text('تلاش دوباره')))),
+                          Center(child: HomaGramSpringPress(child: TextButton(onPressed: _load, child: const Text(_t.tryAgain)))),
                         ])
                       : _items.isEmpty
                           ? ListView(
@@ -347,19 +349,19 @@ class _MessagingScreenState extends State<MessagingScreen> {
                                 const SizedBox(height: 75),
                                 Icon(Icons.forum_outlined, size: 58, color: colors.primary),
                                 const SizedBox(height: 16),
-                                Center(child: Text(_searchTerm.isEmpty ? 'هنوز گفتگویی ندارید' : 'گفتگویی با این نام پیدا نشد',
+                                Center(child: Text(_searchTerm.isEmpty ? _t.noConversationsYet : _t.conversationSearchEmpty,
                                   style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800))),
                                 const SizedBox(height: 8),
                                 const Padding(
                                   padding: EdgeInsets.symmetric(horizontal: 42),
-                                  child: Text('با شروع یک گفت‌وگوی خصوصی، ارتباط در HomaGram را آغاز کنید.',
+                                  child: Text(_t.startPrivateConversationHint,
                                     textAlign: TextAlign.center),
                                 ),
                                 const SizedBox(height: 18),
                                 Center(child: HomaGramSpringPress(child: FilledButton.icon(
                                   onPressed: _newChat,
                                   icon: const Icon(Icons.add_comment_outlined),
-                                  label: const Text('شروع گفت‌وگوی جدید', style: TextStyle(fontFamily: 'Estedad')),
+                                  label: const Text(_t.startNewConversation, style: TextStyle(fontFamily: 'Estedad')),
                                 ))),
                               ],
                             )
@@ -382,13 +384,13 @@ class _MessagingScreenState extends State<MessagingScreen> {
                                       if (mounted) {
                                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                           content: Text(_showArchived
-                                              ? 'گفت‌وگو به فهرست اصلی بازگردانده شد.'
-                                              : 'گفت‌وگو بایگانی شد.'),
+                                              ? _t.conversationRestored
+                                              : _t.conversationArchived),
                                         ));
                                       }
                                     } catch (_) {
                                       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('تغییر وضعیت بایگانی انجام نشد.')),
+                                        const SnackBar(content: Text(_t.archiveStatusUpdateFailed)),
                                       );
                                     }
                                     return false;
@@ -457,14 +459,14 @@ class _MessagingScreenState extends State<MessagingScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           ListTile(
             leading: Icon(_showArchived ? Icons.unarchive_rounded : Icons.archive_outlined),
-            title: Text(_showArchived ? 'بازگردانی به فهرست اصلی' : 'بایگانی گفتگو'),
+            title: Text(_showArchived ? _t.restoreToInbox : _t.archiveConversation),
             onTap: () => Navigator.pop(sheetContext, 'archive'),
           ),
           ListTile(
             leading: const Icon(Icons.delete_outline_rounded, color: Colors.red),
             title: Text(
-              item.kind == 'direct' ? 'حذف گفتگو' :
-              item.kind == 'group' ? 'خروج از گروه و حذف از فهرست' : 'خروج از کانال و حذف از فهرست',
+              item.kind == 'direct' ? _t.deleteConversation :
+              item.kind == 'group' ? _t.leaveGroupRemoveFromList : _t.leaveChannelRemoveFromList,
               style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w700),
             ),
             onTap: () => Navigator.pop(sheetContext, 'leave'),
@@ -484,23 +486,23 @@ class _MessagingScreenState extends State<MessagingScreen> {
         ));
       } catch (_) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تغییر وضعیت گفتگو انجام نشد.')),
+          const SnackBar(content: Text(_t.conversationStatusUpdateFailed)),
         );
       }
       return;
     }
 
-    final label = item.kind == 'direct' ? 'حذف گفتگو' :
-        item.kind == 'group' ? 'خروج از گروه' : 'خروج از کانال';
+    final label = item.kind == 'direct' ? _t.deleteConversation :
+        item.kind == 'group' ? _t.leaveGroup : _t.leaveChannel;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(label),
         content: Text(item.kind == 'direct'
-          ? 'این گفتگو از فهرست پیام‌های شما حذف می‌شود. پیام‌های طرف مقابل حذف نخواهند شد.'
-          : 'از این ${item.kind == 'group' ? 'گروه' : 'کانال'} خارج می‌شوید و دیگر در فهرست پیام‌های شما نمایش داده نمی‌شود.'),
+          ? _t.deleteConversationExplanation
+          : 'از این ${item.kind == 'group' ? _t.group : 'کانال'} خارج می‌شوید و دیگر در فهرست پیام‌های شما نمایش داده نمی‌شود.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('انصراف')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text(_t.cancel)),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Theme.of(dialogContext).colorScheme.error),
             onPressed: () => Navigator.pop(dialogContext, true),
@@ -514,11 +516,11 @@ class _MessagingScreenState extends State<MessagingScreen> {
       await MessagingService.leaveConversation(item.id);
       await _load();
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(item.kind == 'direct' ? 'گفتگو از فهرست شما حذف شد.' : 'از گفتگو خارج شدید.'),
+        content: Text(item.kind == 'direct' ? _t.conversationRemoved : _t.leftConversation),
       ));
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('حذف گفتگو انجام نشد. دوباره تلاش کنید.')),
+        const SnackBar(content: Text(_t.deleteConversationFailed)),
       );
     }
   }
@@ -564,7 +566,7 @@ class _NewChatSheetState extends State<_NewChatSheet> {
         _error = null;
       });
     } catch (_) {
-      if (mounted) setState(() => _error = 'جست‌وجو انجام نشد.');
+      if (mounted) setState(() => _error = _t.searchFailed);
     } finally {
       if (mounted) setState(() => _searching = false);
     }
@@ -580,7 +582,7 @@ class _NewChatSheetState extends State<_NewChatSheet> {
       if (mounted) {
         setState(() {
           _opening = false;
-          _error = 'شروع گفتگو ممکن نشد. ممکن است این کاربر دسترسی پیام را محدود کرده باشد.';
+          _error = _t.startConversationRestricted;
         });
       }
     }
@@ -600,14 +602,14 @@ class _NewChatSheetState extends State<_NewChatSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('گفت‌وگوی جدید', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+          const Text(_t.newConversation, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
           const SizedBox(height: 14),
           TextField(
             controller: _search,
             autofocus: true,
             onChanged: _find,
             decoration: InputDecoration(
-              hintText: 'جست‌وجو با نام کاربری',
+              hintText: _t.searchByUsername,
               prefixIcon: const Icon(Icons.search_rounded),
               filled: true,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide.none),
@@ -622,7 +624,7 @@ class _NewChatSheetState extends State<_NewChatSheet> {
           if (_users.isEmpty && _search.text.trim().length >= 2 && !_searching)
             const Padding(
               padding: EdgeInsets.all(18),
-              child: Center(child: Text('کاربری با این نام پیدا نشد.')),
+              child: Center(child: Text(_t.userSearchEmpty)),
             ),
           if (_users.isNotEmpty)
             ConstrainedBox(
@@ -682,7 +684,7 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
       final users = await MessagingService.searchUsers(value);
       if (mounted) setState(() { _users = users; _error = null; });
     } catch (_) {
-      if (mounted) setState(() => _error = 'جست‌وجوی کاربران انجام نشد.');
+      if (mounted) setState(() => _error = _t.userSearchFailed);
     } finally {
       if (mounted) setState(() => _searching = false);
     }
@@ -691,11 +693,11 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
   Future<void> _create() async {
     if (_creating) return;
     if (_title.text.trim().isEmpty) {
-      setState(() => _error = 'نام گروه را وارد کنید.');
+      setState(() => _error = _t.enterGroupName);
       return;
     }
     if (_isPublic && !RegExp(r'^[a-zA-Z0-9_]{3,32}$').hasMatch(_slug.text.trim())) {
-      setState(() => _error = 'شناسه عمومی باید ۳ تا ۳۲ حرف انگلیسی، عدد یا زیرخط باشد.');
+      setState(() => _error = _t.publicGroupSlugRules);
       return;
     }
     setState(() { _creating = true; _error = null; });
@@ -716,8 +718,8 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
       if (mounted) setState(() {
         _creating = false;
         _error = _isPublic
-            ? 'ساخت گروه عمومی انجام نشد؛ شناسه ممکن است قبلاً استفاده شده باشد.'
-            : 'ساخت گروه انجام نشد. دوباره تلاش کنید.';
+            ? _t.publicGroupCreateFailed
+            : _t.groupCreateFailed;
       });
     }
   }
@@ -740,18 +742,18 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('ساخت گروه جدید', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+            const Text(_t.createNewGroup, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
             const SizedBox(height: 14),
             TextField(controller: _title, maxLength: 100,
-              decoration: const InputDecoration(labelText: 'نام گروه', prefixIcon: Icon(Icons.groups_outlined))),
+              decoration: const InputDecoration(labelText: _t.groupName, prefixIcon: Icon(Icons.groups_outlined))),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               value: _isPublic,
               onChanged: _creating ? null : (value) => setState(() => _isPublic = value),
-              title: Text(_isPublic ? 'گروه عمومی' : 'گروه خصوصی'),
+              title: Text(_isPublic ? _t.publicGroup : _t.privateGroup),
               subtitle: Text(_isPublic
-                  ? 'در بخش کشف نمایش داده می‌شود و همه می‌توانند عضو شوند.'
-                  : 'فقط اعضای انتخاب‌شده و افراد دارای دعوت‌نامه به گروه دسترسی دارند.'),
+                  ? _t.publicGroupDiscoverableHint
+                  : _t.privateGroupAccessHint),
               secondary: Icon(_isPublic ? Icons.public_rounded : Icons.lock_outline_rounded),
             ),
             if (_isPublic) ...[
@@ -760,25 +762,25 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
                 maxLength: 32,
                 textDirection: TextDirection.ltr,
                 decoration: const InputDecoration(
-                  labelText: 'شناسه عمومی گروه',
+                  labelText: _t.publicGroupSlug,
                   prefixText: '@',
-                  helperText: '۳ تا ۳۲ حرف انگلیسی، عدد یا زیرخط',
+                  helperText: _t.slugRules,
                 ),
               ),
               TextField(
                 controller: _description,
                 maxLength: 500,
                 maxLines: 2,
-                decoration: const InputDecoration(labelText: 'توضیحات گروه (اختیاری)'),
+                decoration: const InputDecoration(labelText: _t.groupDescriptionOptional),
               ),
             ],
             const SizedBox(height: 8),
             TextField(controller: _search, onChanged: _find,
-              decoration: const InputDecoration(hintText: 'جست‌وجوی اعضا با نام کاربری', prefixIcon: Icon(Icons.search_rounded))),
+              decoration: const InputDecoration(hintText: _t.searchMembersByUsername, prefixIcon: Icon(Icons.search_rounded))),
             if (_searching) const LinearProgressIndicator(minHeight: 2),
             if (_selected.isNotEmpty)
               Padding(padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text('${_selected.length} عضو انتخاب شده‌اند')),
+                child: Text(_t.membersSelected(_selected.length))),
             if (_users.isNotEmpty)
               ConstrainedBox(
                 constraints: const BoxConstraints(maxHeight: 210),
@@ -817,7 +819,7 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
                 icon: _creating
                     ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.group_add_rounded),
-                label: Text(_isPublic ? 'ایجاد گروه عمومی' : 'ایجاد گروه خصوصی'),
+                label: Text(_isPublic ? _t.createPublicGroup : _t.createPrivateGroup),
               )),
             ),
           ],
