@@ -344,5 +344,35 @@
         "type": "int"
       }
     }
-  }
+  },
+  "messagesLoadFailed": "Could not load messages. Check your connection.",
+  "searchMessages": "Search messages",
+  "minimumTwoCharacters": "At least two characters",
+  "search": "Search",
+  "noMessagesFound": "No messages found.",
+  "messageSearchFailed": "Message search failed.",
+  "chooseImage": "Choose image",
+  "sendTimedImage": "Send timed image (10 seconds)",
+  "viewOnceOnly": "Can be viewed only once",
+  "chooseVideo": "Choose video",
+  "chooseFile": "Choose file",
+  "fileSizeLimit": "File size must not exceed 50 MB.",
+  "fileSendFailed": "Could not send the file. Please try again.",
+  "mediaSizeLimit": "Media size must not exceed 50 MB.",
+  "mediaSendFailed": "Could not send media. Please try again.",
+  "messageSendFailed": "Could not send the message. Please try again.",
+  "homagramPost": "HomaGram post",
+  "tapToViewPost": "Tap to view post",
+  "online": "Online",
+  "starredMessages": "Starred messages",
+  "conversationInfo": "Conversation info",
+  "pinnedMessage": "Pinned message",
+  "mediaMessage": "Media message",
+  "edited": "Edited",
+  "adminsOnlyMessaging": "Only admins can send messages in this group.",
+  "addMedia": "Add media",
+  "mediaSendingDisabled": "Media sending is disabled in this group",
+  "writeMessage": "Write your message…",
+  "messagingDisabled": "Messaging is disabled",
+  "offline": "Offline"
 }
