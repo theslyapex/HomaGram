@@ -2077,5 +2077,17 @@
   "accountVisitorsDescription": "عند إيقاف هذا الخيار، لن يتم تسجيل زيارات ملفك الشخصي.",
   "accountBlockedUsers": "الحسابات المحظورة",
   "accountNoBlockedUsers": "لم تحظر أي حسابات حاليًا.",
-  "accountUnblock": "إلغاء الحظر"
+  "accountUnblock": "إلغاء الحظر",
+  "bugReportSettingsSaveFailed": "تعذّر حفظ الإعداد. حاول مرة أخرى.",
+  "bugReportSettingsTitle": "الإبلاغ السريع عن مشكلة",
+  "bugReportShakeTitle": "الإبلاغ بحركة واحدة",
+  "bugReportShakeDescription": "هز هاتفك لفتح نموذج الإبلاغ عن المشكلة مع لقطة شاشة لهذه الصفحة.",
+  "bugReportShakeToggle": "تفعيل الإبلاغ بهز الهاتف",
+  "bugReportSignedInOnly": "تتوفر هذه الميزة عند تسجيل الدخول فقط.",
+  "bugReportPreviewTitle": "معاينة قبل الإرسال",
+  "bugReportPreviewDescription": "بعد هز الهاتف، تُلتقط لقطة شاشة للمعاينة فقط. لن تُرسل أي صورة دون تأكيدك.",
+  "bugReportDetailsTitle": "وصف المشكلة",
+  "bugReportDetailsDescription": "يمكنك وصف ما كنت تفعله وما المشكلة التي حدثت. ستُرسل الصورة والوصف معًا في رسالة دعم واحدة.",
+  "bugReportPrivacyTitle": "الخصوصية",
+  "bugReportPrivacyDescription": "راجع لقطة الشاشة قبل الإرسال. إذا ظهرت معلومات خاصة أو حساسة، فألغِ البلاغ."
 }
