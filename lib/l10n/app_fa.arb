@@ -2243,5 +2243,10 @@
   },
   "usernameRequired": "نام کاربری را وارد کنید.",
   "usernameInvalid": "نام کاربری باید ۵ تا ۲۴ نویسه و فقط شامل حروف انگلیسی کوچک، عدد یا زیرخط باشد.",
-  "adminCommunityUntitled": "بدون عنوان"
+  "adminCommunityUntitled": "بدون عنوان",
+  "termsNoticePrefix": "با ادامه، با ",
+  "termsNoticeMiddle": " و ",
+  "termsNoticeSuffix": " موافقت می‌کنید.",
+  "termsLinkLabel": "شرایط استفاده",
+  "privacyLinkLabel": "سیاست حریم خصوصی"
 }
