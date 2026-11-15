@@ -23,7 +23,7 @@ String persianDate(DateTime date) {
   final yday = jdn - jalaliNewYear + 1;
   final jm = yday <= 186 ? ((yday - 1) ~/ 31) + 1 : ((yday - 187) ~/ 30) + 7;
   final jd = yday <= 186 ? ((yday - 1) % 31) + 1 : ((yday - 187) % 30) + 1;
-  final value = '\${jy.toString().padLeft(4, '0')}/\${jm.toString().padLeft(2, '0')}/\${jd.toString().padLeft(2, '0')}';
+  final value = '${jy.toString().padLeft(4, '0')}/${jm.toString().padLeft(2, '0')}/${jd.toString().padLeft(2, '0')}';
   const digits = '۰۱۲۳۴۵۶۷۸۹';
   return value.replaceAllMapped(RegExp(r'[0-9]'), (match) => digits[int.parse(match.group(0)!)]);
 }
@@ -40,7 +40,7 @@ int _jalaliToJdn(int jy, int jm, int jd) {
 }
 
 String persianTime(DateTime date) {
-  final value = '\${date.hour.toString().padLeft(2, '0')}:\${date.minute.toString().padLeft(2, '0')}';
+  final value = '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   const digits = '۰۱۲۳۴۵۶۷۸۹';
   return value.replaceAllMapped(
     RegExp(r'[0-9]'),
@@ -48,7 +48,7 @@ String persianTime(DateTime date) {
   );
 }
 
-String persianDateTime(DateTime date) => '\${persianDate(date)} • \${persianTime(date)}';
+String persianDateTime(DateTime date) => '${persianDate(date)} • ${persianTime(date)}';
 
 /// Converts a Jalali date such as ۱۳۸۳/۱۱/۱۴ to a Gregorian DateTime.
 DateTime? parsePersianDate(String input) {
