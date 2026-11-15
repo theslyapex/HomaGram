@@ -382,5 +382,141 @@
         "type": "int"
       }
     }
-  }
+  },
+  "activityHistoryLoadFailed": "Could not load activity history.",
+  "channelCreated": "Channel created",
+  "memberAdded": "Member added",
+  "memberRemoved": "Member removed",
+  "memberRoleChanged": "Member role changed",
+  "channelPermissionsChanged": "Member permissions changed",
+  "channelDetailsChanged": "Channel details updated",
+  "ownershipTransferred": "Ownership transferred",
+  "inviteCreated": "Invite code created",
+  "inviteRevoked": "Invite code revoked",
+  "adminActivity": "Admin activity",
+  "noAdminActivityYet": "No admin activity has been recorded yet.",
+  "newMemberAddedToChannel": "A new member joined the channel.",
+  "memberAddedToChannel": "{target} joined the channel.",
+  "@memberAddedToChannel": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "memberRemovedFromChannel": "A member was removed from the channel.",
+  "namedMemberRemovedFromChannel": "{target} was removed from the channel.",
+  "@namedMemberRemovedFromChannel": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "channelOwnershipTransferred": "Channel ownership was transferred.",
+  "newChannelOwner": "New owner: {target}",
+  "@newChannelOwner": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "textAndMediaPermissions": "Text: {textStatus} • Media: {mediaStatus}",
+  "@textAndMediaPermissions": {
+    "placeholders": {
+      "textStatus": {
+        "type": "String"
+      },
+      "mediaStatus": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteValidityAndLimit": "Validity: {expiry} • Use limit: {limit}",
+  "@inviteValidityAndLimit": {
+    "placeholders": {
+      "expiry": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteCodeDisabledActivity": "An invite code was revoked.",
+  "channelNameActivity": "Channel name: {title}",
+  "@channelNameActivity": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "channelDetailsUpdatedActivity": "Channel details updated.",
+  "channelCreatedActivity": "Channel created.",
+  "systemAdmin": "System admin",
+  "inviteCodesLoadFailed": "Could not load invite codes.",
+  "listRefreshFailed": "Could not refresh the list.",
+  "createNewInviteCode": "Create new invite code",
+  "validityHours": "Validity in hours (1–720)",
+  "hoursRangeError": "Enter a number from 1 to 720.",
+  "maximumUses": "Maximum uses (1–500)",
+  "usesRangeError": "Enter a number from 1 to 500.",
+  "createCode": "Create code",
+  "inviteCodeReady": "Invite code is ready",
+  "inviteLinkExpiryHint": "This link remains active until it expires or reaches its use limit. Share it with the people you want to invite.",
+  "inviteCodeOneTimeHint": "This code is shown only once. Keep it somewhere safe and share it with the people you want to invite.",
+  "copyInviteLink": "Copy invite link",
+  "copyCode": "Copy code",
+  "close": "Close",
+  "inviteCodeCreateFailed": "Could not create the invite code.",
+  "revokeInviteCodeTitle": "Revoke invite code",
+  "revokeInviteCodeExplanation": "This code will no longer be usable to join.",
+  "revoke": "Revoke",
+  "inviteCodeRevokeFailed": "Could not revoke the code.",
+  "active": "Active",
+  "revoked": "Revoked",
+  "expired": "Expired",
+  "limitReached": "Limit reached",
+  "unknown": "Unknown",
+  "manageGroupInviteLinks": "Manage group invite links",
+  "manageChannelInviteCodes": "Manage channel invite codes",
+  "createGroupInviteLink": "Create group invite link",
+  "createChannelInviteCode": "Create channel invite code",
+  "retry": "Retry",
+  "noInviteCodesYet": "No invite codes have been created yet.",
+  "expirationUnknown": "Expiration time unknown",
+  "expirationLabel": "Expires: {date}",
+  "@expirationLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "usesOfLimit": "{used} of {limit} uses",
+  "@usesOfLimit": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "revokeTooltip": "Revoke",
+  "groupPermissions": "Group permissions",
+  "memberPermissions": "Member permissions",
+  "sendTextMessages": "Send text messages",
+  "sendImagesFiles": "Send images and files",
+  "addNewMembers": "Add new members",
+  "membersCanInviteHint": "When enabled, regular members can also invite people.",
+  "adminPrivileges": "Admin privileges",
+  "editGroupNameDescriptionPhoto": "Edit name, description, and photo",
+  "manageMembersInviteLinks": "Manage members and invite links",
+  "savePermissions": "Save permissions",
+  "groupPermissionsUpdated": "Group permissions updated.",
+  "groupPermissionsSaveFailed": "Could not save permissions. Only the group owner can change these settings."
 }
