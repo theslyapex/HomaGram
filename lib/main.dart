@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app/homagram_app.dart';
 import 'features/notifications/data/push_notification_service.dart';
+import 'features/auth/data/multi_account_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -24,6 +25,14 @@ Future<void> main() async {
       publishableKey: key,
       authOptions: const FlutterAuthClientOptions(authFlowType: AuthFlowType.pkce),
     );
+  }
+
+  if (configured) {
+    try {
+      await MultiAccountService.initialize();
+    } catch (error) {
+      debugPrint('Multi-account storage initialization skipped: $error');
+    }
   }
 
   if (Platform.isAndroid) {
