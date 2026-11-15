@@ -302,7 +302,6 @@
   "joinPublicChannelFailed": "تعذر الانضمام إلى القناة العامة.",
   "joinPrivateChannel": "الانضمام إلى قناة خاصة",
   "inviteCode": "رمز الدعوة",
-  "64CharCode": "رمز مكوّن من 64 حرفًا",
   "enterValid64CharInvite": "أدخل رمز دعوة صالحًا مكوّنًا من 64 حرفًا.",
   "joinMembership": "انضمام",
   "inviteInvalidExpiredRevoked": "رمز الدعوة غير صالح أو منتهي الصلاحية أو ملغى.",
@@ -704,5 +703,6 @@
   "videoPreview": "فيديو",
   "audioFilePreview": "ملف صوتي",
   "filePreview": "ملف",
-  "formerAdmin": "مشرف سابق"
+  "formerAdmin": "مشرف سابق",
+  "inviteCode64CharHint": "رمز مكوّن من 64 حرفًا"
 }
