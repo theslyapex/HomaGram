@@ -12,11 +12,13 @@ class SavedHomagramAccount {
     required this.userId,
     required this.email,
     required this.displayName,
+    this.avatarUrl,
   });
 
   final String userId;
   final String email;
   final String displayName;
+  final String? avatarUrl;
 
   Map<String, dynamic> toJson() => {
     'user_id': userId,
@@ -133,7 +135,27 @@ class MultiAccountService {
       final token = await _storage.read(key: _tokenKey(account.userId));
       if (token != null && token.isNotEmpty) available.add(account);
     }
-    return available;
+    if (available.isEmpty) return available;
+    try {
+      final profiles = await _client.from('profiles')
+          .select('id,avatar_path').inFilter('id', available.map((a) => a.userId).toList());
+      final byId = {for (final row in profiles) row['id'] as String: row['avatar_path'] as String?};
+      final withAvatars = <SavedHomagramAccount>[];
+      for (final account in available) {
+        String? url;
+        final path = byId[account.userId];
+        if (path != null && path.isNotEmpty) {
+          try { url = await _client.storage.from('avatars').createSignedUrl(path, 900); } catch (_) {}
+        }
+        withAvatars.add(SavedHomagramAccount(
+          userId: account.userId, email: account.email,
+          displayName: account.displayName, avatarUrl: url,
+        ));
+      }
+      return withAvatars;
+    } catch (_) {
+      return available;
+    }
   }
 
   static Future<void> _prepareAccountChange() async {
