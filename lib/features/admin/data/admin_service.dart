@@ -182,7 +182,18 @@ class AdminService {
   static Future<Map<String, dynamic>> loadUserDetail(String userId) async {
     final result = await _client.rpc('admin_user_detail', params: {'p_user_id': userId});
     if (result is! Map) throw const FormatException('Invalid admin user detail');
-    return Map<String, dynamic>.from(result);
+    final detail = Map<String, dynamic>.from(result);
+    try {
+      final profile = await _client.from('profiles')
+          .select('avatar_path').eq('id', userId).maybeSingle();
+      final path = profile?['avatar_path'] as String?;
+      if (path != null && path.isNotEmpty) {
+        detail['avatar_url'] = await _client.storage.from('avatars').createSignedUrl(path, 900);
+      }
+    } catch (_) {
+      detail['avatar_url'] = null;
+    }
+    return detail;
   }
 
   static Future<List<AdminCommunitySummary>> loadCommunities({
