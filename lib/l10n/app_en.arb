@@ -1182,5 +1182,84 @@
   "storiesReload": "Reload",
   "storiesArchiveFailed": "The archive couldn't be loaded.",
   "storiesTryAgain": "Try again",
-  "storiesArchiveEmpty": "You don't have any expired stories yet."
+  "storiesArchiveEmpty": "You don't have any expired stories yet.",
+  "storyVoteFailed": "Vote couldn't be submitted. The poll may have ended.",
+  "storyAnswerQuestion": "Answer the question",
+  "storyYourAnswer": "Your answer",
+  "storyCancel": "Cancel",
+  "storySend": "Send",
+  "storyAnswerSent": "Your answer was submitted.",
+  "storyAnswerFailed": "Couldn't submit your answer. The story may have expired.",
+  "storyAudienceResponses": "Audience responses • {count}",
+  "storyNoResponses": "No responses yet.",
+  "storyUserFallback": "User",
+  "storyPrivateReply": "Private reply",
+  "storyQuestionReplyMessage": "Reply to your story question: {message}",
+  "storyPrivateReplySent": "Private reply sent.",
+  "storyMessageSendFailed": "Couldn't send the message.",
+  "storyReactionSent": "Your reaction was submitted.",
+  "storyReactionFailed": "Couldn't submit your reaction.",
+  "storyReplyToStory": "Reply to story",
+  "storyYourMessage": "Your message",
+  "storyReplyMessage": "Story reply: {message}",
+  "storyReplySentPrivately": "Your reply was sent as a private message.",
+  "storyReplyFailed": "Couldn't send your reply.",
+  "storyAnalytics": "Story analytics",
+  "storyViews": "Views",
+  "storyReactions": "Reactions",
+  "storyAverageWatch": "Average watch time",
+  "storyTotalWatchTime": "Total watch time: {time}",
+  "storyViewerList": "Viewers • {count}",
+  "storyNoViews": "No views recorded yet.",
+  "storyUnknownTime": "Unknown time",
+  "storyWatchedFor": "Watched: {time}",
+  "storyAnalyticsFailed": "Couldn't load story analytics.",
+  "storyDeleteTitle": "Delete story",
+  "storyDeleteConfirm": "Delete this story?",
+  "storyDelete": "Delete",
+  "storyDeleteFailed": "Couldn't delete the story.",
+  "storyPublishTimeUnknown": "Unknown publishing time",
+  "storyViewAudience": "View viewers",
+  "@storyAudienceResponses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyQuestionReplyMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "@storyReplyMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "@storyTotalWatchTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@storyViewerList": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyWatchedFor": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }
