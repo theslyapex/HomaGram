@@ -13,6 +13,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/messaging_service.dart';
 import '../../home/presentation/shared_post_screen.dart';
+import '../../home/presentation/public_profile_screen.dart';
 import '../../../core/utils/persian_date.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
@@ -45,6 +46,8 @@ class _ChatScreenState extends State<ChatScreen> {
   String? _replyToId;
   String? _replyToBody;
   String? _peerUserId;
+  String? _peerAvatarUrl;
+  String? _peerDisplayName;
   String _conversationKind = 'direct';
   String? _conversationPhotoUrl;
   String _myConversationRole = 'member';
@@ -111,9 +114,28 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _loadPeerIdentity() async {
     try {
-      final id = await MessagingService.loadDirectPeerUserId(widget.conversationId);
-      if (mounted) setState(() => _peerUserId = id);
-    } catch (_) {}
+      final profile = await MessagingService.loadDirectPeerProfile(widget.conversationId);
+      if (!mounted || profile == null) return;
+      final displayName = (profile['display_name'] as String?)?.trim();
+      final username = (profile['username'] as String?)?.trim();
+      setState(() {
+        _peerUserId = profile['id'] as String?;
+        _peerAvatarUrl = profile['avatar_url'] as String?;
+        _peerDisplayName = displayName != null && displayName.isNotEmpty
+            ? displayName
+            : username == null || username.isEmpty ? null : '@$username';
+      });
+    } catch (error) {
+      debugPrint('Direct peer profile load failed: $error');
+    }
+  }
+
+  void _openPeerProfile() {
+    final userId = _peerUserId;
+    if (userId == null || _conversationKind != 'direct') return;
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => PublicProfileScreen(userId: userId),
+    ));
   }
 
   Future<void> _refresh() async {
@@ -380,48 +402,72 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 4,
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: colors.primaryContainer,
-              backgroundImage: _conversationPhotoUrl == null
-                  ? null
-                  : NetworkImage(_conversationPhotoUrl!),
-              child: _conversationPhotoUrl == null
-                  ? Icon(
-                      _conversationKind == 'channel'
-                          ? Icons.campaign_outlined
-                          : _conversationKind == 'group'
-                              ? Icons.groups_rounded
-                              : Icons.person_rounded,
-                      color: colors.onPrimaryContainer,
-                      size: 20,
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+        title: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _conversationKind == 'direct' ? _openPeerProfile : null,
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
                 children: [
-                  Row(mainAxisSize: MainAxisSize.min, children: [
-                    Flexible(child: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800))),
-                    const SizedBox(width: 4),
-                    HomaGramVerifiedBadge(userId: _peerUserId, size: 15),
-                  ]),
-                  if (_presenceLabel.isNotEmpty)
-                    Text(_presenceLabel, style: TextStyle(
-                      fontSize: 10,
-                      color: _presenceLabel == _t.online
-                          ? colors.primary : colors.onSurfaceVariant,
-                    )),
+                  CircleAvatar(
+                    radius: 19,
+                    backgroundColor: colors.primaryContainer,
+                    backgroundImage: (_conversationKind == 'direct'
+                            ? _peerAvatarUrl
+                            : _conversationPhotoUrl) == null
+                        ? null
+                        : NetworkImage((_conversationKind == 'direct'
+                            ? _peerAvatarUrl
+                            : _conversationPhotoUrl)!),
+                    child: (_conversationKind == 'direct'
+                                ? _peerAvatarUrl
+                                : _conversationPhotoUrl) == null
+                        ? Icon(
+                            _conversationKind == 'channel'
+                                ? Icons.campaign_outlined
+                                : _conversationKind == 'group'
+                                    ? Icons.groups_rounded
+                                    : Icons.person_rounded,
+                            color: colors.onPrimaryContainer,
+                            size: 20,
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(mainAxisSize: MainAxisSize.min, children: [
+                          Flexible(child: Text(
+                            _conversationKind == 'direct' && _peerDisplayName != null
+                                ? _peerDisplayName!
+                                : widget.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800))),
+                          const SizedBox(width: 4),
+                          HomaGramVerifiedBadge(userId: _peerUserId, size: 15),
+                        ]),
+                        if (_presenceLabel.isNotEmpty)
+                          Text(_presenceLabel, style: TextStyle(
+                            fontSize: 10,
+                            color: _presenceLabel == _t.online
+                                ? colors.primary : colors.onSurfaceVariant,
+                          )),
+                      ],
+                    ),
+                  ),
+                  if (_conversationKind == 'direct')
+                    Icon(Icons.chevron_right_rounded,
+                      size: 18, color: colors.onSurfaceVariant),
                 ],
               ),
             ),
-          ],
+          ),
         ),
         actions: [
           HomaGramSpringPress(child: IconButton(
