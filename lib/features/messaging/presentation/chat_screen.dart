@@ -1022,7 +1022,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   CircleAvatar(
                     radius: 23,
                     backgroundColor: Theme.of(sheetContext).colorScheme.primaryContainer,
-                    backgroundImage: infoPhotoUrl == null ? null : NetworkImage(infoPhotoUrl),
+                    backgroundImage: infoPhotoUrl == null ? null : NetworkImage(infoPhotoUrl!),
                     child: infoPhotoUrl == null
                         ? Icon(isChannel ? Icons.campaign_outlined : Icons.groups_rounded)
                         : null,
