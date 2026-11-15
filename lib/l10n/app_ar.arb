@@ -1544,5 +1544,37 @@
         "type": "int"
       }
     }
-  }
+  },
+  "verificationCategoryMedia": "الأخبار والإعلام",
+  "verificationCategoryJournalist": "صحفي",
+  "verificationCategoryReporter": "مراسل",
+  "verificationCategorySportsReporter": "مراسل رياضي",
+  "verificationCategoryPresenter": "مقدم برامج",
+  "verificationCategoryActor": "ممثل",
+  "verificationCategoryDirector": "مخرج",
+  "verificationCategoryMusician": "مغنٍ وموسيقي",
+  "verificationCategoryWriter": "كاتب ومترجم",
+  "verificationCategoryArtist": "فنان ومصور",
+  "verificationCategoryAthlete": "رياضي",
+  "verificationCategoryCoach": "مدرب رياضي",
+  "verificationCategoryPolitician": "سياسي",
+  "verificationCategoryDiplomat": "دبلوماسي",
+  "verificationCategoryAcademic": "باحث وأستاذ جامعي",
+  "verificationCategoryHealthProfessional": "طبيب ومتخصص صحي",
+  "verificationCategoryLegal": "محامٍ ومتخصص قانوني",
+  "verificationCategoryEntrepreneur": "رائد أعمال",
+  "verificationCategoryBusinessManager": "مدير أعمال",
+  "verificationCategoryTechnology": "التكنولوجيا والشركات الناشئة",
+  "verificationCategoryEducation": "التعليم والتدريس",
+  "verificationCategoryActivist": "ناشط اجتماعي",
+  "verificationCategoryRetail": "متجر وتجارة تجزئة",
+  "verificationCategoryRestaurant": "مطعم ومقهى",
+  "verificationCategoryClinic": "الطب والعيادات",
+  "verificationCategoryTechnical": "الخدمات الفنية والميكانيكية",
+  "verificationCategoryConstruction": "البناء والعقارات",
+  "verificationCategoryTransport": "النقل",
+  "verificationCategoryTourism": "السياحة والضيافة",
+  "verificationCategoryNgo": "منظمة غير ربحية",
+  "verificationCategoryCompany": "شركة ومؤسسة",
+  "verificationCategoryOther": "أخرى"
 }
