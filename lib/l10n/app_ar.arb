@@ -1261,5 +1261,33 @@
         "type": "String"
       }
     }
+  },
+  "storySeconds": "{count} ثانية",
+  "storyMinutes": "{count} دقيقة",
+  "storyMinutesAndSeconds": "{minutes} دقيقة و{seconds} ثانية",
+  "storyWatchLabel": "المشاهدة",
+  "@storySeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyMinutesAndSeconds": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
   }
 }
