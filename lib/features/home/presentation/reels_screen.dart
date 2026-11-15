@@ -298,7 +298,7 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
   }
 
   Future<void> _reportReel() async {
-    const reasons = <String, String>{
+    final reasons = <String, String>{
       'harassment': _t.feedReportHarassment,
       'copied_content': _t.feedReportCopied,
       'copyright_claim': _t.feedReportCopyright,
