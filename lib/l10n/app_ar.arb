@@ -1335,5 +1335,12 @@
         "type": "String"
       }
     }
-  }
+  },
+  "storyTextLengthInvalid": "يجب أن يتراوح نص القصة بين 1 و1000 حرف.",
+  "storyChooseMediaFirst": "اختر صورة أو فيديو أولًا.",
+  "storyTextMaxLength": "يمكن أن يصل نص القصة إلى 500 حرف.",
+  "storyQuestionLengthInvalid": "أدخل نصًا لصندوق الأسئلة يتراوح بين 1 و180 حرفًا.",
+  "storyCountdownInvalid": "أدخل عنوانًا ووقتًا صالحين للعد التنازلي.",
+  "storyPollInvalid": "أكمل سؤال الاستطلاع وخياراته دون تكرار.",
+  "storyPublishFailed": "تعذّر نشر القصة. تحقق من الاتصال أو تنسيق الوسائط."
 }
