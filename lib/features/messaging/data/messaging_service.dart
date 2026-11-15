@@ -703,13 +703,56 @@ class MessagingService {
     await _client.removeChannel(channel);
   }
 
-  static Future<List<Map<String, dynamic>>> loadPublicChannels() async {
-    final rows = await _client.from('channels')
-        .select('conversation_id,slug,description,is_public,created_at,conversations(title)')
-        .eq('is_public', true)
-        .order('created_at', ascending: false)
-        .limit(100);
-    return rows.map((row) => Map<String, dynamic>.from(row)).toList();
+  static Future<List<Map<String, dynamic>>> searchPublicCommunities({
+    String query = '',
+    String kind = 'all',
+    int limit = 30,
+    int offset = 0,
+  }) async {
+    final rows = await _client.rpc('search_public_communities', params: {
+      'p_query': query.trim(),
+      'p_kind': kind,
+      'p_limit': limit,
+      'p_offset': offset,
+    });
+    return (rows as List)
+        .map((row) => Map<String, dynamic>.from(row as Map))
+        .toList();
+  }
+
+  static Future<String> createPublicGroup({
+    required String title,
+    required String slug,
+    required String description,
+    required List<String> memberIds,
+  }) async {
+    final result = await _client.rpc('create_public_group', params: {
+      'p_title': title.trim(),
+      'p_slug': slug.trim().toLowerCase(),
+      'p_description': description.trim(),
+      'p_member_ids': memberIds,
+    });
+    return result as String;
+  }
+
+  static Future<void> joinPublicGroup(String conversationId) async {
+    await _client.rpc('join_public_group', params: {
+      'p_conversation_id': conversationId,
+    });
+  }
+
+  static Future<void> updateGroupDiscoverySettings({
+    required String conversationId,
+    required bool isPublic,
+    String? slug,
+    String description = '',
+  }) async {
+    await _client.rpc('update_group_discovery_settings', params: {
+      'p_conversation_id': conversationId,
+      'p_is_public': isPublic,
+      'p_slug': slug?.trim().toLowerCase(),
+      'p_description': description.trim(),
+    });
   }
 
   static Future<String> createChannel({
