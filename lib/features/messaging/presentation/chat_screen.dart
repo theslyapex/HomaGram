@@ -40,6 +40,14 @@ class _ChatScreenState extends State<ChatScreen> {
   String? _peerUserId;
   String _conversationKind = 'direct';
   String? _conversationPhotoUrl;
+  String _myConversationRole = 'member';
+  bool _membersCanSendMessages = true;
+  bool _membersCanSendMedia = true;
+
+  bool get _canSendText => _conversationKind != 'group' ||
+      _myConversationRole != 'member' || _membersCanSendMessages;
+  bool get _canSendMedia => _conversationKind != 'group' ||
+      _myConversationRole != 'member' || _membersCanSendMedia;
 
   String get _myId => Supabase.instance.client.auth.currentUser!.id;
 
@@ -58,7 +66,7 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final row = await Supabase.instance.client
           .from('conversations')
-          .select('kind,photo_path,description')
+          .select('kind,photo_path,description,members_can_send_messages,members_can_send_media')
           .eq('id', widget.conversationId)
           .maybeSingle();
       if (row == null) return;
@@ -68,10 +76,26 @@ class _ChatScreenState extends State<ChatScreen> {
         photoUrl = await Supabase.instance.client.storage
             .from('conversation-photos').createSignedUrl(path, 3600);
       }
+      var myRole = 'member';
+      try {
+        final membership = await Supabase.instance.client
+            .from('conversation_members')
+            .select('role')
+            .eq('conversation_id', widget.conversationId)
+            .eq('user_id', _myId)
+            .isFilter('left_at', null)
+            .maybeSingle();
+        myRole = membership?['role'] as String? ?? 'member';
+      } catch (error) {
+        debugPrint('Conversation role load failed: $error');
+      }
       if (!mounted) return;
       setState(() {
         _conversationKind = row['kind'] as String? ?? 'direct';
         _conversationPhotoUrl = photoUrl;
+        _myConversationRole = myRole;
+        _membersCanSendMessages = row['members_can_send_messages'] as bool? ?? true;
+        _membersCanSendMedia = row['members_can_send_media'] as bool? ?? true;
       });
     } catch (error) {
       debugPrint('Conversation metadata unavailable: $error');
@@ -171,6 +195,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _pickMedia() async {
+    if (!_canSendMedia) return;
     final choice = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
@@ -252,7 +277,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _send() async {
-    if (_sending || _controller.text.trim().isEmpty) return;
+    if (_sending || !_canSendText || _controller.text.trim().isEmpty) return;
     final text = _controller.text;
     _controller.clear();
     setState(() => _sending = true);
@@ -513,22 +538,33 @@ class _ChatScreenState extends State<ChatScreen> {
                         IconButton(onPressed: () => setState(() { _replyToId = null; _replyToBody = null; }), icon: const Icon(Icons.close, size: 18)),
                       ]),
                     ),
+                  if (!_canSendText)
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(8, 4, 8, 10),
+                      child: Row(children: [
+                        Icon(Icons.lock_outline_rounded, size: 17),
+                        SizedBox(width: 8),
+                        Expanded(child: Text('ارسال پیام در این گروه فقط برای مدیران فعال است.',
+                          style: TextStyle(fontSize: 12))),
+                      ]),
+                    ),
                   Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   IconButton(
-                    tooltip: 'افزودن رسانه',
-                    onPressed: _sending ? null : _pickMedia,
+                    tooltip: _canSendMedia ? 'افزودن رسانه' : 'ارسال رسانه در این گروه غیرفعال است',
+                    onPressed: _sending || !_canSendMedia ? null : _pickMedia,
                     icon: const Icon(Icons.add_circle_outline_rounded),
                   ),
                   Expanded(
                     child: TextField(
                       controller: _controller,
+                      enabled: _canSendText,
                       minLines: 1,
                       maxLines: 5,
                       textInputAction: TextInputAction.newline,
                       decoration: InputDecoration(
-                        hintText: 'پیام خود را بنویسید…',
+                        hintText: _canSendText ? 'پیام خود را بنویسید…' : 'ارسال پیام غیرفعال است',
                         filled: true,
                         fillColor: colors.surfaceContainerHighest.withValues(alpha: .65),
                         border: OutlineInputBorder(
@@ -541,7 +577,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   const SizedBox(width: 8),
                   IconButton.filled(
-                    onPressed: _sending ? null : _send,
+                    onPressed: _sending || !_canSendText ? null : _send,
                     icon: _sending
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.send_rounded),
