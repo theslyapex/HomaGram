@@ -1862,5 +1862,117 @@
         "type": "String"
       }
     }
+  },
+  "adminCommunitiesLoadFailed": "تعذّر تحميل قائمة المجموعات والقنوات.",
+  "adminCommunityWarningMinLength": "يجب ألا يقل نص التحذير عن 8 أحرف.",
+  "adminCommunityDeleteGroupTitle": "حذف المجموعة نهائيًا",
+  "adminCommunityDeleteChannelTitle": "حذف القناة نهائيًا",
+  "adminCommunityDeleteDescription": "سيتم حذف «{title}» وجميع رسائلها وعضوياتها لدى كل الأعضاء. لا يمكن التراجع عن هذا الإجراء.",
+  "adminCommunityDeleteForEveryone": "الحذف للجميع",
+  "adminCommunityWarnTitle": "إرسال تحذير إلى {kind}",
+  "adminCommunityGroup": "المجموعة",
+  "adminCommunityChannel": "القناة",
+  "adminCommunityWarningLabel": "رسالة تحذير لجميع الأعضاء",
+  "adminCommunityBlockTitle": "حظر {kind}",
+  "adminCommunityBlockReasonOptional": "سبب الحظر (اختياري)",
+  "adminCommunityConfirmBlockTitle": "تأكيد الحظر",
+  "adminCommunityBlockDescription": "سيؤدي ذلك إلى إيقاف جميع الأعضاء عن إرسال رسائل جديدة في هذه المجموعة أو القناة.",
+  "adminCommunityBlock": "حظر",
+  "adminCommunityWarnSent": "تم إرسال تحذير إلى الأعضاء.",
+  "adminCommunityBlocked": "تم حظر المجموعة أو القناة.",
+  "adminCommunityUnblocked": "تم رفع التقييد عن المجموعة أو القناة.",
+  "adminCommunityDeleted": "تم حذف المجموعة أو القناة.",
+  "adminCommunityActionFailed": "تعذّر تنفيذ الإجراء. تحقق من صلاحيات المسؤول والاتصال.",
+  "adminCommunitySearchHint": "البحث بالاسم أو المعرّف أو المالك",
+  "adminRefresh": "تحديث",
+  "adminCommunityGroups": "المجموعات",
+  "adminCommunityChannels": "القنوات",
+  "adminNoCommunitiesFound": "لم يتم العثور على مجموعات أو قنوات.",
+  "adminCommunityUnknownOwner": "مالك غير معروف",
+  "adminCommunityPublic": "عام",
+  "adminCommunityPrivate": "خاص",
+  "adminCommunitySummary": "{kind} • {visibility} • {count} عضو",
+  "adminCommunityOwnerDate": "المالك: {owner} • {date}",
+  "adminCommunityBlockReason": "سبب الحظر: {reason}",
+  "adminCommunityActions": "إجراءات الإشراف",
+  "adminCommunityUnblock": "إلغاء الحظر",
+  "adminCommunityDeleteCompletely": "حذف نهائي",
+  "adminCommunityId": "المعرّف: {id}",
+  "adminCommunityNoDescription": "لا يوجد وصف.",
+  "adminCommunityActiveMembers": "الأعضاء النشطون: {count}",
+  "adminCommunityStatus": "الحالة: {status}",
+  "adminCommunityBlockedStatus": "محظور",
+  "adminCommunityActiveStatus": "نشط",
+  "@adminCommunityDeleteDescription": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommunityWarnTitle": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommunityBlockTitle": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommunitySummary": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "visibility": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminCommunityOwnerDate": {
+    "placeholders": {
+      "owner": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommunityBlockReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommunityId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminCommunityActiveMembers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminCommunityStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
   }
 }
