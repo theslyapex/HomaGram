@@ -2231,5 +2231,7 @@
   "quickBugReportCaptionDefault": "گزارش مشکل از طریق قابلیت گزارش با تکان‌دادن گوشی.",
   "quickBugReportCaptionDetails": "گزارش مشکل: {details}",
   "quickBugReportSubmitFailed": "ثبت گزارش مشکل انجام نشد. دوباره تلاش کنید.",
-  "groupInviteInvalid": "لینک دعوت گروه نامعتبر است یا اعتبار آن به پایان رسیده است."
+  "groupInviteInvalid": "لینک دعوت گروه نامعتبر است یا اعتبار آن به پایان رسیده است.",
+  "homagramLogoSemanticLabel": "نشان هماگرام",
+  "verifiedAccount": "حساب تأییدشده"
 }
