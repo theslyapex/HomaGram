@@ -806,5 +806,82 @@
         "type": "String"
       }
     }
+  },
+  "exploreTitle": "استكشف HomaGram",
+  "refresh": "تحديث",
+  "exploreSearchHint": "ابحث عن أشخاص ومنشورات ومجموعات وقنوات",
+  "exploreLatest": "الأحدث",
+  "explorePopular": "الأكثر رواجًا",
+  "exploreRetry": "حاول مجددًا",
+  "exploreCommunities": "المجموعات والقنوات العامة",
+  "exploreChannelFallback": "قناة",
+  "exploreGroupFallback": "مجموعة",
+  "exploreMembersCount": "{count} عضو",
+  "exploreJoin": "انضمام",
+  "exploreOpen": "فتح",
+  "exploreJoinFailed": "تعذر الانضمام أو فتح المحادثة.",
+  "explorePeople": "الأشخاص",
+  "explorePostResults": "نتائج المنشورات",
+  "explorePublicPosts": "المنشورات العامة",
+  "exploreNoContent": "لا يوجد محتوى لعرضه.",
+  "exploreLoadFailed": "تعذر تحميل محتوى الاستكشاف. تحقق من اتصالك وحاول مجددًا.",
+  "exploreTab": "استكشاف",
+  "exploreLikeFailed": "تعذر تسجيل الإعجاب بهذا المنشور.",
+  "exploreSharePost": "مشاركة المنشور",
+  "exploreSendToUsers": "إرسال إلى مستخدمي HomaGram",
+  "exploreCopyPostLink": "نسخ رابط المنشور",
+  "exploreShareExternal": "المشاركة خارج التطبيق",
+  "explorePostCopied": "تم نسخ رابط المنشور.",
+  "exploreShareText": "شاهد هذا المنشور على HomaGram:\n{link}",
+  "exploreSelectRecipients": "اختيار المستلمين",
+  "exploreSearchUsersHint": "ابحث بالاسم أو اسم المستخدم",
+  "exploreSearchUsersPrompt": "ابحث للعثور على أشخاص.",
+  "exploreSearchUsersFailed": "تعذر البحث عن المستخدمين.",
+  "exploreSendToCount": "إرسال إلى {count} أشخاص",
+  "explorePostSendFailed": "تعذر إرسال المنشور.",
+  "explorePostSentCount": "تم إرسال المنشور إلى {count} أشخاص.",
+  "exploreSharePostMessage": "شاركت هذا المنشور معك.",
+  "exploreSavePost": "حفظ المنشور",
+  "exploreUnsavePost": "إزالة من المحفوظات",
+  "exploreRepost": "إعادة النشر في ملفي",
+  "exploreUndoRepost": "إلغاء إعادة النشر",
+  "exploreSendPost": "إرسال المنشور",
+  "exploreReportPost": "الإبلاغ عن المنشور",
+  "exploreActionFailed": "تعذر إكمال هذا الإجراء.",
+  "exploreReportConfirm": "هل تريد الإبلاغ عن هذا المنشور لمراجعته؟",
+  "exploreSubmitReport": "إرسال البلاغ",
+  "exploreReportSuccess": "تم إرسال بلاغك.",
+  "exploreReportFailed": "تعذر إرسال البلاغ.",
+  "exploreCancel": "إلغاء",
+  "exploreLikeAction": "إعجاب",
+  "exploreCommentAction": "التعليقات",
+  "exploreSendAction": "إرسال",
+  "@exploreMembersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@exploreSendToCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@explorePostSentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@exploreShareText": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
   }
 }
