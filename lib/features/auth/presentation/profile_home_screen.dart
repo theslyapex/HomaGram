@@ -77,8 +77,8 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
           .select('birth_date,is_public')
           .eq('user_id', id)
           .maybeSingle();
-      final profile = rows[0] as Map<String, dynamic>;
-      final settings = rows[1] as Map<String, dynamic>;
+      final profile = rows[0];
+      final settings = rows[1];
       _username.text = (profile['username'] ?? '') as String;
       _name.text = (profile['display_name'] ?? '') as String;
       _bio.text = (profile['bio'] ?? '') as String;
