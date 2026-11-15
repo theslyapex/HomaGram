@@ -974,7 +974,7 @@ class _StoryAvatar extends StatelessWidget {
           Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
           if (add)
-            Text(_t.storiesAdd, style: TextStyle(fontSize: 9, color: HomaGramTheme.turquoise)),
+            Text(AppLocalizations.of(context)!.storiesAdd, style: TextStyle(fontSize: 9, color: HomaGramTheme.turquoise)),
         ],
       ),
     ),
