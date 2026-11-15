@@ -27,11 +27,11 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
       await AuthService.updatePassword(_password.text);
       await AuthService.signOutThisDevice();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(_t.passwordRecoverySuccess)));
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(_t.passwordRecoverySaveFailed),
         ));
       }
