@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../domain/auth_constants.dart';
 import '../../../core/cache/story_video_cache.dart';
 import '../../notifications/data/push_notification_service.dart';
+import 'multi_account_service.dart';
 
 class AuthService {
   AuthService._();
@@ -41,6 +42,7 @@ class AuthService {
   static Future<void> signOutThisDevice() async {
     final userId = client.auth.currentUser?.id;
     if (userId != null) {
+      try { await MultiAccountService.removeAccount(userId); } catch (_) {}
       try { await StoryVideoCache.clearAccount(userId); } catch (_) {}
       try { await PushNotificationService.unregisterCurrentDevice(client); } catch (_) {}
     }
