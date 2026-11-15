@@ -1688,6 +1688,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       ],
     ),
     body: ListView(
+      physics: _drawingMode
+          ? const NeverScrollableScrollPhysics()
+          : const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(18),
       children: [
         if (_textMode)
