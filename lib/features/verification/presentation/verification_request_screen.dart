@@ -117,10 +117,12 @@ class _VerificationRequestScreenState extends State<VerificationRequestScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t.verificationSubmitted)));
       Navigator.pop(context);
     } catch (e) {
-      final message = e is _VerificationRequestException
-          ? (e.code == 'file_size' ? _t.verificationFileTooLarge : _t.verificationFileFormatInvalid)
-          : _t.verificationSubmitFailed;
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      if (mounted) {
+        final message = e is _VerificationRequestException
+            ? (e.code == 'file_size' ? _t.verificationFileTooLarge : _t.verificationFileFormatInvalid)
+            : _t.verificationSubmitFailed;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      }
     } finally { if (mounted) setState(() => _busy = false); }
   }
 
