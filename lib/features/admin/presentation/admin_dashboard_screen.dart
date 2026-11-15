@@ -253,7 +253,7 @@ class _UsersTabState extends State<_UsersTab> {
         : RefreshIndicator(
             onRefresh: _load,
             child: _users.isEmpty
-              ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
+              ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: [
                   SizedBox(height: 100), Icon(Icons.person_search_outlined, size: 48),
                   SizedBox(height: 12), Center(child: Text(_t.adminNoUsersFound)),
                 ])
@@ -391,7 +391,7 @@ class _ReportsTabState extends State<_ReportsTab> {
           Expanded(child: Text(_t.adminPendingCount(_reports.where((r) => r.status == 'pending').length),
             style: const TextStyle(fontWeight: FontWeight.w800))),
           SegmentedButton<String>(
-            segments: const [
+            segments: [
               ButtonSegment(value: 'pending', label: Text(_t.adminFilterPending)),
               ButtonSegment(value: 'reviewed', label: Text(_t.adminFilterReviewed)),
               ButtonSegment(value: 'all', label: Text(_t.adminFilterAll)),
@@ -405,7 +405,7 @@ class _ReportsTabState extends State<_ReportsTab> {
       Expanded(child: RefreshIndicator(
       onRefresh: _load,
       child: visibleReports.isEmpty
-        ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
+        ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: [
             SizedBox(height: 110), Icon(Icons.task_alt_rounded, size: 48, color: Color(0xFF20A77A)),
             SizedBox(height: 12), Center(child: Text(_t.adminNoPostReports)),
           ])
@@ -548,7 +548,7 @@ class _MessageReportsTabState extends State<_MessageReportsTab> {
           Expanded(child: Text(_t.adminPendingCount(_items.where((r) => r['status'] == 'pending').length),
             style: const TextStyle(fontWeight: FontWeight.w800))),
           SegmentedButton<String>(
-            segments: const [
+            segments: [
               ButtonSegment(value: 'pending', label: Text('بررسی‌نشده')),
               ButtonSegment(value: 'reviewed', label: Text('بررسی‌شده')),
               ButtonSegment(value: 'all', label: Text('همه')),
@@ -562,7 +562,7 @@ class _MessageReportsTabState extends State<_MessageReportsTab> {
       Expanded(child: RefreshIndicator(
       onRefresh: _load,
       child: visibleItems.isEmpty
-        ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
+        ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: [
             SizedBox(height: 100), Icon(Icons.verified_outlined, size: 48),
             SizedBox(height: 12), Center(child: Text(_t.adminNoMessageReports)),
           ])
@@ -699,7 +699,7 @@ class _AuditLogsTabState extends State<_AuditLogsTab> {
     return RefreshIndicator(
       onRefresh: _load,
       child: _logs.isEmpty
-        ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
+        ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: [
             SizedBox(height: 110), Icon(Icons.history_rounded, size: 46),
             SizedBox(height: 12), Center(child: Text(_t.adminAuditEmpty)),
           ])
