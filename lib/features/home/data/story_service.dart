@@ -697,7 +697,12 @@ class StoryService {
     }.toList();
     final profiles = ids.isEmpty ? <dynamic>[] : await _client.from('profiles')
         .select('id,username,display_name,avatar_path').inFilter('id', ids);
-    final byId = {for (final p in profiles) p['id'] as String: p};
+    final byId = {for (final p in profiles) p['id'] as String: Map<String,dynamic>.from(p)};
+    await Future.wait(byId.values.map((profile) async {
+      final path = profile['avatar_path'] as String?;
+      if (path == null || path.isEmpty) return;
+      try { profile['avatar_url'] = await _client.storage.from('avatars').createSignedUrl(path, 900); } catch (_) {}
+    }));
     final reactionByUser = {
       for (final r in reactions) r['user_id'] as String: r['emoji'] as String,
     };
@@ -712,6 +717,7 @@ class StoryService {
       return <String, dynamic>{
         'username': profile['username'] ?? 'user',
         'display_name': profile['display_name'] ?? '',
+        'avatar_url': profile['avatar_url'],
         'viewed_at': r['viewed_at'],
         'duration_seconds': (r['duration_seconds'] as num?)?.toInt() ?? 0,
         'reaction': reactionByUser[id],
