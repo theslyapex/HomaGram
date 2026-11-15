@@ -981,10 +981,22 @@ class _ChatScreenState extends State<ChatScreen> {
               : info['description']) as String? ?? '';
       if (!mounted) return;
       String myRole = 'member';
-      for (final member in members) {
-        if (member['user_id'] == _myId) {
-          myRole = member['role'] as String? ?? 'member';
-          break;
+      try {
+        final ownMembership = await Supabase.instance.client
+            .from('conversation_members')
+            .select('role')
+            .eq('conversation_id', widget.conversationId)
+            .eq('user_id', _myId)
+            .isFilter('left_at', null)
+            .maybeSingle();
+        myRole = ownMembership?['role'] as String? ?? 'member';
+      } catch (error) {
+        debugPrint('Current conversation role unavailable: $error');
+        for (final member in members) {
+          if (member['user_id'] == _myId) {
+            myRole = member['role'] as String? ?? 'member';
+            break;
+          }
         }
       }
       final canManage = myRole == 'owner' || myRole == 'admin';
