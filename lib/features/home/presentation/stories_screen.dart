@@ -2626,10 +2626,10 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   }
 
   String _formatWatchTime(int seconds) {
-    if (seconds < 60) return '${seconds} ثانیه';
+    if (seconds < 60) return _t.storySeconds(seconds);
     final minutes = seconds ~/ 60;
     final remainder = seconds % 60;
-    return remainder == 0 ? '${minutes} دقیقه' : '${minutes} دقیقه و ${remainder} ثانیه';
+    return remainder == 0 ? _t.storyMinutes(minutes) : _t.storyMinutesAndSeconds(minutes, remainder);
   }
 
   Future<void> _showViewers() async {
@@ -2690,7 +2690,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                         return ListTile(
                           leading: const CircleAvatar(child: Icon(Icons.person_outline)),
                           title: Text(viewer['display_name'] as String),
-                          subtitle: Text('@${viewer['username']} • ${time} • تماشا: ${_formatWatchTime(watch)}${reaction == null ? '' : ' • ${reaction}'}'),
+                          subtitle: Text('@${viewer['username']} • ${time} • ${_t.storyWatchLabel}: ${_formatWatchTime(watch)}${reaction == null ? '' : ' • ${reaction}'}'),
                           isThreeLine: true,
                         );
                       },
