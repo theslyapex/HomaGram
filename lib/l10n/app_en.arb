@@ -2221,5 +2221,22 @@
   "bootstrapDescription": "This version marks the beginning of HomaGram's phased development. Account, social networking, and messaging features will be built and tested in later stages.",
   "bootstrapSupabaseConfigured": "Supabase connection configuration loaded",
   "bootstrapSupabaseNotConfigured": "Supabase connection is not configured yet",
-  "bootstrapStage": "Stage zero • Project setup"
+  "bootstrapStage": "Stage zero • Project setup",
+  "quickBugReportTitle": "Quick issue report",
+  "quickBugReportScreenshotPrivacy": "A screenshot of this screen has been captured. Review the preview before sending and make sure it does not include private information you do not intend to share.",
+  "quickBugReportPreviewUnavailable": "Screenshot preview is unavailable.",
+  "quickBugReportDescriptionLabel": "Describe the issue",
+  "quickBugReportDescriptionHint": "What happened?",
+  "quickBugReportSend": "Send to support",
+  "quickBugReportCaptionDefault": "Issue report submitted using the shake-to-report feature.",
+  "quickBugReportCaptionDetails": "Issue report: {details}",
+  "quickBugReportSubmitFailed": "The issue report could not be submitted. Please try again.",
+  "groupInviteInvalid": "This group invitation link is invalid or has expired.",
+  "@quickBugReportCaptionDetails": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  }
 }
