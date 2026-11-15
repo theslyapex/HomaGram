@@ -402,6 +402,11 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         actions: [
           HomaGramSpringPress(child: IconButton(
+            tooltip: 'پیام‌های ستاره‌دار',
+            onPressed: _showStarredMessages,
+            icon: const Icon(Icons.star_outline_rounded),
+          )),
+          HomaGramSpringPress(child: IconButton(
             tooltip: 'جست‌وجوی پیام‌ها',
             onPressed: _searchMessages,
             icon: const Icon(Icons.search_rounded),
@@ -481,13 +486,23 @@ class _ChatScreenState extends State<ChatScreen> {
                                         ),
                                       if (!deleted && (message['attachments'] as List? ?? []).isNotEmpty)
                                         _attachmentPreview((message['attachments'] as List).first as Map<String, dynamic>),
+                                      if (message['forwarded_from_display_name'] != null && !deleted)
+                                        Align(alignment: Alignment.centerRight, child: Text(
+                                          'فوروارد از ${message['forwarded_from_display_name']}',
+                                          style: TextStyle(fontSize: 10, color: colors.primary, fontWeight: FontWeight.w700),
+                                        )),
                                       if (deleted)
-                                        Text('این پیام حذف شده است',
+                                        Text('پیام حذف شده توسط ${message['deleted_by_name'] ?? 'کاربر'}',
                                           style: TextStyle(color: colors.onSurfaceVariant, height: 1.6))
                                       else
                                         _messageContent(message['body'] as String? ?? '', colors),
                                       if (!deleted && (message['reactions'] as List? ?? []).isNotEmpty)
                                         _reactionSummary(message),
+                                      if (!deleted && (message['is_starred'] == true || message['is_pinned'] == true))
+                                        Row(mainAxisSize: MainAxisSize.min, children: [
+                                          if (message['is_starred'] == true) const Icon(Icons.star_rounded, size: 13, color: Colors.amber),
+                                          if (message['is_pinned'] == true) const Icon(Icons.push_pin_rounded, size: 13),
+                                        ]),
                                       if (message['edited_at'] != null && !deleted)
                                         const Text('ویرایش‌شده', style: TextStyle(fontSize: 9)),
                                       const SizedBox(height: 3),
@@ -1735,6 +1750,11 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _messageActions(Map<String, dynamic> message) async {
     if (message['deleted_at'] != null) return;
     final mine = message['sender_id'] == _myId;
+    final createdAt = DateTime.tryParse(message['created_at'] as String? ?? '');
+    final canEdit = mine && createdAt != null &&
+        DateTime.now().difference(createdAt) <= const Duration(hours: 2);
+    final canModerate = _conversationKind == 'direct' ? mine :
+        mine || _myConversationRole == 'owner' || _myConversationRole == 'admin';
     final action = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
@@ -1742,6 +1762,27 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            ListTile(
+              leading: Icon(message['is_starred'] == true ? Icons.star_rounded : Icons.star_border_rounded),
+              title: Text(message['is_starred'] == true ? 'برداشتن از پیام‌های ستاره‌دار' : 'ستاره‌دار کردن پیام'),
+              onTap: () => Navigator.pop(context, 'star'),
+            ),
+            ListTile(
+              leading: Icon(message['is_pinned'] == true ? Icons.push_pin_rounded : Icons.push_pin_outlined),
+              title: Text(message['is_pinned'] == true ? 'برداشتن سنجاق پیام' : 'سنجاق‌کردن پیام'),
+              onTap: () => Navigator.pop(context, 'pin'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.copy_rounded),
+              title: const Text('کپی متن پیام'),
+              onTap: () => Navigator.pop(context, 'copy'),
+            ),
+            if (message['message_type'] == 'text')
+              ListTile(
+                leading: const Icon(Icons.forward_rounded),
+                title: const Text('فوروارد به گفتگو…'),
+                onTap: () => Navigator.pop(context, 'forward'),
+              ),
             ListTile(
               leading: const Icon(Icons.reply_rounded),
               title: const Text('پاسخ به پیام'),
@@ -1757,12 +1798,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ).toList(),
             ),
-            if (mine) ListTile(
+            if (canEdit) ListTile(
               leading: const Icon(Icons.edit_outlined),
               title: const Text('ویرایش پیام'),
               onTap: () => Navigator.pop(context, 'edit'),
             ),
-            if (mine) ListTile(
+            if (canModerate) ListTile(
               leading: const Icon(Icons.delete_outline_rounded, color: Colors.red),
               title: const Text('حذف برای همه', style: TextStyle(color: Colors.red)),
               onTap: () => Navigator.pop(context, 'delete'),
@@ -1779,7 +1820,49 @@ class _ChatScreenState extends State<ChatScreen> {
     );
     if (!mounted || action == null) return;
     try {
-      if (action == 'reply') {
+      if (action == 'star') {
+        await MessagingService.toggleMessageStar(message['id'] as String);
+        await _refresh();
+      } else if (action == 'pin') {
+        if (message['is_pinned'] == true) {
+          await MessagingService.unpinMessage(message['id'] as String);
+        } else {
+          await MessagingService.pinMessage(message['id'] as String);
+        }
+        await _refresh();
+      } else if (action == 'copy') {
+        await Clipboard.setData(ClipboardData(text: message['body'] as String? ?? ''));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('متن پیام کپی شد.')));
+      } else if (action == 'forward') {
+        final conversations = await MessagingService.loadInbox();
+        final targets = conversations.where((item) => item.id != widget.conversationId).toList();
+        final targetId = await showModalBottomSheet<String>(
+          context: context, showDragHandle: true,
+          builder: (sheetContext) => SafeArea(child: SizedBox(
+            height: MediaQuery.sizeOf(sheetContext).height * .6,
+            child: targets.isEmpty
+              ? const Center(child: Text('گفتگوی دیگری برای فوروارد وجود ندارد.'))
+              : ListView.builder(
+                  itemCount: targets.length,
+                  itemBuilder: (context, index) {
+                    final target = targets[index];
+                    return ListTile(
+                      leading: Icon(target.kind == 'group' ? Icons.groups_outlined :
+                        target.kind == 'channel' ? Icons.campaign_outlined : Icons.person_outline),
+                      title: Text(target.title),
+                      onTap: () => Navigator.pop(sheetContext, target.id),
+                    );
+                  },
+                ),
+          )),
+        );
+        if (targetId != null) {
+          await MessagingService.forwardTextMessage(message['id'] as String, targetId);
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('پیام با نام فرستنده اصلی فوروارد شد.')));
+        }
+      } else if (action == 'reply') {
         setState(() {
           _replyToId = message['id'] as String;
           _replyToBody = message['body'] as String? ?? '';
@@ -1876,6 +1959,35 @@ class _ChatScreenState extends State<ChatScreen> {
           const SnackBar(content: Text('عملیات انجام نشد. دوباره تلاش کنید.')),
         );
       }
+    }
+  }
+
+  Future<void> _showStarredMessages() async {
+    try {
+      final rows = await MessagingService.loadStarredMessages(widget.conversationId);
+      if (!mounted) return;
+      await showModalBottomSheet<void>(
+        context: context, isScrollControlled: true, showDragHandle: true,
+        builder: (sheetContext) => SafeArea(child: SizedBox(
+          height: MediaQuery.sizeOf(sheetContext).height * .65,
+          child: rows.isEmpty ? const Center(child: Text('هنوز پیامی را ستاره‌دار نکرده‌اید.'))
+            : ListView.separated(
+                itemCount: rows.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final message = rows[index]['messages'] as Map<String, dynamic>;
+                  return ListTile(
+                    leading: const Icon(Icons.star_rounded, color: Colors.amber),
+                    title: Text(message['body'] as String? ?? '', maxLines: 2, overflow: TextOverflow.ellipsis),
+                    subtitle: Text(_time(message['created_at'] as String?)),
+                  );
+                },
+              ),
+        )),
+      );
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('دریافت پیام‌های ستاره‌دار انجام نشد.')));
     }
   }
 
