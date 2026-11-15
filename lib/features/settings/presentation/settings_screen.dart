@@ -1,3 +1,4 @@
+import '../../../app/app_language.dart';
 import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
