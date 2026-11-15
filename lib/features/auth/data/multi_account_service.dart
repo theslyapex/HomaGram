@@ -192,8 +192,8 @@ class MultiAccountService {
   static Future<void> removeAccount(String userId) async {
     await _writeQueue;
     await _storage.delete(key: _tokenKey(userId));
-    final accounts = await _readIndex()
-      ..removeWhere((item) => item.userId == userId);
+    final accounts = await _readIndex();
+    accounts.removeWhere((item) => item.userId == userId);
     await _storage.write(
       key: _indexKey,
       value: jsonEncode(accounts.map((item) => item.toJson()).toList()),
