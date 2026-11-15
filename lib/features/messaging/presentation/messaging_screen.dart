@@ -76,16 +76,16 @@ class _MessagingScreenState extends State<MessagingScreen> {
           autofocus: true,
           maxLength: 100,
           textDirection: TextDirection.ltr,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: _t.groupInviteCodeOrLink,
             hintText: _t.enter64CharInvite,
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text(_t.cancel)),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(_t.cancel)),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
-            child: const Text(_t.join),
+            child: Text(_t.join),
           ),
         ],
       ),
@@ -120,7 +120,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
     } catch (error) {
       debugPrint('Join group by invite failed: $error');
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t.joinGroupFailed)),
+        SnackBar(content: Text(_t.joinGroupFailed)),
       );
     }
   }
@@ -173,7 +173,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(_t.openSupportFailed)),
+          SnackBar(content: Text(_t.openSupportFailed)),
         );
       }
     }
@@ -266,7 +266,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                       child: const Icon(Icons.headset_mic_rounded, color: Colors.white, size: 25),
                     ),
                     const SizedBox(width: 13),
-                    const Expanded(child: Column(
+                    Expanded(child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(children: [
@@ -322,7 +322,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                     child: Row(children: [
                       const Icon(Icons.archive_rounded, size: 19),
                       const SizedBox(width: 8),
-                      const Expanded(child: Text(_t.archivedConversations,
+                      Expanded(child: Text(_t.archivedConversations,
                         style: TextStyle(fontWeight: FontWeight.w800))),
                       TextButton.icon(
                         onPressed: () {
@@ -330,7 +330,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                           _load();
                         },
                         icon: const Icon(Icons.arrow_forward_rounded, size: 18),
-                        label: const Text(_t.back),
+                        label: Text(_t.back),
                       ),
                     ]),
                   )
@@ -353,7 +353,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                       ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: [
                           const SizedBox(height: 120),
                           Center(child: Text(_error!)),
-                          Center(child: HomaGramSpringPress(child: TextButton(onPressed: _load, child: const Text(_t.tryAgain)))),
+                          Center(child: HomaGramSpringPress(child: TextButton(onPressed: _load, child: Text(_t.tryAgain)))),
                         ])
                       : _items.isEmpty
                           ? ListView(
@@ -365,7 +365,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                                 Center(child: Text(_searchTerm.isEmpty ? _t.noConversationsYet : _t.conversationSearchEmpty,
                                   style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800))),
                                 const SizedBox(height: 8),
-                                const Padding(
+                                Padding(
                                   padding: EdgeInsets.symmetric(horizontal: 42),
                                   child: Text(_t.startPrivateConversationHint,
                                     textAlign: TextAlign.center),
@@ -374,7 +374,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                                 Center(child: HomaGramSpringPress(child: FilledButton.icon(
                                   onPressed: _newChat,
                                   icon: const Icon(Icons.add_comment_outlined),
-                                  label: const Text(_t.startNewConversation, style: TextStyle(fontFamily: 'Estedad')),
+                                  label: Text(_t.startNewConversation, style: TextStyle(fontFamily: 'Estedad')),
                                 ))),
                               ],
                             )
@@ -403,7 +403,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                                       }
                                     } catch (_) {
                                       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text(_t.archiveStatusUpdateFailed)),
+                                        SnackBar(content: Text(_t.archiveStatusUpdateFailed)),
                                       );
                                     }
                                     return false;
@@ -499,7 +499,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
         ));
       } catch (_) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(_t.conversationStatusUpdateFailed)),
+          SnackBar(content: Text(_t.conversationStatusUpdateFailed)),
         );
       }
       return;
@@ -515,7 +515,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
           ? _t.deleteConversationExplanation
           : _t.leaveConversationExplanation(item.kind == 'group' ? _t.group : _t.channel)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text(_t.cancel)),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(_t.cancel)),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Theme.of(dialogContext).colorScheme.error),
             onPressed: () => Navigator.pop(dialogContext, true),
@@ -533,7 +533,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
       ));
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t.deleteConversationFailed)),
+        SnackBar(content: Text(_t.deleteConversationFailed)),
       );
     }
   }
@@ -556,6 +556,7 @@ class _NewChatSheet extends StatefulWidget {
 }
 
 class _NewChatSheetState extends State<_NewChatSheet> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final _search = TextEditingController();
   List<Map<String, dynamic>> _users = [];
   bool _searching = false;
@@ -615,7 +616,7 @@ class _NewChatSheetState extends State<_NewChatSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(_t.newConversation, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+          Text(_t.newConversation, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
           const SizedBox(height: 14),
           TextField(
             controller: _search,
@@ -635,7 +636,7 @@ class _NewChatSheetState extends State<_NewChatSheet> {
           ),
           const SizedBox(height: 8),
           if (_users.isEmpty && _search.text.trim().length >= 2 && !_searching)
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(18),
               child: Center(child: Text(_t.userSearchEmpty)),
             ),
@@ -678,6 +679,7 @@ class _NewGroupSheet extends StatefulWidget {
 }
 
 class _NewGroupSheetState extends State<_NewGroupSheet> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final _title = TextEditingController();
   final _search = TextEditingController();
   final _slug = TextEditingController();
@@ -755,10 +757,10 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(_t.createNewGroup, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+            Text(_t.createNewGroup, style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
             const SizedBox(height: 14),
             TextField(controller: _title, maxLength: 100,
-              decoration: const InputDecoration(labelText: _t.groupName, prefixIcon: Icon(Icons.groups_outlined))),
+              decoration: InputDecoration(labelText: _t.groupName, prefixIcon: Icon(Icons.groups_outlined))),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               value: _isPublic,
@@ -774,7 +776,7 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
                 controller: _slug,
                 maxLength: 32,
                 textDirection: TextDirection.ltr,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: _t.publicGroupSlug,
                   prefixText: '@',
                   helperText: _t.slugRules,
@@ -784,12 +786,12 @@ class _NewGroupSheetState extends State<_NewGroupSheet> {
                 controller: _description,
                 maxLength: 500,
                 maxLines: 2,
-                decoration: const InputDecoration(labelText: _t.groupDescriptionOptional),
+                decoration: InputDecoration(labelText: _t.groupDescriptionOptional),
               ),
             ],
             const SizedBox(height: 8),
             TextField(controller: _search, onChanged: _find,
-              decoration: const InputDecoration(hintText: _t.searchMembersByUsername, prefixIcon: Icon(Icons.search_rounded))),
+              decoration: InputDecoration(hintText: _t.searchMembersByUsername, prefixIcon: Icon(Icons.search_rounded))),
             if (_searching) const LinearProgressIndicator(minHeight: 2),
             if (_selected.isNotEmpty)
               Padding(padding: const EdgeInsets.symmetric(vertical: 8),
