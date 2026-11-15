@@ -11,6 +11,7 @@ class SupportConversationPreview {
     required this.title,
     required this.subtitle,
     required this.updatedAt,
+    this.avatarUrl,
   });
 
   final String id;
@@ -19,6 +20,7 @@ class SupportConversationPreview {
   final String title;
   final String subtitle;
   final DateTime updatedAt;
+  final String? avatarUrl;
 }
 
 class SupportService {
@@ -55,11 +57,20 @@ class SupportService {
     final userIds = conversations.map((row) => row['user_id'] as String).toSet().toList();
     final profiles = await _client
         .from('profiles')
-        .select('id,username,display_name')
+        .select('id,username,display_name,avatar_path')
         .inFilter('id', userIds);
     final profileById = {
       for (final row in profiles) row['id'] as String: Map<String, dynamic>.from(row),
     };
+    await Future.wait(profileById.values.map((profile) async {
+      final path = profile['avatar_path'] as String?;
+      if (path == null || path.isEmpty) return;
+      try {
+        profile['avatar_url'] = await _client.storage.from('avatars').createSignedUrl(path, 1800);
+      } catch (_) {
+        profile['avatar_url'] = null;
+      }
+    }));
 
     final conversationIds = conversations.map((row) => row['id'] as String).toList();
     final latestRows = await _client
@@ -105,6 +116,7 @@ class SupportService {
         subtitle: subtitle,
         updatedAt: DateTime.tryParse(dateValue as String? ?? '') ??
             DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+        avatarUrl: profile?['avatar_url'] as String?,
       );
     }).toList();
   }
