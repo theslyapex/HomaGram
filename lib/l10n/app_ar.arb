@@ -1478,5 +1478,23 @@
         "type": "String"
       }
     }
+  },
+  "videoTrimUnsupported": "لا يمكن تحرير هذا الفيديو.",
+  "videoTrimSaveFailed": "تعذّر قص الفيديو وحفظه. حاول مرة أخرى.",
+  "videoTrimTitle": "تحرير الفيديو",
+  "videoTrimInstructions": "حرّك المقبضين لتحديد بداية ونهاية الجزء المطلوب من الفيديو.",
+  "videoTrimRange": "تحديد نطاق الفيديو",
+  "videoTrimDuration": "المدة المحددة: {selected} • الحد الأقصى: {maximum}",
+  "videoTrimPreparing": "جارٍ التجهيز…",
+  "videoTrimConfirm": "تأكيد قص الفيديو",
+  "@videoTrimDuration": {
+    "placeholders": {
+      "selected": {
+        "type": "String"
+      },
+      "maximum": {
+        "type": "String"
+      }
+    }
   }
 }
