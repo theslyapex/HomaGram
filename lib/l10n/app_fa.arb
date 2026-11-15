@@ -545,5 +545,46 @@
   "channelAdminsAlwaysCanSend": "مالک و مدیران کانال همیشه امکان ارسال دارند.",
   "memberPermissionsUpdated": "دسترسی اعضا به‌روزرسانی شد.",
   "memberPermissionsSaveFailed": "ذخیره تنظیمات دسترسی انجام نشد.",
-  "editChannelDetails": "ویرایش اطلاعات کانال"
+  "editChannelDetails": "ویرایش اطلاعات کانال",
+  "channelActivityHistory": "تاریخچه فعالیت‌های کانال",
+  "addMember": "افزودن عضو",
+  "addMemberFailed": "افزودن عضو انجام نشد؛ ممکن است این کاربر از قبل عضو باشد یا دسترسی لازم را نداشته باشید.",
+  "owner": "مالک",
+  "admin": "مدیر",
+  "member": "عضو",
+  "thisMember": "این عضو",
+  "transferChannelOwnership": "انتقال مالکیت کانال",
+  "transferOwnershipConfirm": "مالکیت کانال به {name} منتقل شود؟ شما پس از انتقال، مدیر کانال خواهید بود و مالک جدید کنترل کامل کانال را در اختیار می‌گیرد.",
+  "@transferOwnershipConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmTransfer": "تأیید انتقال",
+  "channelOwnershipTransferredSuccess": "مالکیت کانال با موفقیت منتقل شد.",
+  "ownershipTransferFailed": "انتقال مالکیت انجام نشد. فقط مالک فعلی می‌تواند این کار را انجام دهد.",
+  "memberActionFailed": "انجام عملیات روی عضو ممکن نشد. سطح دسترسی را بررسی کنید.",
+  "promoteToAdmin": "ارتقا به مدیر",
+  "demoteToMember": "تنزل به عضو",
+  "transferChannelOwnershipMenu": "انتقال مالکیت کانال",
+  "removeFromChannel": "حذف از کانال",
+  "removeFromGroup": "حذف از گروه",
+  "deleteGroupForEveryone": "حذف کامل گروه برای همه اعضا",
+  "deleteChannelForEveryone": "حذف کامل کانال برای همه اعضا",
+  "deleteGroup": "حذف کامل گروه",
+  "deleteChannel": "حذف کامل کانال",
+  "deleteCommunityConfirm": "این عملیات {type}، پیام‌ها و عضویت تمام اعضا را حذف می‌کند و قابل بازگشت نیست. ادامه می‌دهید؟",
+  "@deleteCommunityConfirm": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteForEveryone": "حذف برای همه",
+  "deleteCommunityFailed": "حذف انجام نشد؛ فقط مالک فعلی می‌تواند این گروه یا کانال را حذف کند.",
+  "leaveConversation": "خروج از گفتگو",
+  "conversationInfoLoadFailed": "اطلاعات گفتگو دریافت نشد. اتصال یا دسترسی عضویت را بررسی کنید."
 }
