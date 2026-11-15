@@ -152,14 +152,14 @@ class _FeedScreenState extends State<FeedScreen> {
           future: _posts,
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
-              return const Center(child: CircularProgressIndicator());
+              return Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError) {
               return _stateMessage(
                 icon: Icons.cloud_off_outlined,
                 title: _t.feedLoadFailed,
                 message: _t.feedConnectionRetry,
-                action: HomaGramSpringPress(child: TextButton.icon(onPressed: _refresh, icon: const Icon(Icons.refresh), label: const Text(_t.feedRetry))),
+                action: HomaGramSpringPress(child: TextButton.icon(onPressed: _refresh, icon: const Icon(Icons.refresh), label: Text(_t.feedRetry))),
               );
             }
             final posts = snapshot.data ?? [];
@@ -172,14 +172,14 @@ class _FeedScreenState extends State<FeedScreen> {
                   children: [
                     const Icon(Icons.dynamic_feed_outlined, size: 62, color: HomaGramTheme.turquoise),
                     const SizedBox(height: 18),
-                    const Text(_t.feedEmptyTitle, textAlign: TextAlign.center,
+                    Text(_t.feedEmptyTitle, textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 8),
-                    const Text(_t.feedEmptyMessage,
+                    Text(_t.feedEmptyMessage,
                         textAlign: TextAlign.center, style: TextStyle(height: 1.8, color: Color(0xFF7A879B))),
                     const SizedBox(height: 14),
                     Center(child: HomaGramSpringPress(child: FilledButton.icon(onPressed: _createPost,
-                        icon: const Icon(Icons.add), label: const Text(_t.feedCreateFirstPost)))),
+                        icon: const Icon(Icons.add), label: Text(_t.feedCreateFirstPost)))),
                   ],
                 ),
               );
@@ -268,7 +268,7 @@ class _PostCardState extends State<PostCard> {
       if (mounted) update(!current);
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t.feedActionFailed)));
+        SnackBar(content: Text(_t.feedActionFailed)));
     } finally { if (mounted) setState(() => _busy = false); }
   }
 
@@ -317,7 +317,7 @@ class _PostCardState extends State<PostCard> {
                 Text('${rows.length}', style: const TextStyle(fontWeight: FontWeight.w800)),
               ])),
             Expanded(child: rows.isEmpty
-              ? const Center(child: Text(_t.feedNoLikes))
+              ? Center(child: Text(_t.feedNoLikes))
               : ListView.separated(
                   itemCount: rows.length, separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (ctx, i) {
@@ -341,7 +341,7 @@ class _PostCardState extends State<PostCard> {
       );
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t.feedLikesLoadFailed)));
+        SnackBar(content: Text(_t.feedLikesLoadFailed)));
     }
   }
 
@@ -360,20 +360,20 @@ class _PostCardState extends State<PostCard> {
     final action = await showModalBottomSheet<String>(
       context: context, showDragHandle: true, useSafeArea: true,
       builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 14),
+        Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 14),
           child: Align(alignment: Alignment.centerRight,
             child: Text(_t.feedSharePost, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)))),
         ListTile(leading: const CircleAvatar(child: Icon(Icons.send_rounded)),
-          title: const Text(_t.feedSendToUsers),
-          subtitle: const Text(_t.feedChooseConversations),
+          title: Text(_t.feedSendToUsers),
+          subtitle: Text(_t.feedChooseConversations),
           onTap: () => Navigator.pop(ctx, 'inside')),
         ListTile(leading: const CircleAvatar(child: Icon(Icons.link_rounded)),
-          title: const Text(_t.feedCopyLink),
-          subtitle: const Text(_t.feedShareOtherApps),
+          title: Text(_t.feedCopyLink),
+          subtitle: Text(_t.feedShareOtherApps),
           onTap: () => Navigator.pop(ctx, 'copy')),
         ListTile(leading: const CircleAvatar(child: Icon(Icons.ios_share_rounded)),
-          title: const Text(_t.feedShareOtherApps),
-          subtitle: const Text(_t.feedSendWithApps),
+          title: Text(_t.feedShareOtherApps),
+          subtitle: Text(_t.feedSendWithApps),
           onTap: () => Navigator.pop(ctx, 'external')),
         const SizedBox(height: 10),
       ])),
@@ -383,7 +383,7 @@ class _PostCardState extends State<PostCard> {
     if (action == 'copy') {
       await Clipboard.setData(ClipboardData(text: link.toString()));
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t.feedLinkCopied)));
+        SnackBar(content: Text(_t.feedLinkCopied)));
     } else if (action == 'external') {
       try {
         await SharePlus.instance.share(ShareParams(
@@ -392,7 +392,7 @@ class _PostCardState extends State<PostCard> {
         ));
       } catch (_) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(_t.feedShareUnavailable)));
+          SnackBar(content: Text(_t.feedShareUnavailable)));
       }
     } else if (action == 'inside') {
       final recipients = await showModalBottomSheet<List<Map<String, dynamic>>>(
@@ -418,13 +418,13 @@ class _PostCardState extends State<PostCard> {
   Future<void> _editCaption() async {
     final controller = TextEditingController(text: widget.post['caption'] as String? ?? '');
     final value = await showDialog<String>(context: context, builder: (ctx) => AlertDialog(
-      title: const Text(_t.feedEditCaption),
+      title: Text(_t.feedEditCaption),
       content: TextField(controller: controller, autofocus: true, maxLength: 2200,
         minLines: 2, maxLines: 7, decoration: InputDecoration(hintText: _t.feedCaptionHint)),
       actions: [
         HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text(_t.feedCancel))),
         HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-          child: const Text(_t.feedSaveChanges))),
+          child: Text(_t.feedSaveChanges))),
       ],
     ));
     controller.dispose();
@@ -433,20 +433,20 @@ class _PostCardState extends State<PostCard> {
       await AuthService.client.from('posts').update({'caption': value}).eq('id', _postId).eq('author_id', _userId);
       if (mounted) {
         setState(() => widget.post['caption'] = value);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(_t.feedPostUpdated)));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t.feedPostUpdated)));
       }
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t.feedEditFailed)));
+        SnackBar(content: Text(_t.feedEditFailed)));
     }
   }
 
   Future<void> _deletePost() async {
     final confirmed = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-      title: const Text(_t.feedDeletePost),
-      content: const Text(_t.feedDeleteConfirm),
+      title: Text(_t.feedDeletePost),
+      content: Text(_t.feedDeleteConfirm),
       actions: [
-        HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text(_t.feedCancel))),
+        HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(_t.feedCancel))),
         HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, true),
           style: FilledButton.styleFrom(backgroundColor: Colors.red),
           child: Text(_t.feedDelete))),
@@ -460,16 +460,16 @@ class _PostCardState extends State<PostCard> {
         try { await AuthService.client.storage.from('post-media').remove([path]); } catch (_) {}
       }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(_t.feedPostDeleted)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t.feedPostDeleted)));
       widget.onDeleted?.call();
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t.feedDeleteFailed)));
+        SnackBar(content: Text(_t.feedDeleteFailed)));
     }
   }
 
   Future<void> _reportPost() async {
-    const reasons = <String, String>{
+    final reasons = <String, String>{
       'harassment': _t.feedReportHarassment,
       'copied_content': _t.feedReportCopied,
       'copyright_claim': _t.feedReportCopyright,
@@ -492,9 +492,9 @@ class _PostCardState extends State<PostCard> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(_t.feedReportTitle, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+            Text(_t.feedReportTitle, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
             const SizedBox(height: 7),
-            const Text(_t.feedReportInstructions,
+            Text(_t.feedReportInstructions,
               style: TextStyle(fontSize: 12, height: 1.7)),
             const SizedBox(height: 10),
             ...reasons.entries.map((e) => RadioListTile<String>(
@@ -508,25 +508,25 @@ class _PostCardState extends State<PostCard> {
             )),
             if (selectedReason == 'copyright_claim') ...[
               const Divider(height: 18),
-              const Text(_t.feedCopyrightOwner,
+              Text(_t.feedCopyrightOwner,
                 style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
               RadioListTile<String>(
                 value: 'self', groupValue: rightsOwner, dense: true,
                 contentPadding: EdgeInsets.zero,
-                title: const Text(_t.feedIAmOwner),
+                title: Text(_t.feedIAmOwner),
                 onChanged: (v) => setSheetState(() => rightsOwner = v),
               ),
               RadioListTile<String>(
                 value: 'third_party', groupValue: rightsOwner, dense: true,
                 contentPadding: EdgeInsets.zero,
-                title: const Text(_t.feedOtherOwner),
+                title: Text(_t.feedOtherOwner),
                 onChanged: (v) => setSheetState(() => rightsOwner = v),
               ),
               if (rightsOwner == 'third_party')
                 TextField(
                   controller: rightsHolderController,
                   maxLength: 160,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: _t.feedOwnerName,
                     border: OutlineInputBorder(),
                   ),
@@ -535,7 +535,7 @@ class _PostCardState extends State<PostCard> {
             const SizedBox(height: 8),
             TextField(
               controller: detailsController, maxLength: 1000, minLines: 2, maxLines: 4,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: _t.feedReportDetails,
                 hintText: _t.feedReportDetailsHint,
                 border: OutlineInputBorder(),
@@ -551,7 +551,7 @@ class _PostCardState extends State<PostCard> {
                   'rights_owner': rightsOwner ?? '',
                   'rights_holder_name': rightsHolderController.text.trim(),
                 }),
-              child: const Text(_t.feedSubmitReport),
+              child: Text(_t.feedSubmitReport),
             ),
           ],
         ))),
@@ -570,10 +570,10 @@ class _PostCardState extends State<PostCard> {
         'rights_holder_name': (report['rights_holder_name'] ?? '').isEmpty ? null : report['rights_holder_name'],
       });
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t.feedReportSuccess)));
+        SnackBar(content: Text(_t.feedReportSuccess)));
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t.feedReportFailed)));
+        SnackBar(content: Text(_t.feedReportFailed)));
     }
   }
 
@@ -586,17 +586,17 @@ class _PostCardState extends State<PostCard> {
         ListTile(leading: Icon(_reposted ? Icons.repeat_on : Icons.repeat),
           title: Text(_reposted ? _t.feedUndoRepost : _t.feedRepost),
           onTap: () => Navigator.pop(ctx, 'repost')),
-        ListTile(leading: const Icon(Icons.ios_share_outlined), title: const Text(_t.feedSendPost),
+        ListTile(leading: const Icon(Icons.ios_share_outlined), title: Text(_t.feedSendPost),
           onTap: () => Navigator.pop(ctx, 'share')),
         if (widget.post['author_id'] == _userId) ...[
           const Divider(height: 1),
-          ListTile(leading: const Icon(Icons.edit_outlined), title: const Text(_t.feedEditCaption),
+          ListTile(leading: const Icon(Icons.edit_outlined), title: Text(_t.feedEditCaption),
             onTap: () => Navigator.pop(ctx, 'edit')),
           ListTile(leading: const Icon(Icons.delete_outline, color: Colors.red),
-            title: const Text(_t.feedDeletePost, style: TextStyle(color: Colors.red)),
+            title: Text(_t.feedDeletePost, style: TextStyle(color: Colors.red)),
             onTap: () => Navigator.pop(ctx, 'delete')),
         ] else
-          ListTile(leading: const Icon(Icons.flag_outlined), title: const Text(_t.feedReportPost),
+          ListTile(leading: const Icon(Icons.flag_outlined), title: Text(_t.feedReportPost),
             onTap: () => Navigator.pop(ctx, 'report')),
       ])));
     if (choice == 'save') await _toggle('saved_posts', _saved, (v) => setState(() => _saved = v));
@@ -746,7 +746,7 @@ class _PostShareSheetState extends State<_PostShareSheet> {
     child: SizedBox(
       height: MediaQuery.sizeOf(context).height * .72,
       child: Column(children: [
-        const Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 12),
+        Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 12),
           child: Align(alignment: Alignment.centerRight,
             child: Text(_t.feedSelectRecipients, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)))),
         Padding(
@@ -767,9 +767,9 @@ class _PostShareSheetState extends State<_PostShareSheet> {
             child: Align(alignment: Alignment.centerRight,
               child: Text(_t.feedSelectedPeople(_selectedUsers.length),
                 style: const TextStyle(fontWeight: FontWeight.w700)))),
-        Expanded(child: _loading ? const Center(child: CircularProgressIndicator())
+        Expanded(child: _loading ? Center(child: CircularProgressIndicator())
           : _error != null ? Center(child: Text(_error!))
-          : _users.isEmpty ? const Center(child: Text(_t.feedSearchUsersPrompt))
+          : _users.isEmpty ? Center(child: Text(_t.feedSearchUsersPrompt))
           : ListView.separated(
               padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: _users.length,
@@ -911,10 +911,10 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text(_t.feedCommentsTitle)),
+    appBar: AppBar(title: Text(_t.feedCommentsTitle)),
     body: Column(children: [
-      Expanded(child: _loading ? const Center(child: CircularProgressIndicator())
-        : _comments.isEmpty ? const Center(child: Text(_t.feedNoComments))
+      Expanded(child: _loading ? Center(child: CircularProgressIndicator())
+        : _comments.isEmpty ? Center(child: Text(_t.feedNoComments))
         : ListView.builder(padding: const EdgeInsets.all(14), itemCount: _comments.length,
           itemBuilder: (context, i) {
             final c = _comments[i], p = c['profile'] as Map<String,dynamic>?;
@@ -965,7 +965,7 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
                           _replyTo = c['parent_id'] == null ? c['id'] as String : c['parent_id'] as String;
                           _replyName = p?['display_name'] as String? ?? _t.feedUserFallback;
                         }),
-                        child: const Text(_t.feedReply),
+                        child: Text(_t.feedReply),
                       )),
                     ]),
                   ])),
@@ -981,7 +981,7 @@ class _PostCommentsScreenState extends State<PostCommentsScreen> {
           ]),
           Row(children: [
             Expanded(child: TextField(controller: _controller, minLines: 1, maxLines: 4,
-              maxLength: 2000, decoration: const InputDecoration(hintText: _t.feedCommentHint))),
+              maxLength: 2000, decoration: InputDecoration(hintText: _t.feedCommentHint))),
             HomaGramSpringPress(child: IconButton(onPressed: _sending ? null : _send,
               icon: _sending ? const SizedBox(width: 18,height:18,child:CircularProgressIndicator(strokeWidth:2))
                 : const Icon(Icons.send_rounded, color: HomaGramTheme.turquoise))),
@@ -1027,7 +1027,7 @@ class _FeedVideoState extends State<_FeedVideo> {
           aspectRatio: 9 / 16,
           child: Stack(fit: StackFit.expand, children: [
             if (widget.coverUrl != null) Image.network(widget.coverUrl!, fit: BoxFit.cover),
-            const Center(child: CircularProgressIndicator()),
+            Center(child: CircularProgressIndicator()),
           ]),
         );
       }
@@ -1063,6 +1063,6 @@ class _MediaError extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     height: 180,
     color: Theme.of(context).colorScheme.surfaceContainerHighest,
-    child: const Center(child: Icon(Icons.broken_image_outlined, size: 38, color: Color(0xFF8490A4))),
+    child: Center(child: Icon(Icons.broken_image_outlined, size: 38, color: Color(0xFF8490A4))),
   );
 }
