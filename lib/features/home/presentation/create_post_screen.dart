@@ -241,7 +241,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               SizedBox(width: double.infinity, child: HomaGramSpringPress(child: FilledButton(
                 onPressed: preview == null || previewMs != selectedMs || isRendering
                     ? null : () => Navigator.pop(sheetContext, preview),
-                child: const Text(_t.createSelectThisFrame)))),
+                child: Text(_t.createSelectThisFrame)))),
             ]),
           ));
         }),
@@ -360,10 +360,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         ])),
         if (isVideo) Padding(padding: const EdgeInsets.fromLTRB(12, 0, 12, 12), child: Row(children: [
           Expanded(child: HomaGramSpringPress(child: OutlinedButton.icon(onPressed: _posting || _editing ? null : _chooseVideoFrame,
-            icon: const Icon(Icons.video_camera_back_outlined, size: 18), label: const Text(_t.createChooseFrame)))),
+            icon: const Icon(Icons.video_camera_back_outlined, size: 18), label: Text(_t.createChooseFrame)))),
           const SizedBox(width: 8),
           Expanded(child: HomaGramSpringPress(child: OutlinedButton.icon(onPressed: _posting || _editing ? null : _chooseCoverFromGallery,
-            icon: const Icon(Icons.add_photo_alternate_outlined, size: 18), label: const Text(_t.createCoverFromGallery)))),
+            icon: const Icon(Icons.add_photo_alternate_outlined, size: 18), label: Text(_t.createCoverFromGallery)))),
         ])),
       ]),
     );
