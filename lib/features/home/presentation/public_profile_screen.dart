@@ -362,7 +362,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             Expanded(child: HomaGramSpringPress(child: OutlinedButton.icon(
               onPressed: _openMessage,
               icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-              label: const Text(_t.message),
+              label: Text(_t.message),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
                 side: const BorderSide(color: Colors.white54),
@@ -374,7 +374,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           child: TextButton.icon(
             onPressed: _shareProfile,
             icon: const Icon(Icons.ios_share_rounded, color: Colors.white70, size: 16),
-            label: const Text(_t.shareProfile, style: TextStyle(color: Colors.white70, fontSize: 11)),
+            label: Text(_t.shareProfile, style: TextStyle(color: Colors.white70, fontSize: 11)),
           ),
         ),
       ]),
@@ -527,7 +527,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       );
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t.loadConnectionsFailed)));
+        SnackBar(content: Text(_t.loadConnectionsFailed)));
     }
   }
 
