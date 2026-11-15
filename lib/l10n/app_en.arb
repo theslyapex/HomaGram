@@ -483,7 +483,7 @@
   "manageChannelInviteCodes": "Manage channel invite codes",
   "createGroupInviteLink": "Create group invite link",
   "createChannelInviteCode": "Create channel invite code",
-  "retry": "Retry",
+  "retry": "Try again",
   "noInviteCodesYet": "No invite codes have been created yet.",
   "expirationUnknown": "Expiration time unknown",
   "expirationLabel": "Expires: {date}",
@@ -2208,5 +2208,18 @@
   "policyCopyright2Title": "Submit a claim",
   "policyCopyright2Body": "A rights holder or authorized representative may submit the content URL, a description of the claimed right, contact details, and supporting evidence through support.",
   "policyCopyright3Title": "Actions and review",
-  "policyCopyright3Body": "After an appropriate review, content may be restricted or removed. Repeated violations may lead to account restrictions. Affected users may submit an explanation and counter-evidence."
+  "policyCopyright3Body": "After an appropriate review, content may be restricted or removed. Repeated violations may lead to account restrictions. Affected users may submit an explanation and counter-evidence.",
+  "authGateConnectionWarning": "The account service is temporarily unavailable.",
+  "authGateMfaStatusFailed": "Two-step verification status could not be checked. Sign-in is paused until the connection is restored.",
+  "authGateProfileStatusFailed": "Profile status could not be checked. Access to the home screen is paused until the connection is restored.",
+  "passwordRecoverySuccess": "Your password has been changed. Sign in with your new password.",
+  "passwordRecoverySaveFailed": "Your password could not be changed. Please request a new recovery link.",
+  "passwordRecoveryChooseNew": "Choose a new password",
+  "passwordNew": "New password",
+  "passwordSaveNew": "Save new password",
+  "bootstrapReadyTitle": "The initial infrastructure is ready",
+  "bootstrapDescription": "This version marks the beginning of HomaGram's phased development. Account, social networking, and messaging features will be built and tested in later stages.",
+  "bootstrapSupabaseConfigured": "Supabase connection configuration loaded",
+  "bootstrapSupabaseNotConfigured": "Supabase connection is not configured yet",
+  "bootstrapStage": "Stage zero • Project setup"
 }
