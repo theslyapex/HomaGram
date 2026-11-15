@@ -46,7 +46,17 @@ class StoryService {
     final profiles = await _client.from('profiles')
         .select('id,username,display_name,avatar_path')
         .inFilter('id', ids);
-    return profiles.map((row) => Map<String, dynamic>.from(row)).toList();
+    final candidates = profiles.map((row) => Map<String, dynamic>.from(row)).toList();
+    await Future.wait(candidates.map((profile) async {
+      final path = profile['avatar_path'] as String?;
+      if (path == null || path.isEmpty) return;
+      try {
+        profile['avatar_url'] = await _client.storage.from('avatars').createSignedUrl(path, 1800);
+      } catch (_) {
+        profile['avatar_url'] = null;
+      }
+    }));
+    return candidates;
   }
 
   static Future<void> addCloseFriend(String friendId) async {
