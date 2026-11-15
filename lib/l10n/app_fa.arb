@@ -2248,5 +2248,12 @@
   "termsNoticeMiddle": " و ",
   "termsNoticeSuffix": " موافقت می‌کنید.",
   "termsLinkLabel": "شرایط استفاده",
-  "privacyLinkLabel": "سیاست حریم خصوصی"
+  "privacyLinkLabel": "سیاست حریم خصوصی",
+
+  "accountSwitcherTitle": "حساب‌های کاربری",
+  "accountSwitcherHint": "برای جابه‌جایی، حساب موردنظر را انتخاب کنید",
+  "noSavedAccounts": "حساب ذخیره‌شده‌ای وجود ندارد",
+  "addAnotherAccount": "افزودن حساب کاربری",
+  "addAccountSubtitle": "ورود به حساب دیگر و نگهداری امن آن روی این دستگاه",
+  "accountSwitchFailed": "جابه‌جایی حساب انجام نشد. دوباره تلاش کنید."
 }
