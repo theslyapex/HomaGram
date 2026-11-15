@@ -216,6 +216,19 @@ class StoryService {
     return _hydrate(rows);
   }
 
+  // Active stories for a profile. Supabase RLS continues to enforce the
+  // story audience rules (everyone, followers, and close friends).
+  static Future<List<Map<String, dynamic>>> loadActiveStoriesForUser(String userId) async {
+    if (userId.trim().isEmpty) return [];
+    final now = DateTime.now().toUtc().toIso8601String();
+    final rows = await _client.from('stories')
+        .select('id,author_id,audience,media_path,media_type,caption,text_content,background_key,overlay_text,overlay_x,overlay_y,overlay_scale,overlay_color,overlay_font,drawing_data,sticker_data,widget_layout,music_path,music_start_ms,music_volume,created_at,expires_at')
+        .eq('author_id', userId)
+        .gt('expires_at', now)
+        .order('created_at');
+    return _hydrate(rows);
+  }
+
   // Active stories owned by the signed-in user, for immediate highlight selection.
   static Future<List<Map<String, dynamic>>> loadMyActiveStories() async {
     final now = DateTime.now().toUtc().toIso8601String();
