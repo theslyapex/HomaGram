@@ -916,7 +916,7 @@
   "createCaptionLimit": "متن پست حداکثر ۲۲۰۰ نویسه است.",
   "createSessionInvalid": "نشست کاربری معتبر نیست؛ دوباره وارد شوید.",
   "createUploadFailed": "بارگذاری فایل انجام نشد: {error}",
-  "createPublishFailed": "انتشار انجام نشد: {error}",
+  "createPublishFailed": "ثبت محتوا انجام نشد: {details}",
   "createCoverReady": "کاور ریلز آماده است",
   "createImageReady": "تصویر آماده انتشار",
   "createChooseFrame": "انتخاب فریم",
@@ -958,7 +958,7 @@
   },
   "@createPublishFailed": {
     "placeholders": {
-      "error": {
+      "details": {
         "type": "String"
       }
     }
@@ -1084,5 +1084,32 @@
   "reelsCreateFirst": "ساخت اولین ریلز",
   "reelsShareTitle": "ریلز در HomaGram",
   "reelsReportTitle": "گزارش این ریلز",
-  "reelsReportSuccess": "گزارش ریلز ثبت شد و برای بررسی ارسال شد."
+  "reelsReportSuccess": "گزارش ریلز ثبت شد و برای بررسی ارسال شد.",
+  "reelsViewProfile": "مشاهده پروفایل",
+  "reelsShare": "اشتراک",
+  "reelsReport": "گزارش",
+  "createVideoTime": "{seconds} ثانیه از ویدئو",
+  "createFrameExtractFailed": "استخراج فریم انجام نشد: {error}",
+  "createErrorCode": "کد: {code}",
+  "@createVideoTime": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "@createFrameExtractFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@createErrorCode": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  }
 }
