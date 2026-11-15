@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../app/theme/app_theme.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../../core/utils/persian_date.dart';
 import '../data/auth_service.dart';
 import '../../home/data/story_service.dart';
@@ -19,6 +20,7 @@ class ProfileHomeScreen extends StatefulWidget {
 }
 
 class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final _name = TextEditingController();
   final _username = TextEditingController();
   final _bio = TextEditingController();
@@ -106,7 +108,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
         }
       }
     } catch (_) {
-      _error = 'اطلاعات حساب دریافت نشد. اتصال و دسترسی دیتابیس را بررسی کنید.';
+      _error = _t.profileLoadFailed;
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -132,12 +134,12 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
       if (file == null) return;
       final bytes = await file.readAsBytes();
       if (bytes.length > 5 * 1024 * 1024) {
-        _message('حجم تصویر باید کمتر از ۵ مگابایت باشد.', error: true);
+        _message(_t.avatarTooLarge, error: true);
         return;
       }
       final mime = file.mimeType ?? _mimeFromName(file.name);
       if (!const ['image/jpeg', 'image/png', 'image/webp'].contains(mime)) {
-        _message('فرمت تصویر باید JPG، PNG یا WEBP باشد.', error: true);
+        _message(_t.avatarInvalidFormat, error: true);
         return;
       }
 
@@ -176,11 +178,11 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
           // The new avatar is already saved; an old file can be cleaned up later.
         }
       }
-      _message('تصویر پروفایل با موفقیت به‌روزرسانی شد.');
+      _message(_t.avatarUpdated);
     } on StorageException catch (e) {
-      _message('بارگذاری تصویر انجام نشد: ${e.message}', error: true);
+      _message(_t.avatarUploadStorageError, error: true);
     } catch (_) {
-      _message('بارگذاری تصویر انجام نشد. دوباره تلاش کنید.', error: true);
+      _message(_t.avatarUploadFailed, error: true);
     } finally {
       if (mounted) setState(() => _uploadingAvatar = false);
     }
@@ -199,17 +201,17 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
     final username = _username.text.trim().toLowerCase();
     final bio = _bio.text.trim();
     if (name.isEmpty || name.length > 50 || bio.length > 160) {
-      _message('نام نمایشی باید ۱ تا ۵۰ و بیو حداکثر ۱۶۰ نویسه باشد.', error: true);
+      _message(_t.profileNameBioValidation, error: true);
       return;
     }
     if (!RegExp(r'^[a-z0-9_]{3,24}$').hasMatch(username)) {
-      _message('نام کاربری باید ۳ تا ۲۴ نویسه و فقط شامل حروف انگلیسی کوچک، عدد و زیرخط باشد.', error: true);
+      _message(_t.profileUsernameValidation, error: true);
       return;
     }
     final birthdayText = _birthDate.text.trim();
     final birthday = birthdayText.isEmpty ? null : parsePersianDate(birthdayText);
     if (birthdayText.isNotEmpty && birthday == null) {
-      _message('تاریخ تولد شمسی معتبر نیست. نمونه: ۱۳۸۳/۱۱/۱۴', error: true);
+      _message(_t.invalidPersianBirthDate, error: true);
       return;
     }
     setState(() => _saving = true);
@@ -235,16 +237,16 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
       }
       if (!mounted) return;
       setState(() => _onboarding = false);
-      _message('پروفایل ذخیره شد.');
+      _message(_t.profileSaved);
       widget.onCompleted?.call();
     } on PostgrestException catch (e) {
       if (e.code == '23505') {
-        _message('این نام کاربری قبلاً انتخاب شده است.', error: true);
+        _message(_t.profileUsernameTaken, error: true);
       } else {
-        _message('ذخیره پروفایل انجام نشد. دوباره تلاش کنید.', error: true);
+        _message(_t.profileSaveFailedRetry, error: true);
       }
     } catch (_) {
-      _message('ذخیره پروفایل انجام نشد.', error: true);
+      _message(_t.profileSaveFailed, error: true);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -258,10 +260,10 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
           .from('account_settings')
           .update({'is_private': value})
           .eq('user_id', id);
-      _message(value ? 'تنظیم حساب خصوصی ذخیره شد.' : 'تنظیم حساب عمومی ذخیره شد.');
+      _message(value ? _t.privateAccountSaved : _t.publicAccountSaved);
     } catch (_) {
       if (mounted) setState(() => _private = !value);
-      _message('ذخیره تنظیم حریم خصوصی انجام نشد.', error: true);
+      _message(_t.privacySaveFailed, error: true);
     }
   }
 
@@ -281,7 +283,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
       final id = AuthService.client.auth.currentUser!.id;
       await AuthService.client.from('account_settings')
           .update({column: value}).eq('user_id', id);
-      _message('تنظیم حریم خصوصی ذخیره شد.');
+      _message(_t.privacySettingsSaved);
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -289,7 +291,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
         if (column == 'show_following') _showFollowing = previous;
         if (column == 'show_profile_visitors') _showProfileVisitors = previous;
       });
-      _message('ذخیره تنظیم حریم خصوصی انجام نشد.', error: true);
+      _message(_t.privacySaveFailed, error: true);
     }
   }
 
@@ -297,12 +299,12 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
     try {
       if (otherDevices) {
         await AuthService.signOutOtherDevices();
-        _message('نشست‌های دیگر خاتمه یافتند؛ این دستگاه متصل باقی می‌ماند.');
+        _message(_t.otherSessionsSignedOut);
       } else {
         await AuthService.signOutThisDevice();
       }
     } catch (_) {
-      _message('خروج از نشست انجام نشد. دوباره تلاش کنید.', error: true);
+      _message(_t.sessionSignOutFailed, error: true);
     }
   }
 
@@ -311,10 +313,10 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
     final email = AuthService.client.auth.currentUser?.email ?? '';
     return Scaffold(
       appBar: AppBar(
-        title: Text(_onboarding ? 'راه‌اندازی حساب' : 'حساب HomaGram'),
+        title: Text(_onboarding ? _t.profileSetup : _t.homagramAccount),
         actions: [
           HomaGramSpringPress(child: IconButton(
-            tooltip: 'خروج از این دستگاه',
+            tooltip: _t.signOutThisDevice,
             onPressed: _signOut,
             icon: const Icon(Icons.logout_rounded),
           )),
@@ -338,7 +340,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              const Text('اطلاعات پروفایل',
+                              Text(_t.profileInformation,
                                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                               const SizedBox(height: 18),
                               Center(child: _avatarPicker()),
@@ -346,8 +348,8 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                               TextField(
                                 controller: _name,
                                 maxLength: 50,
-                                decoration: const InputDecoration(
-                                  labelText: 'نام نمایشی',
+                                decoration: InputDecoration(
+                                  labelText: _t.displayName,
                                   prefixIcon: Icon(Icons.person_outline),
                                 ),
                               ),
@@ -357,10 +359,10 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                 maxLength: 24,
                                 textDirection: TextDirection.ltr,
                                 decoration: const InputDecoration(
-                                  labelText: 'نام کاربری',
+                                  labelText: _t.username,
                                   prefixText: '@ ',
                                   prefixIcon: Icon(Icons.alternate_email),
-                                  helperText: '۳ تا ۲۴ نویسه؛ حروف انگلیسی کوچک، عدد و زیرخط',
+                                  helperText: _t.usernameRules,
                                 ),
                               ),
                               const SizedBox(height: 12),
@@ -370,10 +372,10 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                 keyboardType: TextInputType.datetime,
                                 textDirection: TextDirection.ltr,
                                 decoration: const InputDecoration(
-                                  labelText: 'تاریخ تولد شمسی',
-                                  hintText: '۱۳۸۳/۱۱/۱۴',
+                                  labelText: _t.persianBirthDate,
+                                  hintText: _t.birthDateExample,
                                   prefixIcon: Icon(Icons.cake_outlined),
-                                  helperText: 'اختیاری؛ با قالب سال/ماه/روز وارد کنید',
+                                  helperText: _t.birthDateOptionalHint,
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -383,8 +385,8 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                 onChanged: _birthDate.text.trim().isEmpty
                                     ? null
                                     : (value) => setState(() => _showBirthDate = value),
-                                title: const Text('نمایش تاریخ تولد در پروفایل'),
-                                subtitle: const Text('در حالت خاموش، تاریخ تولد فقط برای خودت قابل مشاهده است.'),
+                                title: const Text(_t.showBirthDate),
+                                subtitle: const Text(_t.birthDatePrivateHint),
                                 secondary: const Icon(Icons.visibility_outlined),
                               ),
                               const SizedBox(height: 8),
@@ -393,7 +395,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                 maxLength: 160,
                                 maxLines: 3,
                                 decoration: const InputDecoration(
-                                  labelText: 'بیوگرافی',
+                                  labelText: _t.biography,
                                   prefixIcon: Icon(Icons.notes_rounded),
                                   alignLabelWithHint: true,
                                 ),
@@ -404,16 +406,16 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                   MaterialPageRoute<void>(builder: (_) => const VerificationRequestScreen()),
                                 ),
                                 icon: const Icon(Icons.verified_user_outlined),
-                                label: const Text('درخواست نشان تأیید حساب'),
+                                label: const Text(_t.requestVerificationBadge),
                               ),
                               const SizedBox(height: 8),
                               HomaGramSpringPress(child: FilledButton(
                                 onPressed: _saving ? null : _saveProfile,
                                 child: Text(_saving
-                                    ? 'در حال ذخیره...'
+                                    ? _t.saving
                                     : _onboarding
-                                        ? 'تکمیل و ذخیره پروفایل'
-                                        : 'ذخیره تغییرات'),
+                                        ? _t.completeAndSaveProfile
+                                        : _t.saveChanges),
                               )),
                             ],
                           ),
@@ -424,9 +426,9 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                         child: SwitchListTile(
                           value: _private,
                           onChanged: _setPrivacy,
-                          title: const Text('حساب خصوصی'),
+                          title: const Text(_t.privateAccount),
                           subtitle: const Text(
-                            'حالت خصوصی ذخیره می‌شود؛ محدودیت نمایش محتوا و فید خصوصی در مرحله بعد تکمیل می‌شود.',
+                            _t.privateAccountFeatureNotice,
                           ),
                           secondary: const Icon(Icons.lock_outline),
                         ),
@@ -435,9 +437,9 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                       Card(
                         child: ListTile(
                           leading: const Icon(Icons.people_alt_outlined),
-                          title: const Text('دوستان نزدیک',
+                          title: const Text(_t.closeFriends,
                               style: TextStyle(fontWeight: FontWeight.w800)),
-                          subtitle: const Text('فهرست خصوصی دوستان نزدیکت را مدیریت کن؛ فقط خودت آن را می‌بینی.'),
+                          subtitle: const Text(_t.closeFriendsPrivateDescription),
                           trailing: const Icon(Icons.chevron_right_rounded),
                           onTap: () => showModalBottomSheet<void>(
                             context: context,
@@ -455,28 +457,28 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                             children: [
                               const ListTile(
                                 leading: Icon(Icons.visibility_off_outlined),
-                                title: Text('حریم خصوصی فهرست‌ها',
+                                title: Text(_t.listPrivacy,
                                     style: TextStyle(fontWeight: FontWeight.w800)),
-                                subtitle: Text('کنترل کن دیگران کدام فهرست‌های ارتباطی را ببینند.'),
+                                subtitle: Text(_t.listPrivacyDescription),
                               ),
                               SwitchListTile(
                                 value: _showFollowers,
                                 onChanged: (value) => _setVisibility('show_followers', value),
-                                title: const Text('نمایش دنبال‌کنندگان'),
-                                subtitle: const Text('با خاموش‌کردن، فهرست دنبال‌کنندگان برای دیگران پنهان می‌شود.'),
+                                title: const Text(_t.showFollowers),
+                                subtitle: const Text(_t.hideFollowersHint),
                               ),
                               SwitchListTile(
                                 value: _showFollowing,
                                 onChanged: (value) => _setVisibility('show_following', value),
-                                title: const Text('نمایش دنبال‌شوندگان'),
-                                subtitle: const Text('با خاموش‌کردن، فهرست دنبال‌شوندگان برای دیگران پنهان می‌شود.'),
+                                title: const Text(_t.showFollowing),
+                                subtitle: const Text(_t.hideFollowingHint),
                               ),
                               const Divider(height: 1),
                               SwitchListTile(
                                 value: _showProfileVisitors,
                                 onChanged: (value) => _setVisibility('show_profile_visitors', value),
-                                title: const Text('اجازه نمایش بازدیدکنندگان پروفایل'),
-                                subtitle: const Text('با روشن‌بودن این گزینه، فهرست بازدیدکنندگان در پروفایل خودت قابل مشاهده است.'),
+                                title: const Text(_t.showProfileVisitors),
+                                subtitle: const Text(_t.profileVisitorsHint),
                               ),
                             ],
                           ),
@@ -489,18 +491,18 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              const Text('مدیریت نشست‌ها',
+                              const Text(_t.sessionManagement,
                                   style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
                               const SizedBox(height: 6),
                               const Text(
-                                'می‌توانید نشست‌های دیگر را از حساب خارج کنید.',
+                                _t.sessionManagementDescription,
                                 style: TextStyle(height: 1.7, color: Color(0xFF64718A)),
                               ),
                               const SizedBox(height: 12),
                               HomaGramSpringPress(child: OutlinedButton.icon(
                                 onPressed: () => _signOut(otherDevices: true),
                                 icon: const Icon(Icons.devices_rounded),
-                                label: const Text('خروج از سایر دستگاه‌ها'),
+                                label: const Text(_t.signOutOtherDevices),
                               )),
                             ],
                           ),
@@ -508,7 +510,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                       ),
                       const SizedBox(height: 20),
                       const Center(
-                        child: Text('HomaGram • حساب کاربری',
+                        child: Text(_t.homagramAccountFooter,
                             style: TextStyle(color: Color(0xFF7A879B), fontSize: 11)),
                       ),
                     ],
@@ -525,13 +527,13 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: HomaGramTheme.turquoise.withValues(alpha: .28)),
         ),
-        child: const Row(
+        child: Row(
           children: [
             Icon(Icons.auto_awesome_rounded, color: HomaGramTheme.turquoise),
             SizedBox(width: 12),
             Expanded(
               child: Text(
-                'فقط یک‌بار این اطلاعات را تکمیل کنید. دفعات بعد با حفظ نشست، مستقیم وارد حساب می‌شوید.',
+                _t.profileOnboardingNotice,
                 style: TextStyle(height: 1.7, fontWeight: FontWeight.w600),
               ),
             ),
@@ -578,9 +580,9 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
           HomaGramSpringPress(child: TextButton.icon(
             onPressed: _uploadingAvatar ? null : _pickAvatar,
             icon: const Icon(Icons.add_a_photo_outlined, size: 18),
-            label: Text(_uploadingAvatar ? 'در حال بارگذاری تصویر...' : 'انتخاب تصویر پروفایل'),
+            label: Text(_uploadingAvatar ? _t.uploadingAvatar : _t.chooseProfilePhoto),
           )),
-          const Text('JPG، PNG یا WEBP • حداکثر ۵ مگابایت',
+          const Text(_t.avatarFormatLimit,
               style: TextStyle(fontSize: 11, color: Color(0xFF7A879B))),
         ],
       );
@@ -603,7 +605,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('حساب شما فعال است',
+                  const Text(_t.accountActive,
                       style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 17)),
                   const SizedBox(height: 5),
                   Text(email,
@@ -626,8 +628,8 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
               const SizedBox(height: 12),
               Text(_error!, textAlign: TextAlign.center),
               const SizedBox(height: 16),
-              HomaGramSpringPress(child: FilledButton(onPressed: _load, child: const Text('تلاش دوباره'))),
-              HomaGramSpringPress(child: TextButton(onPressed: _signOut, child: const Text('خروج از حساب'))),
+              HomaGramSpringPress(child: FilledButton(onPressed: _load, child: const Text(_t.tryAgain))),
+              HomaGramSpringPress(child: TextButton(onPressed: _signOut, child: const Text(_t.signOut))),
             ],
           ),
         ),
@@ -643,6 +645,7 @@ class CloseFriendsManagerSheet extends StatefulWidget {
 }
 
 class _CloseFriendsManagerSheetState extends State<CloseFriendsManagerSheet> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final _search = TextEditingController();
   List<Map<String, dynamic>> _candidates = [];
   Set<String> _selected = {};
@@ -706,7 +709,7 @@ class _CloseFriendsManagerSheetState extends State<CloseFriendsManagerSheet> {
       if (mounted) {
         setState(() => _savingId = null);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('به‌روزرسانی فهرست دوستان نزدیک انجام نشد.')),
+          SnackBar(content: Text(_t.closeFriendsUpdateFailed)),
         );
       }
     }
@@ -728,19 +731,19 @@ class _CloseFriendsManagerSheetState extends State<CloseFriendsManagerSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(children: [
-              const Expanded(child: Text('مدیریت دوستان نزدیک',
+              Expanded(child: Text(_t.manageCloseFriends,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900))),
-              Text('${_selected.length} نفر',
+              Text(_t.selectedPeople(_selected.length),
                 style: const TextStyle(color: Color(0xFF20B8B0), fontWeight: FontWeight.w800)),
             ]),
             const SizedBox(height: 6),
-            const Text('افرادی را انتخاب کن که بتوانند استوری‌های مخصوص دوستان نزدیک را ببینند.',
+            const Text(_t.closeFriendsStoryDescription,
               style: TextStyle(height: 1.6, color: Color(0xFF7A879B), fontSize: 12)),
             const SizedBox(height: 14),
             TextField(
               controller: _search,
               decoration: const InputDecoration(
-                hintText: 'جست‌وجو میان دنبال‌کنندگان',
+                hintText: _t.searchFollowers,
                 prefixIcon: Icon(Icons.search_rounded),
                 border: OutlineInputBorder(),
               ),
@@ -750,9 +753,9 @@ class _CloseFriendsManagerSheetState extends State<CloseFriendsManagerSheet> {
               child: _loading
                 ? const Center(child: CircularProgressIndicator())
                 : _candidates.isEmpty
-                  ? const Center(child: Text('هنوز دنبال‌کننده‌ای برای افزودن وجود ندارد.'))
+                  ? const Center(child: Text(_t.noFollowersToAdd))
                   : visible.isEmpty
-                    ? const Center(child: Text('نتیجه‌ای پیدا نشد.'))
+                    ? const Center(child: Text(_t.noSearchResults))
                     : ListView.separated(
                         itemCount: visible.length,
                         separatorBuilder: (_, __) => const Divider(height: 1),
@@ -764,7 +767,7 @@ class _CloseFriendsManagerSheetState extends State<CloseFriendsManagerSheet> {
                             contentPadding: EdgeInsets.zero,
                             leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
                             title: Row(mainAxisSize: MainAxisSize.min, children: [
-                              Flexible(child: Text(person['display_name']?.toString() ?? 'کاربر',
+                              Flexible(child: Text(person['display_name']?.toString() ?? _t.userLabel,
                                 maxLines: 1, overflow: TextOverflow.ellipsis)),
                               const SizedBox(width: 4),
                               HomaGramVerifiedBadge(userId: id, size: 13),
