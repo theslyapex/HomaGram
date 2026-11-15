@@ -1597,5 +1597,207 @@
   "adminVerificationStartReview": "Start review",
   "adminVerificationRequestInfo": "Request information",
   "adminVerificationApprove": "Approve",
-  "adminVerificationReject": "Reject"
+  "adminVerificationReject": "Reject",
+  "adminTitle": "HomaGram administration",
+  "adminOverview": "Overview",
+  "adminUsers": "Users",
+  "adminContentModeration": "Content moderation",
+  "adminPostReports": "Post reports",
+  "adminMessageReports": "Message reports",
+  "adminAuditLogs": "Admin history",
+  "adminVerificationTab": "Verification",
+  "adminCommunities": "Groups and channels",
+  "adminVerificationHeading": "Review verification requests",
+  "adminVerificationDescription": "Review individual and organization documents and manage request status.",
+  "adminVerificationOpenRequests": "Open requests",
+  "adminStatsLoadFailed": "Couldn't load administration statistics.",
+  "adminMetricUsers": "Users",
+  "adminMetricPosts": "Posts",
+  "adminMetricStories": "Stories",
+  "adminMetricReels": "Reels",
+  "adminMetricMessages": "Messages",
+  "adminMetricGroups": "Groups",
+  "adminMetricChannels": "Channels",
+  "adminMetricPendingReports": "Pending reports",
+  "adminMetricOpenSupport": "Open support chats",
+  "adminControlCenter": "HomaGram control center",
+  "adminControlCenterSubtitle": "Manage users, content, and reports",
+  "adminOverallStats": "Overall statistics",
+  "adminStatsSecurityNote": "Statistics are read directly from the database; permissions are enforced on the server.",
+  "adminUsersLoadFailed": "Couldn't load users.",
+  "adminSearchUsersHint": "Search by name or username",
+  "adminClearSearch": "Clear search",
+  "adminNoUsersFound": "No users found.",
+  "adminUnknownUser": "HomaGram user",
+  "adminNoUsername": "no-username",
+  "adminUserIdJoined": "ID: {id}… • Joined: {date}",
+  "adminReportsLoadFailed": "Couldn't load reports.",
+  "adminReportReviewFailed": "Couldn't save the report review.",
+  "adminPendingCount": "Pending: {count}",
+  "adminFilterPending": "Pending",
+  "adminFilterReviewed": "Reviewed",
+  "adminFilterAll": "All",
+  "adminNoPostReports": "No post reports found.",
+  "adminPostWithoutCaption": "Post without a caption",
+  "adminReportDetails": "Report details: {details}",
+  "adminReporterClaimsOwnership": "The reporter claims ownership of the work",
+  "adminThirdPartyOwnsWork": "The work belongs to another person",
+  "adminRightsOwner": "Rights ownership: {value}",
+  "adminRightsHolderName": "Rights holder: {name}",
+  "adminUnknown": "Unknown",
+  "adminContentOwner": "Content owner: {name} • @{username}",
+  "adminPostIdDate": "Post ID: {id}… • {date}",
+  "adminReporterId": "Reporter ID: {id}",
+  "adminManagerNote": "Manager note: {note}",
+  "adminDismissReport": "Dismiss report",
+  "adminMarkReviewed": "Mark as reviewed",
+  "adminActionCompleted": "Action completed",
+  "adminMessageReportsLoadFailed": "Couldn't load message reports.",
+  "adminNoMessageReports": "No message reports found.",
+  "adminMessageWithoutText": "Message has no text or contains an attachment",
+  "adminMessageReportDetails": "Details: {details}",
+  "adminMessageId": "Message ID: {id}",
+  "adminReasonSpam": "Spam",
+  "adminReasonHarassment": "Harassment",
+  "adminReasonThreat": "Threat",
+  "adminReasonPrivacy": "Privacy violation",
+  "adminReasonInappropriate": "Inappropriate content",
+  "adminReasonOther": "Other",
+  "adminStatusDismissed": "Dismissed",
+  "adminStatusActioned": "Action taken",
+  "adminAuditLoadFailed": "Couldn't load administration history.",
+  "adminUnknownTime": "Unknown time",
+  "adminAuditPostReportReviewed": "Post report reviewed",
+  "adminAuditMessageReportReviewed": "Message report reviewed",
+  "adminAuditUserSuspended": "Account suspended",
+  "adminAuditUserUnsuspended": "Account suspension lifted",
+  "adminAuditEmpty": "No administration history yet.",
+  "adminManager": "Administrator",
+  "adminAuditActor": "Performed by: {name}",
+  "adminAuditTarget": "Related user: {name}",
+  "adminAuditDetails": "Details: {details}",
+  "adminAuditActorId": "Administrator ID: {id}",
+  "adminAuditTargetId": "User ID: {id}",
+  "adminRetry": "Try again",
+  "@adminPendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminUserIdJoined": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminReportDetails": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminRightsOwner": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminRightsHolderName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminContentOwner": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminPostIdDate": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminReporterId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminManagerNote": {
+    "placeholders": {
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMessageReportDetails": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminMessageId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminAuditActor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminAuditTarget": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminAuditDetails": {
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminAuditActorId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminAuditTargetId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  }
 }
