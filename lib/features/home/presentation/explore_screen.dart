@@ -20,6 +20,9 @@ class ExploreScreen extends StatefulWidget {
 class _ExploreScreenState extends State<ExploreScreen> {
   final _search = TextEditingController();
   Timer? _debounce;
+  Timer? _autoRefreshTimer;
+  bool _viewerOpen = false;
+  bool _refreshInProgress = false;
   List<Map<String, dynamic>> _posts = [];
   List<Map<String, dynamic>> _users = [];
   List<String> _hashtags = [];
@@ -32,18 +35,30 @@ class _ExploreScreenState extends State<ExploreScreen> {
     final initial = widget.initialQuery;
     if (initial != null && initial.isNotEmpty) _search.text = initial;
     _load(term: initial);
+    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (!mounted || _viewerOpen || _loading || _search.text.trim().isNotEmpty) return;
+      _load(term: '', silent: true);
+    });
   }
   @override
-  void dispose() { _debounce?.cancel(); _search.dispose(); super.dispose(); }
+  void dispose() { _debounce?.cancel(); _autoRefreshTimer?.cancel(); _search.dispose(); super.dispose(); }
 
   void _onSearchChanged(String value) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 350), () => _load(term: value));
   }
 
-  Future<void> _load({String? term}) async {
+  Future<void> _load({String? term, bool silent = false}) async {
+    if (_refreshInProgress) return;
+    _refreshInProgress = true;
     final query = (term ?? _search.text).trim();
-    setState(() { _loading = true; _searching = query.isNotEmpty; _error = null; });
+    if (mounted) {
+      setState(() {
+        if (!silent) _loading = true;
+        _searching = query.isNotEmpty;
+        if (!silent) _error = null;
+      });
+    }
     try {
       final client = AuthService.client;
       var postQuery = client.from('posts').select(
@@ -114,10 +129,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
         }
       }
       if (!mounted) return;
-      setState(() { _posts = posts; _users = users; _hashtags = tags.take(12).toList(); _loading = false; });
+      setState(() { _posts = posts; _users = users; _hashtags = tags.take(12).toList(); _loading = false; _error = null; });
     } catch (_) {
       if (!mounted) return;
       setState(() { _loading = false; _error = 'محتوای اکسپلور بارگذاری نشد. اتصال را بررسی و دوباره تلاش کنید.'; });
+    } finally {
+      _refreshInProgress = false;
     }
   }
 
@@ -251,8 +268,16 @@ class _ExploreScreenState extends State<ExploreScreen> {
     final mediaUrl = post['media_type'] == 'video' ? (post['cover_url'] as String? ?? post['media_url'] as String?) : post['media_url'] as String?;
     final caption = (post['caption'] as String? ?? '').trim();
     return GestureDetector(
-      onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-        builder: (_) => _ExplorePostViewer(posts: _posts, initialIndex: _posts.indexOf(post)))),
+      onTap: () async {
+        _viewerOpen = true;
+        try {
+          await Navigator.of(context).push(MaterialPageRoute<void>(
+            builder: (_) => _ExplorePostViewer(posts: _posts, initialIndex: _posts.indexOf(post)),
+          ));
+        } finally {
+          _viewerOpen = false;
+        }
+      },
       child: Stack(fit: StackFit.expand, children: [
         if (mediaUrl != null)
           Image.network(mediaUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _textTile(caption))
