@@ -25,6 +25,7 @@ class AdminUserSummary {
   const AdminUserSummary({
     required this.id, required this.username, required this.displayName,
     required this.createdAt, required this.bannedUntil, required this.isBanned,
+    this.avatarUrl,
   });
   final String id;
   final String? username, displayName, avatarUrl;
