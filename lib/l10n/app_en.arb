@@ -1165,5 +1165,11 @@
         "type": "int"
       }
     }
-  }
+  },
+  "homeSettings": "Settings",
+  "homeNotifications": "Notifications",
+  "homeAdminPanel": "Admin panel",
+  "homeTab": "Home",
+  "homeMessages": "Messages",
+  "homeProfile": "Profile"
 }
