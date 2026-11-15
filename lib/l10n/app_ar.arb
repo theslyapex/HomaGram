@@ -883,5 +883,84 @@
         "type": "String"
       }
     }
+  },
+  "createPostTitle": "إنشاء منشور",
+  "createReelTitle": "إنشاء ريلز",
+  "createPostHero": "شارك لحظتك",
+  "createReelAuto": "تُنشر مقاطع الفيديو تلقائيًا كريلز.",
+  "createPostIntro": "انشر نصًا أو صورة؛ اختيار فيديو يعني إنشاء ريلز.",
+  "createChooseContent": "اختر نوع المحتوى",
+  "createPublishImage": "نشر صورة",
+  "createChooseImageHint": "اختر صورة واضبط إطارها",
+  "createBuildReel": "إنشاء ريلز",
+  "createReelHint": "اختر فيديو واقصصه وأنشئ غلافًا",
+  "createTextPostHint": "لنشر منشور نصي، اكتب تعليقًا أدناه.",
+  "createCaption": "الوصف",
+  "createCaptionHint": "اكتب قصة هذه الصورة أو الفيديو...",
+  "createPreparingMedia": "جارٍ تجهيز الوسائط...",
+  "createVideoReelNote": "تُنشر مقاطع الفيديو دائمًا كريلز. تظهر المنشورات النصية والصورية في الخلاصة.",
+  "createPublishing": "جارٍ النشر...",
+  "createPublishReel": "نشر ريلز",
+  "createPublishPost": "نشر منشور",
+  "createSelectMediaFailed": "تعذر اختيار الوسائط: {error}",
+  "createUnsupportedFormat": "تنسيق هذا الملف غير مدعوم.",
+  "createVideoSizeLimit": "يجب ألا يتجاوز حجم الفيديو 50 ميجابايت.",
+  "createImageSizeLimit": "يجب ألا يتجاوز حجم الصورة 15 ميجابايت.",
+  "createVideoPreviewFailed": "تعذر إنشاء معاينة الفيديو. اختره مرة أخرى.",
+  "createMediaEditFailed": "تعذر تعديل الوسائط: {error}",
+  "createCoverLimit": "يجب أن يكون حجم الغلاف أقل من 15 ميجابايت.",
+  "createCoverSelectFailed": "تعذر اختيار الغلاف: {error}",
+  "createChooseVideoFirst": "اختر فيديو أولًا لإنشاء ريلز.",
+  "createReelCoverRequired": "اختر غلافًا للريلز.",
+  "createContentRequired": "أضف نصًا أو وسائط قبل النشر.",
+  "createCaptionLimit": "يمكن أن يصل الوصف إلى 2200 حرف.",
+  "createSessionInvalid": "جلستك غير صالحة. سجّل الدخول مجددًا.",
+  "createUploadFailed": "فشل تحميل الملف: {error}",
+  "createPublishFailed": "فشل النشر: {error}",
+  "createCoverReady": "غلاف الريلز جاهز",
+  "createImageReady": "الصورة جاهزة للنشر",
+  "createChooseFrame": "اختر إطارًا",
+  "createCoverFromGallery": "غلاف من المعرض",
+  "createSelectCoverFrame": "اختر إطار الغلاف",
+  "createConfirm": "تأكيد",
+  "createCancel": "إلغاء",
+  "createSelectThisFrame": "استخدم هذا الإطار",
+  "createExtractFrameFailed": "تعذر استخراج هذا الإطار. اختر وقتًا آخر.",
+  "createFramePreviewFailed": "تعذرت معاينة الإطار المحدد. حاول مجددًا.",
+  "createFrameExtracting": "جارٍ استخراج الإطار بدقة...",
+  "@createSelectMediaFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@createMediaEditFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@createCoverSelectFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@createUploadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@createPublishFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   }
 }
