@@ -58,7 +58,7 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final row = await Supabase.instance.client
           .from('conversations')
-          .select('kind,photo_path')
+          .select('kind,photo_path,description')
           .eq('id', widget.conversationId)
           .maybeSingle();
       if (row == null) return;
@@ -337,7 +337,20 @@ class _ChatScreenState extends State<ChatScreen> {
             CircleAvatar(
               radius: 18,
               backgroundColor: colors.primaryContainer,
-              child: Icon(Icons.person_rounded, color: colors.onPrimaryContainer, size: 20),
+              backgroundImage: _conversationPhotoUrl == null
+                  ? null
+                  : NetworkImage(_conversationPhotoUrl!),
+              child: _conversationPhotoUrl == null
+                  ? Icon(
+                      _conversationKind == 'channel'
+                          ? Icons.campaign_outlined
+                          : _conversationKind == 'group'
+                              ? Icons.groups_rounded
+                              : Icons.person_rounded,
+                      color: colors.onPrimaryContainer,
+                      size: 20,
+                    )
+                  : null,
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -924,17 +937,48 @@ class _ChatScreenState extends State<ChatScreen> {
       // Fetch the conversation row separately from its optional channel row.
       // A nested PostgREST relationship can fail for group/direct conversations.
       final info = await Supabase.instance.client.from('conversations')
-          .select('kind,title,photo_path')
+          .select('kind,title,photo_path,description')
           .eq('id', widget.conversationId).single();
       final isGroup = info['kind'] == 'group';
       final isChannel = info['kind'] == 'channel';
-      final channelData = isChannel
-          ? (await Supabase.instance.client.from('channels')
+      var channelData = <String, dynamic>{};
+      if (isChannel) {
+        try {
+          final channelRow = await Supabase.instance.client.from('channels')
               .select('slug,description,is_public,members_can_post,members_can_send_media')
-              .eq('conversation_id', widget.conversationId).maybeSingle() ??
-              <String, dynamic>{})
-          : <String, dynamic>{};
-      var members = await MessagingService.loadConversationMembers(widget.conversationId);
+              .eq('conversation_id', widget.conversationId).maybeSingle();
+          if (channelRow != null) {
+            channelData = Map<String, dynamic>.from(channelRow);
+          }
+        } catch (error) {
+          // Keep the information sheet available even if optional channel
+          // settings cannot be loaded for this member/session.
+          debugPrint('Channel settings unavailable: $error');
+        }
+      }
+      var members = <Map<String, dynamic>>[];
+      try {
+        members = await MessagingService.loadConversationMembers(widget.conversationId);
+      } catch (error) {
+        // A member/profile lookup must not hide the conversation profile.
+        debugPrint('Conversation members unavailable: $error');
+      }
+      String? infoPhotoUrl = _conversationPhotoUrl;
+      final photoPath = info['photo_path'] as String?;
+      if (photoPath != null && photoPath.isNotEmpty) {
+        try {
+          infoPhotoUrl = await Supabase.instance.client.storage
+              .from('conversation-photos').createSignedUrl(photoPath, 3600);
+        } catch (error) {
+          debugPrint('Conversation photo URL refresh failed: $error');
+        }
+      }
+      if (mounted && infoPhotoUrl != _conversationPhotoUrl) {
+        setState(() => _conversationPhotoUrl = infoPhotoUrl);
+      }
+      final description = (isChannel
+              ? channelData['description']
+              : info['description']) as String? ?? '';
       if (!mounted) return;
       String myRole = 'member';
       for (final member in members) {
@@ -966,8 +1010,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   CircleAvatar(
                     radius: 23,
                     backgroundColor: Theme.of(sheetContext).colorScheme.primaryContainer,
-                    backgroundImage: _conversationPhotoUrl == null ? null : NetworkImage(_conversationPhotoUrl!),
-                    child: _conversationPhotoUrl == null
+                    backgroundImage: infoPhotoUrl == null ? null : NetworkImage(infoPhotoUrl),
+                    child: infoPhotoUrl == null
                         ? Icon(isChannel ? Icons.campaign_outlined : Icons.groups_rounded)
                         : null,
                   ),
@@ -1025,20 +1069,22 @@ class _ChatScreenState extends State<ChatScreen> {
                       onPressed: () async {
                         final titleController = TextEditingController(text: info['title'] as String? ?? '');
                         final slugController = TextEditingController(text: channelData['slug'] as String? ?? '');
-                        final descriptionController = TextEditingController(text: channelData['description'] as String? ?? '');
+                        final descriptionController = TextEditingController(text: description);
                         final values = await showDialog<List<String>>(
                           context: context,
                           builder: (ctx) => AlertDialog(
-                            title: Text(isChannel ? 'اطلاعات کانال' : 'نام گروه'),
+                            title: Text(isChannel ? 'اطلاعات کانال' : 'اطلاعات گروه'),
                             content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
                               TextField(controller: titleController, maxLength: 100,
                                 decoration: const InputDecoration(labelText: 'نام')),
-                              if (isChannel) ...[
+                              if (isChannel)
                                 TextField(controller: slugController, maxLength: 32,
                                   decoration: const InputDecoration(labelText: 'شناسه', prefixText: '@')),
-                                TextField(controller: descriptionController, maxLength: 500, maxLines: 3,
-                                  decoration: const InputDecoration(labelText: 'توضیحات')),
-                              ],
+                              TextField(controller: descriptionController, maxLength: 500, maxLines: 3,
+                                decoration: const InputDecoration(
+                                  labelText: 'توضیحات',
+                                  hintText: 'درباره این گروه یا کانال بنویسید',
+                                )),
                             ])),
                             actions: [
                               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
@@ -1064,9 +1110,14 @@ class _ChatScreenState extends State<ChatScreen> {
                             title: values[0], slug: values[1], description: values[2],
                           );
                         } else {
-                          await MessagingService.updateGroupTitle(widget.conversationId, values[0]);
+                          await MessagingService.updateGroupDetails(
+                            conversationId: widget.conversationId,
+                            title: values[0],
+                            description: values[2],
+                          );
                         }
                         if (mounted) setState(() {});
+                        await _loadConversationMetadata();
                         if (sheetContext.mounted) Navigator.pop(sheetContext);
                       },
                     ),
@@ -1182,6 +1233,21 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                 ]),
               ),
+              if (description.trim().isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 4, 18, 12),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      description,
+                      textAlign: TextAlign.right,
+                      style: TextStyle(
+                        color: Theme.of(sheetContext).colorScheme.onSurfaceVariant,
+                        height: 1.6,
+                      ),
+                    ),
+                  ),
+                ),
               const Divider(height: 1),
               Expanded(
                 child: ListView.builder(
@@ -1267,9 +1333,10 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ),
       );
-    } catch (_) {
+    } catch (error) {
+      debugPrint('Conversation info sheet failed: $error');
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('اطلاعات گفتگو دریافت نشد.')),
+        const SnackBar(content: Text('اطلاعات گفتگو دریافت نشد. اتصال یا دسترسی عضویت را بررسی کنید.')),
       );
     }
   }
