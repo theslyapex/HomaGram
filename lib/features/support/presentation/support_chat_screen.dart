@@ -413,7 +413,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                                           borderRadius: BorderRadius.circular(9),
                                           border: Border(right: BorderSide(color: colors.primary, width: 3)),
                                         ),
-                                        child: Text(_t.supportReplyPrefix(message['reply_to_body'] as String? ?? _t.supportGenericMessage),
+                                        child: Text(_t.supportReplyPrefix(_localizedMessageLabel(message['reply_to_body'] as String?)),
                                           maxLines: 2, overflow: TextOverflow.ellipsis,
                                           style: TextStyle(fontSize: 10, color: colors.onSurfaceVariant)),
                                       ),
@@ -519,6 +519,12 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
       ]),
     );
   }
+
+  String _localizedMessageLabel(String? value) => switch (value) {
+    'پیام' => _t.supportGenericMessage,
+    'تصویر' => _t.supportGenericImage,
+    _ => value ?? _t.supportGenericMessage,
+  };
 
   String _time(dynamic value) {
     final date = DateTime.tryParse(value as String? ?? '')?.toLocal();
