@@ -1171,5 +1171,16 @@
   "homeAdminPanel": "پنل مدیریت",
   "homeTab": "خانه",
   "homeMessages": "پیام‌ها",
-  "homeProfile": "پروفایل"
+  "homeProfile": "پروفایل",
+  "storiesTitle": "استوری‌ها",
+  "storiesArchive": "آرشیو",
+  "storiesRefresh": "تازه‌سازی استوری‌ها",
+  "storiesYourStory": "استوری شما",
+  "storiesMyStory": "استوری من",
+  "storiesAdd": "افزودن",
+  "storiesArchiveTitle": "آرشیو استوری‌ها",
+  "storiesReload": "بارگذاری دوباره",
+  "storiesArchiveFailed": "آرشیو بارگذاری نشد.",
+  "storiesTryAgain": "تلاش دوباره",
+  "storiesArchiveEmpty": "هنوز استوری منقضی‌شده‌ای ندارید."
 }
