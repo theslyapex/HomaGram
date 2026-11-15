@@ -33,14 +33,20 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadAdminAccess();
     final userId = AuthService.client.auth.currentUser?.id;
     if (userId != null) {
-      _notificationChannel = AuthService.client.channel('home-notification-count-$userId')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'notifications',
-          filter: PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'recipient_id', value: userId),
-          callback: (_) => _refreshUnread(),
-        ).subscribe();
+      _notificationChannel = AuthService.client
+          .channel('home-notification-count-$userId')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'notifications',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'recipient_id',
+              value: userId,
+            ),
+            callback: (_) => _refreshUnread(),
+          )
+          .subscribe();
     }
   }
 
@@ -82,49 +88,46 @@ class _HomeScreenState extends State<HomeScreen> {
         button: true,
         selected: selected,
         label: label,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(25),
-              onTap: () => setState(() => _tab = index),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOutCubic,
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 3),
-                decoration: BoxDecoration(
-                  color: selected
-                      ? scheme.primary.withValues(alpha: .13)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      selected ? selectedIcon : icon,
-                      size: 23,
-                      color: selected
-                          ? scheme.primary
-                          : scheme.onSurfaceVariant,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(25),
+            onTap: () => setState(() => _tab = index),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 3),
+              decoration: BoxDecoration(
+                color: selected
+                    ? scheme.primary.withValues(alpha: .13)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    selected ? selectedIcon : icon,
+                    size: 23,
+                    color: selected ? scheme.primary : scheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      height: 1.2,
+                      fontWeight:
+                          selected ? FontWeight.w800 : FontWeight.w600,
+                      color:
+                          selected ? scheme.primary : scheme.onSurfaceVariant,
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        height: 1.2,
-                        fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                        color: selected
-                            ? scheme.primary
-                            : scheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -147,29 +150,42 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const HomaGramEntrance(
           delay: Duration(milliseconds: 100),
           child: Row(
-          children: [
-            HomaGramLogo(size: 38),
-            SizedBox(width: 8),
-            Text('HomaGram', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -.4)),
-          ],
-        )),
+            children: [
+              HomaGramLogo(size: 38),
+              SizedBox(width: 8),
+              Text(
+                'HomaGram',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -.4,
+                ),
+              ),
+            ],
+          ),
+        ),
         actions: [
           IconButton(
             tooltip: 'تنظیمات',
             icon: const Icon(Icons.settings_outlined),
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
+              MaterialPageRoute<void>(
+                builder: (_) => const SettingsScreen(),
+              ),
             ),
           ),
           IconButton(
             tooltip: 'اعلان‌ها',
             icon: Badge(
               isLabelVisible: _unreadNotifications > 0,
-              label: Text(_unreadNotifications > 99 ? '99+' : '$_unreadNotifications'),
+              label: Text(
+                _unreadNotifications > 99 ? '99+' : '$_unreadNotifications',
+              ),
               child: const Icon(Icons.notifications_none_rounded),
             ),
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()),
+              MaterialPageRoute<void>(
+                builder: (_) => const NotificationsScreen(),
+              ),
             ),
           ),
           if (_isAdmin)
@@ -193,18 +209,31 @@ class _HomeScreenState extends State<HomeScreen> {
         top: false,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7),
+          child: Align(
+            alignment: Alignment.center,
+            heightFactor: 1,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 7,
+                  vertical: 7,
+                ),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(32),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .45),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .outlineVariant
+                        .withValues(alpha: .45),
                   ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(
-                        alpha: Theme.of(context).brightness == Brightness.dark ? .22 : .09,
+                        alpha: Theme.of(context).brightness == Brightness.dark
+                            ? .22
+                            : .09,
                       ),
                       blurRadius: 24,
                       offset: const Offset(0, 7),
