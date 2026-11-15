@@ -4,6 +4,7 @@ import 'package:video_player/video_player.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../app/theme/app_theme.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/data/auth_service.dart';
 import 'create_post_screen.dart';
 import 'feed_screen.dart';
@@ -20,6 +21,7 @@ class ReelsScreen extends StatefulWidget {
 }
 
 class _ReelsScreenState extends State<ReelsScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   late Future<List<Map<String, dynamic>>> _reels;
   int _activeIndex = 0;
   PageController? _pageController;
@@ -101,15 +103,15 @@ class _ReelsScreenState extends State<ReelsScreen> {
         return const Center(child: CircularProgressIndicator());
       }
       if (snapshot.hasError) {
-        return _emptyState('ویدئوها بارگذاری نشدند.', 'اتصال را بررسی کنید و دوباره تلاش کنید.',
+        return _emptyState(_t.reelsLoadFailed, _t.feedConnectionRetry,
           onPressed: _refresh, icon: Icons.cloud_off_outlined);
       }
       final reels = snapshot.data ?? [];
       if (reels.isEmpty) {
-        return _emptyState('هنوز ریلزی منتشر نشده است.',
-          'اولین ویدئوی کوتاه را با برش حداکثر دو دقیقه‌ای منتشر کنید.',
+        return _emptyState(_t.reelsEmptyTitle,
+          _t.reelsEmptyMessage,
           onPressed: _createReel, icon: Icons.video_collection_outlined,
-          actionLabel: 'ساخت اولین ریلز');
+          actionLabel: _t.reelsCreateFirst);
       }
       _pageController ??= PageController(initialPage: _activeIndex);
       return RefreshIndicator(
@@ -132,7 +134,7 @@ class _ReelsScreenState extends State<ReelsScreen> {
   Widget _emptyState(String title, String subtitle, {
     required VoidCallback onPressed,
     required IconData icon,
-    String actionLabel = 'تلاش دوباره',
+    String? actionLabel,
   }) => Center(
     child: Padding(
       padding: const EdgeInsets.all(28),
@@ -146,7 +148,7 @@ class _ReelsScreenState extends State<ReelsScreen> {
           style: const TextStyle(color: Color(0xFF8490A4), height: 1.6)),
         const SizedBox(height: 18),
         HomaGramSpringPress(child: FilledButton.icon(onPressed: onPressed,
-          icon: const Icon(Icons.add_rounded), label: Text(actionLabel))),
+          icon: const Icon(Icons.add_rounded), label: Text(actionLabel ?? AppLocalizations.of(context)!.feedRetry))),
       ]),
     ),
   );
@@ -162,6 +164,7 @@ class _ReelCard extends StatefulWidget {
 }
 
 class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   VideoPlayerController? _video;
   bool _loading = true;
   bool _liked = false;
@@ -242,7 +245,7 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
       });
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ثبت پسند انجام نشد. دوباره تلاش کنید.')),
+        SnackBar(content: Text(_t.feedCommentLikeFailed)),
       );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -291,20 +294,20 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
   }
 
   Future<void> _share() async {
-    await SharePlus.instance.share(ShareParams(text: 'ریلز در HomaGram\n${widget.reel['caption'] ?? ''}'));
+    await SharePlus.instance.share(ShareParams(text:  '${_t.reelsShareTitle}\n${widget.reel['caption'] ?? ''}'));
   }
 
   Future<void> _reportReel() async {
     const reasons = <String, String>{
-      'harassment': 'توهین، آزار و تهدید',
-      'copied_content': 'محتوای کپی‌شده',
-      'copyright_claim': 'استفاده از اثر متعلق به شخص دیگر',
-      'violence': 'محتوای خشونت‌آمیز',
-      'inappropriate': 'محتوای غیراخلاقی یا نامناسب',
-      'political_insult': 'محتوای سیاسیِ توهین‌آمیز',
-      'illegal_content': 'محتوای مغایر با قوانین',
-      'spam': 'هرزنامه یا تبلیغات مزاحم',
-      'other': 'سایر موارد',
+      'harassment': _t.feedReportHarassment,
+      'copied_content': _t.feedReportCopied,
+      'copyright_claim': _t.feedReportCopyright,
+      'violence': _t.feedReportViolence,
+      'inappropriate': _t.feedReportInappropriate,
+      'political_insult': _t.feedReportPolitical,
+      'illegal_content': _t.feedReportIllegal,
+      'spam': _t.feedReportSpam,
+      'other': _t.feedReportOther,
     };
     String? reason, rightsOwner;
     final details = TextEditingController();
@@ -316,9 +319,9 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
         child: SafeArea(child: SingleChildScrollView(child: Column(
           mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('گزارش این ریلز', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+            Text(_t.reelsReportTitle, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
             const SizedBox(height: 6),
-            const Text('علت گزارش را انتخاب کنید. گزارش شما برای بررسی تیم هماگرام ارسال می‌شود.'),
+            Text(_t.feedReportInstructions),
             ...reasons.entries.map((entry) => RadioListTile<String>(
               dense: true, contentPadding: EdgeInsets.zero,
               value: entry.key, groupValue: reason, title: Text(entry.value),
@@ -329,19 +332,19 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
             )),
             if (reason == 'copyright_claim') ...[
               const Divider(),
-              const Text('اثر متعلق به چه کسی است؟', style: TextStyle(fontWeight: FontWeight.w800)),
+              Text(_t.feedCopyrightOwner, style: TextStyle(fontWeight: FontWeight.w800)),
               RadioListTile<String>(dense: true, value: 'self', groupValue: rightsOwner,
-                title: const Text('خودم صاحب اثر هستم'),
+                title: Text(_t.feedIAmOwner),
                 onChanged: (v) => update(() => rightsOwner = v)),
               RadioListTile<String>(dense: true, value: 'third_party', groupValue: rightsOwner,
-                title: const Text('اثر متعلق به شخص دیگری است'),
+                title: Text(_t.feedOtherOwner),
                 onChanged: (v) => update(() => rightsOwner = v)),
               if (rightsOwner == 'third_party')
                 TextField(controller: rightsHolder, maxLength: 160,
-                  decoration: const InputDecoration(labelText: 'نام صاحب اثر (در صورت اطلاع)')),
+                  decoration: InputDecoration(labelText: _t.feedOwnerName)),
             ],
             TextField(controller: details, maxLength: 1000, minLines: 2, maxLines: 4,
-              decoration: const InputDecoration(labelText: 'توضیحات تکمیلی (اختیاری)', border: OutlineInputBorder())),
+              decoration: InputDecoration(labelText: _t.feedReportDetails, border: const OutlineInputBorder())),
             const SizedBox(height: 10),
             FilledButton(
               onPressed: reason == null || (reason == 'copyright_claim' && rightsOwner == null)
@@ -350,7 +353,7 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
                   'rights_owner': rightsOwner ?? '',
                   'rights_holder_name': rightsHolder.text.trim(),
                 }),
-              child: const Text('ارسال گزارش'),
+              child: Text(_t.feedSubmitReport),
             ),
           ],
         ))),
@@ -367,10 +370,10 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
         'rights_holder_name': (result['rights_holder_name'] ?? '').isEmpty ? null : result['rights_holder_name'],
       });
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('گزارش ریلز ثبت شد و برای بررسی ارسال شد.')));
+        SnackBar(content: Text(_t.reelsReportSuccess)));
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('این ریلز قبلاً گزارش شده یا ثبت گزارش ممکن نیست.')));
+        SnackBar(content: Text(_t.feedReportFailed)));
     }
   }
 
