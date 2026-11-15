@@ -2693,7 +2693,12 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                         final reaction = viewer['reaction'];
                         final watch = (viewer['duration_seconds'] as num?)?.toInt() ?? 0;
                         return ListTile(
-                          leading: const CircleAvatar(child: Icon(Icons.person_outline)),
+                          leading: CircleAvatar(
+                            backgroundImage: viewer['avatar_url'] is String
+                                ? NetworkImage(viewer['avatar_url'] as String) : null,
+                            child: viewer['avatar_url'] is String
+                                ? null : const Icon(Icons.person_outline),
+                          ),
                           title: Text(viewer['display_name'] as String),
                           subtitle: Text('@${viewer['username']} • ${time} • ${_t.storyWatchLabel}: ${_formatWatchTime(watch)}${reaction == null ? '' : ' • ${reaction}'}'),
                           isThreeLine: true,
