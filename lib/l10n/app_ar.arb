@@ -2221,5 +2221,15 @@
   "bootstrapDescription": "تمثل هذه النسخة بداية التطوير المرحلي لتطبيق HomaGram. سيتم إنشاء ميزات الحساب والشبكة الاجتماعية والمراسلة واختبارها في المراحل اللاحقة.",
   "bootstrapSupabaseConfigured": "تم تحميل إعدادات اتصال Supabase",
   "bootstrapSupabaseNotConfigured": "لم يتم إعداد اتصال Supabase بعد",
-  "bootstrapStage": "المرحلة صفر • إعداد المشروع"
+  "bootstrapStage": "المرحلة صفر • إعداد المشروع",
+  "quickBugReportTitle": "الإبلاغ السريع عن مشكلة",
+  "quickBugReportScreenshotPrivacy": "تم التقاط صورة لهذه الشاشة. راجع المعاينة قبل الإرسال، وتأكد من عدم تضمين معلومات خاصة لا ترغب في مشاركتها.",
+  "quickBugReportPreviewUnavailable": "معاينة الصورة غير متاحة.",
+  "quickBugReportDescriptionLabel": "وصف المشكلة",
+  "quickBugReportDescriptionHint": "ماذا حدث؟",
+  "quickBugReportSend": "إرسال إلى الدعم",
+  "quickBugReportCaptionDefault": "تم إرسال بلاغ عن مشكلة باستخدام ميزة الإبلاغ بهز الهاتف.",
+  "quickBugReportCaptionDetails": "بلاغ عن مشكلة: {details}",
+  "quickBugReportSubmitFailed": "تعذر إرسال البلاغ عن المشكلة. يُرجى المحاولة مرة أخرى.",
+  "groupInviteInvalid": "رابط دعوة المجموعة غير صالح أو انتهت صلاحيته."
 }
