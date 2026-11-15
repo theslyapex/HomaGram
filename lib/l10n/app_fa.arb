@@ -2056,5 +2056,26 @@
         "type": "String"
       }
     }
-  }
+  },
+  "accountPreferencesLoadFailed": "تنظیمات حساب دریافت نشد. اتصال را بررسی کنید.",
+  "accountPreferencesSaveFailed": "ذخیره تنظیمات انجام نشد. دوباره تلاش کنید.",
+  "accountPreferencesUnblockFailed": "رفع مسدودسازی انجام نشد.",
+  "accountPreferencesTitle": "حریم خصوصی و نمایش حساب",
+  "accountAppearance": "نمایش و ظاهر",
+  "accountTheme": "پوسته برنامه",
+  "accountThemeSystem": "مطابق تنظیم دستگاه",
+  "accountThemeLight": "روشن",
+  "accountThemeDark": "تیره",
+  "accountPrivacy": "حریم خصوصی حساب",
+  "accountPrivate": "حساب خصوصی",
+  "accountPrivateDescription": "برای دنبال‌کردن شما، درخواست دنبال‌کردن لازم است.",
+  "accountShowFollowers": "نمایش دنبال‌کنندگان",
+  "accountShowFollowing": "نمایش دنبال‌شوندگان",
+  "accountAllowForwarding": "اجازه فوروارد پیام‌های من",
+  "accountForwardingDescription": "با خاموش‌کردن این گزینه، دیگران نمی‌توانند پیام متنی شما را به گفتگوی دیگری فوروارد کنند.",
+  "accountTrackVisitors": "ثبت بازدیدکنندگان پروفایل",
+  "accountVisitorsDescription": "با خاموش‌کردن این گزینه، فهرست بازدیدها برای پروفایل شما ثبت نمی‌شود.",
+  "accountBlockedUsers": "حساب‌های مسدودشده",
+  "accountNoBlockedUsers": "در حال حاضر حسابی را مسدود نکرده‌اید.",
+  "accountUnblock": "رفع مسدودی"
 }
