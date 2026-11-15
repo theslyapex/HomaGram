@@ -1974,5 +1974,87 @@
         "type": "String"
       }
     }
+  },
+  "adminDeleteAccountConfirmTitle": "حذف حساب کاربر؟",
+  "adminDeleteAccountQuestion": "آیا مطمئن هستید حساب {name} حذف شود؟ این عملیات برگشت‌پذیر نیست و داده‌های وابسته به حساب نیز طبق روابط پایگاه داده حذف خواهند شد.",
+  "adminContinueDelete": "بله، ادامه بده",
+  "adminFinalDeleteConfirm": "تأیید نهایی حذف",
+  "adminDeleteAccountInstruction": "برای جلوگیری از حذف اشتباهی، عبارت «{phrase}» را دقیقاً وارد کنید.",
+  "adminDeleteAccountPhrase": "حذف حساب",
+  "adminDeleteAccountField": "عبارت تأیید",
+  "adminDeleteAccountPermanent": "حذف دائمی حساب",
+  "adminUserDeleted": "حساب کاربر حذف شد.",
+  "adminDeleteAccountFailed": "حذف حساب انجام نشد. ممکن است حساب مدیر یا دارای محدودیت حفاظتی باشد.",
+  "adminVerificationEnabled": "نشان تأیید فعال شد.",
+  "adminVerificationDisabled": "نشان تأیید لغو شد.",
+  "adminVerificationToggleFailed": "تغییر وضعیت نشان تأیید انجام نشد.",
+  "adminUserSupportTitle": "پشتیبانی کاربر",
+  "adminUserSupportFailed": "گفت‌وگوی پشتیبانی ایجاد نشد.",
+  "adminDurationHoursAndMinutes": "{hours} ساعت و {minutes} دقیقه",
+  "adminUserFileTitle": "پرونده کاربر",
+  "adminUserDataLoadFailed": "اطلاعات کاربر دریافت نشد.",
+  "adminMetricComments": "دیدگاه‌ها",
+  "adminMetricLikesReceived": "پسندهای دریافتی",
+  "adminMetricFollowers": "دنبال‌کننده‌ها",
+  "adminMetricFollowing": "دنبال‌شونده‌ها",
+  "adminMetricReportsSubmitted": "گزارش‌های ثبت‌شده",
+  "adminMetricPostReportsReceived": "گزارش‌های دریافتی پست",
+  "adminMetricMessageReportsSubmitted": "گزارش پیام ثبت‌شده",
+  "adminMetricMessageReportsReceived": "گزارش پیام دریافتی",
+  "adminUniqueAccountId": "شناسه یکتای حساب",
+  "adminJoinedAt": "تاریخ عضویت",
+  "adminLastSignIn": "آخرین ورود ثبت‌شده",
+  "adminUserBio": "معرفی کاربر",
+  "adminWebsite": "وب‌سایت",
+  "adminActivityTotal": "مجموع زمان فعالیت ثبت‌شده",
+  "adminActivityTrackingNote": "محاسبه از نسخه دارای ثبت فعالیت؛ آمار گذشته در دسترس نیست.",
+  "adminAccountPerformance": "عملکرد حساب",
+  "adminUserSubmittedReports": "گزارش‌هایی که این کاربر ثبت کرده",
+  "adminReportsAgainstUser": "گزارش‌های ثبت‌شده علیه محتوای این کاربر",
+  "adminRevokeVerification": "لغو نشان تأیید",
+  "adminGrantVerification": "اعطای نشان تأیید",
+  "adminSendSupportMessage": "ارسال پیام پشتیبانی به کاربر",
+  "adminDeletingAccount": "در حال حذف حساب…",
+  "adminDeleteUserAccount": "حذف حساب کاربر",
+  "adminNoReports": "موردی ثبت نشده است.",
+  "adminReportedContent": "محتوای گزارش‌شده: {content}",
+  "adminReportDate": "تاریخ: {date}",
+  "@adminDeleteAccountQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminDeleteAccountInstruction": {
+    "placeholders": {
+      "phrase": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminDurationHoursAndMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "@adminReportedContent": {
+    "placeholders": {
+      "content": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminReportDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   }
 }
