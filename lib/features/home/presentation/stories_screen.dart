@@ -2019,7 +2019,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               maxLines: 2,
               onChanged: (_) => setState(() {}),
               decoration: const InputDecoration(
-                labelText: _t.storyPollQuestionDefault,
+                labelText: _t.storyPollQuestionLabel,
                 hintText: _t.storyPollQuestionHint,
                 border: OutlineInputBorder(),
               ),
