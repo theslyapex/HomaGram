@@ -962,5 +962,120 @@
         "type": "String"
       }
     }
+  },
+  "feedComposerHint": "چه چیزی برای گفتن دارید؟",
+  "feedCreatePost": "ایجاد پست",
+  "feedLoadFailed": "فید بارگذاری نشد",
+  "feedConnectionRetry": "اتصال را بررسی کنید و دوباره تلاش کنید.",
+  "feedRetry": "تلاش دوباره",
+  "feedEmptyTitle": "هنوز پستی منتشر نشده",
+  "feedEmptyMessage": "اولین پست HomaGram را منتشر کنید و فید را شکل دهید.",
+  "feedCreateFirstPost": "ایجاد اولین پست",
+  "feedActionFailed": "عملیات انجام نشد؛ دوباره تلاش کنید.",
+  "feedLikesTitle": "پسندهای این پست",
+  "feedNoLikes": "هنوز کسی این پست را نپسندیده است.",
+  "feedUserFallback": "کاربر",
+  "feedLikesLoadFailed": "فهرست پسندها دریافت نشد.",
+  "feedSharePost": "همرسانی پست",
+  "feedSendToUsers": "ارسال برای کاربران HomaGram",
+  "feedChooseConversations": "انتخاب یک یا چند نفر از گفتگوهای داخلی",
+  "feedCopyLink": "کپی پیوند پست",
+  "feedShareOtherApps": "اشتراک‌گذاری خارج از HomaGram",
+  "feedSendWithApps": "ارسال با برنامه‌های دیگر دستگاه",
+  "feedLinkCopied": "پیوند پست کپی شد.",
+  "feedShareText": "این پست را در HomaGram ببین:\n{link}",
+  "feedShareSubject": "پست در HomaGram",
+  "feedShareUnavailable": "اشتراک‌گذاری در این دستگاه در دسترس نیست.",
+  "feedShareMessage": "این پست را برای شما فرستادم.",
+  "feedSendFailed": "ارسال پست انجام نشد.",
+  "feedSentCount": "پست برای {count} نفر ارسال شد.",
+  "feedEditCaption": "ویرایش متن پست",
+  "feedCaptionHint": "متن پست",
+  "feedCancel": "انصراف",
+  "feedSaveChanges": "ذخیره تغییرات",
+  "feedPostUpdated": "متن پست ویرایش شد.",
+  "feedEditFailed": "ویرایش پست انجام نشد.",
+  "feedDeletePost": "حذف پست",
+  "feedDeleteConfirm": "این پست برای همیشه حذف شود؟",
+  "feedDelete": "حذف",
+  "feedPostDeleted": "پست حذف شد.",
+  "feedDeleteFailed": "حذف پست انجام نشد.",
+  "feedReportHarassment": "توهین، آزار و تهدید",
+  "feedReportCopied": "محتوای کپی‌شده",
+  "feedReportCopyright": "استفاده از اثر متعلق به شخص دیگر",
+  "feedReportViolence": "محتوای خشونت‌آمیز",
+  "feedReportInappropriate": "محتوای غیراخلاقی یا نامناسب",
+  "feedReportPolitical": "محتوای سیاسیِ توهین‌آمیز",
+  "feedReportIllegal": "محتوای مغایر با قوانین",
+  "feedReportSpam": "هرزنامه یا تبلیغات مزاحم",
+  "feedReportOther": "سایر موارد",
+  "feedReportTitle": "گزارش این محتوا",
+  "feedReportInstructions": "موردی را که با قوانین هماگرام مغایرت دارد انتخاب کنید. گزارش شما محرمانه بررسی می‌شود.",
+  "feedCopyrightOwner": "اثر متعلق به چه کسی است؟",
+  "feedIAmOwner": "خودم صاحب اثر هستم",
+  "feedOtherOwner": "اثر متعلق به شخص دیگری است",
+  "feedOwnerName": "نام صاحب اثر (در صورت اطلاع)",
+  "feedReportDetails": "توضیحات یا مستندات تکمیلی (اختیاری)",
+  "feedReportDetailsHint": "در صورت نیاز، توضیح کوتاهی ارائه کنید.",
+  "feedSubmitReport": "ارسال گزارش",
+  "feedReportSuccess": "گزارش شما ثبت شد و برای بررسی تیم هماگرام ارسال شد.",
+  "feedReportFailed": "این محتوا قبلاً گزارش شده یا ثبت گزارش ممکن نیست.",
+  "feedUnsave": "حذف از ذخیره‌شده‌ها",
+  "feedSave": "ذخیره پست",
+  "feedUndoRepost": "لغو بازنشر",
+  "feedRepost": "بازنشر در صفحه من",
+  "feedSendPost": "ارسال پست",
+  "feedEditPost": "ویرایش متن پست",
+  "feedReportPost": "گزارش پست",
+  "feedLike": "پسندیدن",
+  "feedComment": "دیدگاه",
+  "feedSend": "ارسال",
+  "feedUserSearchFailed": "جست‌وجوی کاربران انجام نشد.",
+  "feedSelectRecipients": "انتخاب گیرندگان",
+  "feedSearchUsersHint": "نام یا نام کاربری را جست‌وجو کنید",
+  "feedSelectedPeople": "{count} نفر انتخاب شده‌اند",
+  "feedSearchUsersPrompt": "برای پیدا کردن کاربران، نام یا نام کاربری را جست‌وجو کنید.",
+  "feedSendToCount": "ارسال برای {count} نفر",
+  "feedCommentLikeFailed": "ثبت پسند دیدگاه انجام نشد.",
+  "feedCommentFailed": "ثبت دیدگاه انجام نشد.",
+  "feedCommentsTitle": "دیدگاه‌ها",
+  "feedNoComments": "هنوز دیدگاهی ثبت نشده است.",
+  "feedReply": "پاسخ",
+  "feedReplyTo": "پاسخ به {name}",
+  "feedCommentHint": "دیدگاه خود را بنویسید…",
+  "@feedShareText": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "@feedSentCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@feedSelectedPeople": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@feedSendToCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@feedReplyTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }
