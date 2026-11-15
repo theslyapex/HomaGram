@@ -9,6 +9,8 @@ import '../../auth/presentation/profile_home_screen.dart';
 import '../../messaging/data/messaging_service.dart';
 import '../../messaging/presentation/chat_screen.dart';
 import 'story_highlights.dart';
+import 'stories_screen.dart' show StoryViewerScreen;
+import '../data/story_service.dart';
 import 'feed_screen.dart' show PostCard;
 import 'reels_screen.dart';
 import '../../../core/utils/persian_date.dart';
@@ -30,6 +32,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   String? _error;
   Map<String, dynamic>? _profile;
   String? _avatarUrl;
+  List<Map<String, dynamic>> _activeStories = [];
   List<Map<String, dynamic>> _posts = [];
   List<Map<String, dynamic>> _repostPosts = [];
   int _followers = 0;
@@ -61,6 +64,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         params: {'p_profile_id': widget.userId},
       );
       profile['public_birth_date'] = publicBirthday;
+      final activeStories = await StoryService.loadActiveStoriesForUser(widget.userId);
       if (!_isMe) {
         await client.from('profile_views').upsert({
           'profile_id': widget.userId,
@@ -180,6 +184,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       setState(() {
         _profile = Map<String, dynamic>.from(profile);
         _avatarUrl = avatar;
+        _activeStories = activeStories;
         _followers = followers.length;
         _followingCount = following.length;
         _reposts = reposts.length;
@@ -194,6 +199,13 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     } catch (_) {
       if (mounted) setState(() { _loading = false; _error = _t.publicProfileLoadFailed; });
     }
+  }
+
+  void _openActiveStories() {
+    if (_activeStories.isEmpty) return;
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => StoryViewerScreen(stories: _activeStories),
+    ));
   }
 
   Future<void> _editProfile() async {
@@ -318,20 +330,39 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           blurRadius: 24, offset: const Offset(0, 9))],
       ),
       child: Column(children: [
-        Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF63D8E7), width: 2),
-            boxShadow: [BoxShadow(color: const Color(0xFF63D8E7).withValues(alpha: .22), blurRadius: 18)],
-          ),
-          child: CircleAvatar(
-            radius: 48,
-            backgroundColor: const Color(0x223FD6D0),
-            backgroundImage: _avatarUrl == null ? null : NetworkImage(_avatarUrl!),
-            child: _avatarUrl == null
-                ? const Icon(Icons.person_outline_rounded, size: 48, color: Colors.white70)
-                : null,
+        GestureDetector(
+          onTap: _activeStories.isEmpty ? null : _openActiveStories,
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: _activeStories.isNotEmpty
+                  ? const LinearGradient(
+                      colors: [Color(0xFFF9A13B), Color(0xFFE33D83), Color(0xFF8B55D9), Color(0xFF20B8B0)],
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                    )
+                  : null,
+              border: _activeStories.isEmpty
+                  ? Border.all(color: const Color(0xFF63D8E7), width: 2)
+                  : null,
+              boxShadow: [BoxShadow(
+                color: (_activeStories.isNotEmpty ? const Color(0xFFE35D9A) : const Color(0xFF63D8E7)).withValues(alpha: .22),
+                blurRadius: 18,
+              )],
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF101B35)),
+              child: CircleAvatar(
+                radius: 45,
+                backgroundColor: const Color(0x223FD6D0),
+                backgroundImage: _avatarUrl == null ? null : NetworkImage(_avatarUrl!),
+                child: _avatarUrl == null
+                    ? const Icon(Icons.person_outline_rounded, size: 48, color: Colors.white70)
+                    : null,
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 13),
