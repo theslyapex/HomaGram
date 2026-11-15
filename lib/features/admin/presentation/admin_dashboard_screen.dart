@@ -4,19 +4,21 @@ import 'package:flutter/material.dart';
 import '../data/admin_service.dart';
 import 'admin_user_detail_screen.dart';
 import 'admin_verification_screen.dart';
+import 'admin_moderation_screen.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) => DefaultTabController(
-    length: 6,
+    length: 7,
     child: Scaffold(
       appBar: AppBar(
         title: const Text('مدیریت هماگرام', style: TextStyle(fontWeight: FontWeight.w900)),
         bottom: const TabBar(isScrollable: true, tabs: [
           Tab(icon: Icon(Icons.dashboard_outlined), text: 'نمای کلی'),
           Tab(icon: Icon(Icons.people_alt_outlined), text: 'کاربران'),
+          Tab(icon: Icon(Icons.visibility_outlined), text: 'نظارت محتوا'),
           Tab(icon: Icon(Icons.flag_outlined), text: 'گزارش پست‌ها'),
           Tab(icon: Icon(Icons.chat_bubble_outline), text: 'گزارش پیام‌ها'),
           Tab(icon: Icon(Icons.history_rounded), text: 'سوابق مدیران'),
@@ -24,7 +26,7 @@ class AdminDashboardScreen extends StatelessWidget {
         ]),
       ),
       body: const HomaGramEntrance(child: TabBarView(children: [
-        _OverviewTab(), _UsersTab(), _ReportsTab(), _MessageReportsTab(), _AuditLogsTab(), _VerificationTab(),
+        _OverviewTab(), _UsersTab(), AdminModerationScreen(), _ReportsTab(), _MessageReportsTab(), _AuditLogsTab(), _VerificationTab(),
       ])),
     ),
   );
