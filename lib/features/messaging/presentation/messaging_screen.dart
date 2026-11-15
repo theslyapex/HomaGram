@@ -22,6 +22,8 @@ class _MessagingScreenState extends State<MessagingScreen> {
   bool _loading = true;
   bool _showArchived = false;
   String? _error;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchTerm = '';
 
   @override
   void initState() {
@@ -172,12 +174,17 @@ class _MessagingScreenState extends State<MessagingScreen> {
   void dispose() {
     final channel = _channel;
     if (channel != null) MessagingService.removeChannel(channel);
+    _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final normalizedSearch = _searchTerm.trim().toLowerCase();
+    final visibleItems = normalizedSearch.isEmpty ? _items : _items.where((item) =>
+      item.title.toLowerCase().contains(normalizedSearch) ||
+      item.subtitle.toLowerCase().contains(normalizedSearch)).toList();
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -273,6 +280,24 @@ class _MessagingScreenState extends State<MessagingScreen> {
                 ),
             ]),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 2, 14, 8),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) => setState(() => _searchTerm = value),
+              textInputAction: TextInputAction.search,
+              decoration: InputDecoration(
+                hintText: 'جست‌وجوی نام گفتگو، گروه یا کانال',
+                prefixIcon: const Icon(Icons.search_rounded),
+                suffixIcon: _searchTerm.isEmpty ? null : IconButton(
+                  onPressed: () { _searchController.clear(); setState(() => _searchTerm = ''); },
+                  icon: const Icon(Icons.close_rounded),
+                ),
+                isDense: true,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+            ),
+          ),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 240),
             child: _showArchived
@@ -322,7 +347,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                                 const SizedBox(height: 75),
                                 Icon(Icons.forum_outlined, size: 58, color: colors.primary),
                                 const SizedBox(height: 16),
-                                const Center(child: Text('هنوز گفتگویی ندارید',
+                                Center(child: Text(_searchTerm.isEmpty ? 'هنوز گفتگویی ندارید' : 'گفتگویی با این نام پیدا نشد',
                                   style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800))),
                                 const SizedBox(height: 8),
                                 const Padding(
@@ -340,10 +365,10 @@ class _MessagingScreenState extends State<MessagingScreen> {
                             )
                           : ListView.separated(
                               physics: const AlwaysScrollableScrollPhysics(),
-                              itemCount: _items.length,
+                              itemCount: visibleItems.length,
                               separatorBuilder: (_, __) => const Divider(height: 1, indent: 76),
                               itemBuilder: (context, index) {
-                                final item = _items[index];
+                                final item = visibleItems[index];
                                 return Dismissible(
                                   key: ValueKey('conversation-${item.id}-$_showArchived'),
                                   direction: DismissDirection.endToStart,
