@@ -160,10 +160,10 @@ class _ChatScreenState extends State<ChatScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(_t.searchMessages),
-        content: TextField(controller: controller, autofocus: true, decoration: const InputDecoration(hintText: _t.minimumTwoCharacters)),
+        content: TextField(controller: controller, autofocus: true, decoration: InputDecoration(hintText: _t.minimumTwoCharacters)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(_t.cancel)),
-          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: const Text(_t.search)),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: Text(_t.search)),
         ],
       ),
     );
@@ -179,7 +179,7 @@ class _ChatScreenState extends State<ChatScreen> {
           child: SizedBox(
             height: MediaQuery.sizeOf(context).height * .65,
             child: results.isEmpty
-                ? const Center(child: Text(_t.noMessagesFound))
+                ? Center(child: Text(_t.noMessagesFound))
                 : ListView.separated(
                     itemCount: results.length,
                     separatorBuilder: (_, __) => const Divider(height: 1),
@@ -221,9 +221,9 @@ class _ChatScreenState extends State<ChatScreen> {
       builder: (context) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           ListTile(leading: const Icon(Icons.image_outlined), title: Text(_t.chooseImage), onTap: () => Navigator.pop(context, 'image')),
-          ListTile(leading: const Icon(Icons.timer_outlined), title: const Text(_t.sendTimedImage), subtitle: Text(_t.viewOnceOnly), onTap: () => Navigator.pop(context, 'timed_image')),
-          ListTile(leading: const Icon(Icons.video_library_outlined), title: const Text(_t.chooseVideo), onTap: () => Navigator.pop(context, 'video')),
-          ListTile(leading: const Icon(Icons.attach_file_rounded), title: const Text(_t.chooseFile), onTap: () => Navigator.pop(context, 'file')),
+          ListTile(leading: const Icon(Icons.timer_outlined), title: Text(_t.sendTimedImage), subtitle: Text(_t.viewOnceOnly), onTap: () => Navigator.pop(context, 'timed_image')),
+          ListTile(leading: const Icon(Icons.video_library_outlined), title: Text(_t.chooseVideo), onTap: () => Navigator.pop(context, 'video')),
+          ListTile(leading: const Icon(Icons.attach_file_rounded), title: Text(_t.chooseFile), onTap: () => Navigator.pop(context, 'file')),
         ]),
       ),
     );
@@ -242,7 +242,7 @@ class _ChatScreenState extends State<ChatScreen> {
         if (bytes == null || bytes.isEmpty) throw StateError('File bytes unavailable');
         if (bytes.length > 52428800) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text(_t.fileSizeLimit)),
+            SnackBar(content: Text(_t.fileSizeLimit)),
           );
           return;
         }
@@ -258,7 +258,7 @@ class _ChatScreenState extends State<ChatScreen> {
         await _refresh();
       } catch (_) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(_t.fileSendFailed)),
+          SnackBar(content: Text(_t.fileSendFailed)),
         );
       } finally {
         if (mounted) setState(() => _sending = false);
@@ -272,7 +272,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (file == null || !mounted) return;
       final bytes = await file.readAsBytes();
       if (bytes.length > 52428800) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(_t.mediaSizeLimit)));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t.mediaSizeLimit)));
         return;
       }
       final ext = file.name.toLowerCase().split('.').last;
@@ -290,7 +290,7 @@ class _ChatScreenState extends State<ChatScreen> {
       await _refresh();
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_t.mediaSendFailed)),
+        SnackBar(content: Text(_t.mediaSendFailed)),
       );
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -314,7 +314,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (mounted) {
         _controller.text = text;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(_t.messageSendFailed)),
+          SnackBar(content: Text(_t.messageSendFailed)),
         );
       }
     } finally {
@@ -347,7 +347,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   color: colors.primaryContainer),
                 child: Icon(Icons.article_rounded, color: colors.primary)),
               const SizedBox(width: 10),
-              const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(_t.homagramPost, style: TextStyle(fontWeight: FontWeight.w900)),
                 SizedBox(height: 3),
                 Text(_t.tapToViewPost, style: TextStyle(fontSize: 11)),
@@ -449,7 +449,7 @@ class _ChatScreenState extends State<ChatScreen> {
               child: ListTile(
                 dense: true,
                 leading: const Icon(Icons.push_pin_rounded),
-                title: const Text(_t.pinnedMessage, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+                title: Text(_t.pinnedMessage, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
                 subtitle: Text(pinnedMessages.last['body'] as String? ?? _t.mediaMessage,
                   maxLines: 1, overflow: TextOverflow.ellipsis),
                 trailing: Text('${pinnedMessages.length}', style: const TextStyle(fontSize: 11)),
@@ -540,7 +540,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                           if (message['is_pinned'] == true) const Icon(Icons.push_pin_rounded, size: 13),
                                         ]),
                                       if (message['edited_at'] != null && !deleted)
-                                        const Text(_t.edited, style: TextStyle(fontSize: 9)),
+                                        Text(_t.edited, style: TextStyle(fontSize: 9)),
                                       const SizedBox(height: 3),
                                       Row(mainAxisSize: MainAxisSize.min, children: [
                                         if (mine)
@@ -590,7 +590,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ]),
                     ),
                   if (!_canSendText)
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.fromLTRB(8, 4, 8, 10),
                       child: Row(children: [
                         Icon(Icons.lock_outline_rounded, size: 17),
@@ -734,7 +734,7 @@ class _ChatScreenState extends State<ChatScreen> {
           height: MediaQuery.sizeOf(sheetContext).height * .78,
           child: Column(
             children: [
-              const Padding(
+              Padding(
                 padding: EdgeInsets.fromLTRB(18, 8, 18, 14),
                 child: Row(children: [
                   Icon(Icons.history_rounded),
@@ -842,7 +842,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     TextFormField(
                       controller: expiryController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: _t.validityHours),
+                      decoration: InputDecoration(labelText: _t.validityHours),
                       validator: (value) {
                         final number = int.tryParse(value ?? '');
                         return number == null || number < 1 || number > 720
@@ -852,7 +852,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     TextFormField(
                       controller: usesController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: _t.maximumUses),
+                      decoration: InputDecoration(labelText: _t.maximumUses),
                       validator: (value) {
                         final number = int.tryParse(value ?? '');
                         return number == null || number < 1 || number > 500
@@ -862,7 +862,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ]),
                 ),
                 actions: [
-                  TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text(_t.cancel)),
+                  TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(_t.cancel)),
                   FilledButton(
                     onPressed: () {
                       if (formKey.currentState!.validate()) {
@@ -941,7 +941,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 title: Text(_t.revokeInviteCodeTitle),
                 content: Text(_t.revokeInviteCodeExplanation),
                 actions: [
-                  TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text(_t.cancel)),
+                  TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(_t.cancel)),
                   FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: Text(_t.revoke)),
                 ],
               ),
@@ -1053,39 +1053,39 @@ class _ChatScreenState extends State<ChatScreen> {
             width: MediaQuery.sizeOf(dialogContext).width * .82,
             child: SingleChildScrollView(
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                const Align(alignment: Alignment.centerRight,
+                Align(alignment: Alignment.centerRight,
                   child: Text(_t.memberPermissions, style: TextStyle(fontWeight: FontWeight.w900))),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text(_t.sendTextMessages),
+                  title: Text(_t.sendTextMessages),
                   value: membersCanSendMessages,
                   onChanged: (v) => setDialogState(() => membersCanSendMessages = v),
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text(_t.sendImagesFiles),
+                  title: Text(_t.sendImagesFiles),
                   value: membersCanSendMedia,
                   onChanged: (v) => setDialogState(() => membersCanSendMedia = v),
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text(_t.addNewMembers),
-                  subtitle: const Text(_t.membersCanInviteHint),
+                  title: Text(_t.addNewMembers),
+                  subtitle: Text(_t.membersCanInviteHint),
                   value: membersCanAddMembers,
                   onChanged: (v) => setDialogState(() => membersCanAddMembers = v),
                 ),
                 const Divider(height: 22),
-                const Align(alignment: Alignment.centerRight,
+                Align(alignment: Alignment.centerRight,
                   child: Text(_t.adminPrivileges, style: TextStyle(fontWeight: FontWeight.w900))),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text(_t.editGroupNameDescriptionPhoto),
+                  title: Text(_t.editGroupNameDescriptionPhoto),
                   value: adminsCanChangeInfo,
                   onChanged: (v) => setDialogState(() => adminsCanChangeInfo = v),
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text(_t.manageMembersInviteLinks),
+                  title: Text(_t.manageMembersInviteLinks),
                   value: adminsCanManageMembers,
                   onChanged: (v) => setDialogState(() => adminsCanManageMembers = v),
                 ),
@@ -1093,7 +1093,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text(_t.cancel)),
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(_t.cancel)),
             FilledButton(
               onPressed: () => Navigator.pop(dialogContext, [
                 membersCanSendMessages, membersCanSendMedia, membersCanAddMembers,
@@ -1285,7 +1285,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         } catch (error) {
                           debugPrint('Conversation photo update failed: $error');
                           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text(_t.photoChangeFailed)),
+                            SnackBar(content: Text(_t.photoChangeFailed)),
                           );
                         }
                       },
@@ -1302,7 +1302,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           context: context,
                           builder: (dialogContext) => StatefulBuilder(
                             builder: (dialogContext, setDialogState) => AlertDialog(
-                              title: const Text(_t.groupDiscoverability),
+                              title: Text(_t.groupDiscoverability),
                               content: SingleChildScrollView(child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -1320,7 +1320,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       controller: slugController,
                                       maxLength: 32,
                                       textDirection: TextDirection.ltr,
-                                      decoration: const InputDecoration(
+                                      decoration: InputDecoration(
                                         labelText: _t.publicId,
                                         prefixText: '@',
                                         helperText: _t.publicIdHelper,
@@ -1330,18 +1330,18 @@ class _ChatScreenState extends State<ChatScreen> {
                                       controller: descriptionController,
                                       maxLength: 500,
                                       maxLines: 3,
-                                      decoration: const InputDecoration(labelText: _t.publicDescription),
+                                      decoration: InputDecoration(labelText: _t.publicDescription),
                                     ),
                                   ],
                                 ],
                               )),
                               actions: [
-                                TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text(_t.cancel)),
+                                TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(_t.cancel)),
                                 FilledButton(
                                   onPressed: () {
                                     if (isPublic && !RegExp(r'^[a-zA-Z0-9_]{3,32}$').hasMatch(slugController.text.trim())) {
                                       ScaffoldMessenger.of(dialogContext).showSnackBar(
-                                        const SnackBar(content: Text(_t.publicIdRulesError)),
+                                        SnackBar(content: Text(_t.publicIdRulesError)),
                                       );
                                       return;
                                     }
@@ -1377,7 +1377,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           );
                         } catch (_) {
                           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text(_t.groupPublicSettingsSaveFailed)),
+                            SnackBar(content: Text(_t.groupPublicSettingsSaveFailed)),
                           );
                         }
                       },
@@ -1396,18 +1396,18 @@ class _ChatScreenState extends State<ChatScreen> {
                             title: Text(isChannel ? _t.channelInfo : _t.groupInfo),
                             content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
                               TextField(controller: titleController, maxLength: 100,
-                                decoration: const InputDecoration(labelText: _t.name)),
+                                decoration: InputDecoration(labelText: _t.name)),
                               if (isChannel)
                                 TextField(controller: slugController, maxLength: 32,
-                                  decoration: const InputDecoration(labelText: _t.identifier, prefixText: '@')),
+                                  decoration: InputDecoration(labelText: _t.identifier, prefixText: '@')),
                               TextField(controller: descriptionController, maxLength: 500, maxLines: 3,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: _t.description,
                                   hintText: _t.writeAboutGroupChannel,
                                 )),
                             ])),
                             actions: [
-                              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text(_t.cancel)),
+                              TextButton(onPressed: () => Navigator.pop(ctx), child: Text(_t.cancel)),
                               FilledButton(onPressed: () => Navigator.pop(ctx, [
                                 titleController.text, slugController.text, descriptionController.text,
                               ]), child: Text(_t.save)),
@@ -1421,7 +1421,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         if (isChannel) {
                           if (!RegExp(r'^[a-zA-Z0-9_]{3,32}$').hasMatch(values[1].trim())) {
                             if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text(_t.publicIdRulesError)),
+                              SnackBar(content: Text(_t.publicIdRulesError)),
                             );
                             return;
                           }
@@ -1452,28 +1452,28 @@ class _ChatScreenState extends State<ChatScreen> {
                           context: context,
                           builder: (dialogContext) => StatefulBuilder(
                             builder: (dialogContext, setDialogState) => AlertDialog(
-                              title: const Text(_t.regularMemberPermissions),
+                              title: Text(_t.regularMemberPermissions),
                               content: Column(mainAxisSize: MainAxisSize.min, children: [
                                 SwitchListTile(
                                   contentPadding: EdgeInsets.zero,
-                                  title: const Text(_t.sendTextMessages),
-                                  subtitle: const Text(_t.regularMembersCanSendText),
+                                  title: Text(_t.sendTextMessages),
+                                  subtitle: Text(_t.regularMembersCanSendText),
                                   value: canPost,
                                   onChanged: (value) => setDialogState(() => canPost = value),
                                 ),
                                 SwitchListTile(
                                   contentPadding: EdgeInsets.zero,
-                                  title: const Text(_t.sendMediaFiles),
-                                  subtitle: const Text(_t.regularMembersCanSendMedia),
+                                  title: Text(_t.sendMediaFiles),
+                                  subtitle: Text(_t.regularMembersCanSendMedia),
                                   value: canSendMedia,
                                   onChanged: (value) => setDialogState(() => canSendMedia = value),
                                 ),
                                 const SizedBox(height: 4),
-                                const Text(_t.channelAdminsAlwaysCanSend,
+                                Text(_t.channelAdminsAlwaysCanSend,
                                   style: TextStyle(fontSize: 12)),
                               ]),
                               actions: [
-                                TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text(_t.cancel)),
+                                TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(_t.cancel)),
                                 FilledButton(onPressed: () => Navigator.pop(dialogContext, [canPost, canSendMedia]),
                                   child: Text(_t.saveSettings)),
                               ],
@@ -1491,11 +1491,11 @@ class _ChatScreenState extends State<ChatScreen> {
                           channelData['members_can_send_media'] = values[1];
                           if (sheetContext.mounted) setSheetState(() {});
                           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text(_t.memberPermissionsUpdated)),
+                            SnackBar(content: Text(_t.memberPermissionsUpdated)),
                           );
                         } catch (_) {
                           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text(_t.memberPermissionsSaveFailed)),
+                            SnackBar(content: Text(_t.memberPermissionsSaveFailed)),
                           );
                         }
                       },
@@ -1531,11 +1531,11 @@ class _ChatScreenState extends State<ChatScreen> {
                           builder: (ctx) => AlertDialog(
                             title: Text(_t.addMember),
                             content: TextField(controller: queryController, autofocus: true,
-                              decoration: const InputDecoration(hintText: _t.username)),
+                              decoration: InputDecoration(hintText: _t.username)),
                             actions: [
-                              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text(_t.cancel)),
+                              TextButton(onPressed: () => Navigator.pop(ctx), child: Text(_t.cancel)),
                               FilledButton(onPressed: () => Navigator.pop(ctx, queryController.text),
-                                child: const Text(_t.search)),
+                                child: Text(_t.search)),
                             ],
                           ),
                         );
@@ -1614,7 +1614,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       title: Text(_t.transferChannelOwnership),
                                       content: Text(_t.transferOwnershipConfirm(displayName)),
                                       actions: [
-                                        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text(_t.cancel)),
+                                        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(_t.cancel)),
                                         FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: Text(_t.confirmTransfer)),
                                       ],
                                     ),
@@ -1685,7 +1685,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(dialogContext, false),
-                                child: const Text(_t.cancel),
+                                child: Text(_t.cancel),
                               ),
                               FilledButton(
                                 style: FilledButton.styleFrom(
@@ -1933,7 +1933,7 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Row(children: [
           const Icon(Icons.timer_rounded, size: 28),
           const SizedBox(width: 10),
-          const Expanded(child: Column(
+          Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(_t.timedImage, style: TextStyle(fontWeight: FontWeight.w800)),
@@ -2175,7 +2175,7 @@ class _ChatScreenState extends State<ChatScreen> {
             title: Text(_t.editMessage),
             content: TextField(controller: controller, autofocus: true, maxLines: 5, maxLength: 10000),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text(_t.cancel)),
+              TextButton(onPressed: () => Navigator.pop(context), child: Text(_t.cancel)),
               FilledButton(onPressed: () => Navigator.pop(context, controller.text), child: Text(_t.save)),
             ],
           ),
@@ -2192,9 +2192,9 @@ class _ChatScreenState extends State<ChatScreen> {
           builder: (sheetContext) => SafeArea(child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Padding(padding: EdgeInsets.all(16),
+              Padding(padding: EdgeInsets.all(16),
                 child: Text(_t.messageReportReason, style: TextStyle(fontWeight: FontWeight.w900))),
-              for (final item in const [
+              for (final item in [
                 ('spam',_t.spamOrAds),
                 ('harassment',_t.harassment),
                 ('threat',_t.threatOrDangerousContent),
@@ -2213,7 +2213,7 @@ class _ChatScreenState extends State<ChatScreen> {
             builder: (dialogContext) => AlertDialog(
               title: Text(_t.additionalDetails),
               content: TextField(controller: detailsController, maxLength: 1000,
-                minLines: 2, maxLines: 5, decoration: const InputDecoration(
+                minLines: 2, maxLines: 5, decoration: InputDecoration(
                   hintText: _t.optionalShortExplanation)),
               actions: [
                 TextButton(onPressed: () => Navigator.pop(dialogContext, ''), child: Text(_t.skip)),
@@ -2240,7 +2240,7 @@ class _ChatScreenState extends State<ChatScreen> {
             title: Text(_t.deleteMessage),
             content: Text(_t.deleteMessageForEveryoneConfirm),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text(_t.cancel)),
+              TextButton(onPressed: () => Navigator.pop(context, false), child: Text(_t.cancel)),
               FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(_t.delete)),
             ],
           ),
@@ -2325,6 +2325,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
 class _EmptyChat extends StatelessWidget {
   const _EmptyChat({required this.kind});
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final String kind;
 
   @override
