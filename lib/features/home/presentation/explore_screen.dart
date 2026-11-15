@@ -545,13 +545,23 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
           setSheet(() => loading = true);
           try {
             final c = AuthService.client;
-            final byName = await c.from('profiles').select('id,username,display_name')
+            final byName = await c.from('profiles').select('id,username,display_name,avatar_path')
               .neq('id', _uid).ilike('display_name', '%$term%').limit(15);
-            final byUser = await c.from('profiles').select('id,username,display_name')
+            final byUser = await c.from('profiles').select('id,username,display_name,avatar_path')
               .neq('id', _uid).ilike('username', '%$term%').limit(15);
             final merged = <String, Map<String,dynamic>>{};
             for (final u in [...byName, ...byUser]) { merged[u['id'] as String] = Map<String,dynamic>.from(u); }
-            setSheet(() { users = merged.values.toList(); loading = false; error = null; });
+            final results = merged.values.toList();
+            await Future.wait(results.map((user) async {
+              final path = user['avatar_path'] as String?;
+              if (path == null || path.isEmpty) return;
+              try {
+                user['avatar_url'] = await c.storage.from('avatars').createSignedUrl(path, 1800);
+              } catch (_) {
+                user['avatar_url'] = null;
+              }
+            }));
+            setSheet(() { users = results; loading = false; error = null; });
           } catch (_) { setSheet(() { loading = false; error = _t.exploreSearchUsersFailed; }); }
         }
         return Padding(
@@ -571,6 +581,14 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
                     final u = users[i]; final id = u['id'] as String;
                     final name = (u['display_name'] as String?)?.trim();
                     return CheckboxListTile(value: selected.containsKey(id),
+                      secondary: CircleAvatar(
+                        backgroundColor: Theme.of(ctx).colorScheme.primaryContainer,
+                        backgroundImage: u['avatar_url'] is String
+                            ? NetworkImage(u['avatar_url'] as String)
+                            : null,
+                        child: u['avatar_url'] is String
+                            ? null : const Icon(Icons.person_outline_rounded),
+                      ),
                       title: Text(name?.isNotEmpty == true ? name! : '@${u['username']}'),
                       subtitle: Text('@${u['username']}'),
                       onChanged: (v) => setSheet(() {
