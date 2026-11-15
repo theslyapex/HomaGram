@@ -883,5 +883,84 @@
         "type": "String"
       }
     }
+  },
+  "createPostTitle": "Create post",
+  "createReelTitle": "Create reel",
+  "createPostHero": "Share your moment",
+  "createReelAuto": "Videos are automatically published as reels.",
+  "createPostIntro": "Publish text or an image; choosing a video creates a reel.",
+  "createChooseContent": "Choose a content type",
+  "createPublishImage": "Publish an image",
+  "createChooseImageHint": "Choose an image and adjust its frame",
+  "createBuildReel": "Create a reel",
+  "createReelHint": "Choose a video, trim it, and create a cover",
+  "createTextPostHint": "To publish a text post, just write a caption below.",
+  "createCaption": "Caption",
+  "createCaptionHint": "Write the story behind this image or video...",
+  "createPreparingMedia": "Preparing media...",
+  "createVideoReelNote": "Videos are always published as reels. Text and image posts appear in the feed.",
+  "createPublishing": "Publishing...",
+  "createPublishReel": "Publish reel",
+  "createPublishPost": "Publish post",
+  "createSelectMediaFailed": "Couldn't select media: {error}",
+  "createUnsupportedFormat": "This file format isn't supported.",
+  "createVideoSizeLimit": "Videos must be 50 MB or smaller.",
+  "createImageSizeLimit": "Images must be 15 MB or smaller.",
+  "createVideoPreviewFailed": "Couldn't create a video preview. Please choose it again.",
+  "createMediaEditFailed": "Couldn't edit media: {error}",
+  "createCoverLimit": "The cover must be smaller than 15 MB.",
+  "createCoverSelectFailed": "Couldn't select the cover: {error}",
+  "createChooseVideoFirst": "Choose a video to create a reel.",
+  "createReelCoverRequired": "Choose a cover for your reel.",
+  "createContentRequired": "Add text or media before publishing.",
+  "createCaptionLimit": "Captions can contain up to 2,200 characters.",
+  "createSessionInvalid": "Your session is invalid. Please sign in again.",
+  "createUploadFailed": "File upload failed: {error}",
+  "createPublishFailed": "Publishing failed: {error}",
+  "createCoverReady": "Reel cover is ready",
+  "createImageReady": "Image ready to publish",
+  "createChooseFrame": "Choose frame",
+  "createCoverFromGallery": "Cover from gallery",
+  "createSelectCoverFrame": "Select cover frame",
+  "createConfirm": "Confirm",
+  "createCancel": "Cancel",
+  "createSelectThisFrame": "Use this frame",
+  "createExtractFrameFailed": "Couldn't extract this frame. Choose another time.",
+  "createFramePreviewFailed": "Couldn't preview the selected frame. Try again.",
+  "createFrameExtracting": "Extracting exact frame...",
+  "@createSelectMediaFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@createMediaEditFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@createCoverSelectFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@createUploadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@createPublishFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   }
 }
