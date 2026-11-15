@@ -327,5 +327,22 @@
         "type": "int"
       }
     }
+  },
+  "channel": "قناة",
+  "leaveConversationExplanation": "ستغادر {conversationType} هذه ولن تظهر بعد ذلك في قائمة رسائلك.",
+  "communityMemberSummary": "@{slug} • {kind} • {count} أعضاء",
+  "@leaveConversationExplanation": {
+    "placeholders": {
+      "conversationType": {}
+    }
+  },
+  "@communityMemberSummary": {
+    "placeholders": {
+      "slug": {},
+      "kind": {},
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }
