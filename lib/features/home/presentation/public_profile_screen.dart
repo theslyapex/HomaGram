@@ -112,9 +112,14 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           final visitorRows = visitorIds.isEmpty
               ? <dynamic>[]
               : await client.from('profiles')
-                  .select('id,username,display_name')
+                  .select('id,username,display_name,avatar_path')
                   .inFilter('id', visitorIds);
-          final byId = {for (final p in visitorRows) p['id'] as String: p};
+          final byId = {for (final p in visitorRows) p['id'] as String: Map<String,dynamic>.from(p)};
+          await Future.wait(byId.values.map((p) async {
+            final path = p['avatar_path'] as String?;
+            if (path == null || path.isEmpty) return;
+            try { p['avatar_url'] = await client.storage.from('avatars').createSignedUrl(path, 1800); } catch (_) {}
+          }));
           visitorProfiles = visitRows.map((r) {
             final p = byId[r['viewer_id'] as String];
             if (p == null) return null;
@@ -623,7 +628,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 final visitor = _visitors[index];
                 final date = DateTime.tryParse(visitor['viewed_at'] as String? ?? '')?.toLocal();
                 return ListTile(
-                  leading: const CircleAvatar(child: Icon(Icons.person_outline)),
+                  leading: CircleAvatar(
+                    backgroundImage: visitor['avatar_url'] is String ? NetworkImage(visitor['avatar_url'] as String) : null,
+                    child: visitor['avatar_url'] is String ? null : const Icon(Icons.person_outline),
+                  ),
                   title: Text(visitor['display_name'] as String? ?? _t.homagramUser),
                   subtitle: Text('@' + (visitor['username'] as String? ?? _t.feedUserFallback) +
                     (date == null ? '' : ' · ' + persianDate(date))),
