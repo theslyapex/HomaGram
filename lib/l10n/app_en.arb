@@ -2243,5 +2243,10 @@
   "verifiedAccount": "Verified account",
   "usernameRequired": "Enter a username.",
   "usernameInvalid": "Use 5–24 lowercase English letters, numbers, or underscores.",
-  "adminCommunityUntitled": "Untitled"
+  "adminCommunityUntitled": "Untitled",
+  "termsNoticePrefix": "By continuing, you agree to the ",
+  "termsNoticeMiddle": " and ",
+  "termsNoticeSuffix": ".",
+  "termsLinkLabel": "Terms of Use",
+  "privacyLinkLabel": "Privacy Policy"
 }
