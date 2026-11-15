@@ -382,5 +382,141 @@
         "type": "int"
       }
     }
-  }
+  },
+  "activityHistoryLoadFailed": "تعذر تحميل سجل النشاط.",
+  "channelCreated": "تم إنشاء القناة",
+  "memberAdded": "إضافة عضو",
+  "memberRemoved": "إزالة عضو",
+  "memberRoleChanged": "تغيير دور العضو",
+  "channelPermissionsChanged": "تغيير أذونات الأعضاء",
+  "channelDetailsChanged": "تعديل تفاصيل القناة",
+  "ownershipTransferred": "نقل الملكية",
+  "inviteCreated": "إنشاء رمز دعوة",
+  "inviteRevoked": "إلغاء رمز الدعوة",
+  "adminActivity": "نشاط إداري",
+  "noAdminActivityYet": "لم يتم تسجيل أي نشاط إداري بعد.",
+  "newMemberAddedToChannel": "انضم عضو جديد إلى القناة.",
+  "memberAddedToChannel": "انضم {target} إلى القناة.",
+  "@memberAddedToChannel": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "memberRemovedFromChannel": "تمت إزالة عضو من القناة.",
+  "namedMemberRemovedFromChannel": "تمت إزالة {target} من القناة.",
+  "@namedMemberRemovedFromChannel": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "channelOwnershipTransferred": "تم نقل ملكية القناة.",
+  "newChannelOwner": "المالك الجديد: {target}",
+  "@newChannelOwner": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "textAndMediaPermissions": "النص: {textStatus} • الوسائط: {mediaStatus}",
+  "@textAndMediaPermissions": {
+    "placeholders": {
+      "textStatus": {
+        "type": "String"
+      },
+      "mediaStatus": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteValidityAndLimit": "الصلاحية: {expiry} • حد الاستخدام: {limit}",
+  "@inviteValidityAndLimit": {
+    "placeholders": {
+      "expiry": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteCodeDisabledActivity": "تم إلغاء رمز دعوة.",
+  "channelNameActivity": "اسم القناة: {title}",
+  "@channelNameActivity": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "channelDetailsUpdatedActivity": "تم تحديث تفاصيل القناة.",
+  "channelCreatedActivity": "تم إنشاء القناة.",
+  "systemAdmin": "مسؤول النظام",
+  "inviteCodesLoadFailed": "تعذر تحميل رموز الدعوة.",
+  "listRefreshFailed": "تعذر تحديث القائمة.",
+  "createNewInviteCode": "إنشاء رمز دعوة جديد",
+  "validityHours": "مدة الصلاحية بالساعات (1–720)",
+  "hoursRangeError": "أدخل رقمًا بين 1 و720.",
+  "maximumUses": "الحد الأقصى للاستخدامات (1–500)",
+  "usesRangeError": "أدخل رقمًا بين 1 و500.",
+  "createCode": "إنشاء الرمز",
+  "inviteCodeReady": "رمز الدعوة جاهز",
+  "inviteLinkExpiryHint": "يظل هذا الرابط فعالًا حتى انتهاء صلاحيته أو بلوغ حد الاستخدام. شاركه مع الأشخاص الذين تريد دعوتهم.",
+  "inviteCodeOneTimeHint": "يظهر هذا الرمز مرة واحدة فقط. احتفظ به في مكان آمن وشاركه مع الأشخاص الذين تريد دعوتهم.",
+  "copyInviteLink": "نسخ رابط الدعوة",
+  "copyCode": "نسخ الرمز",
+  "close": "إغلاق",
+  "inviteCodeCreateFailed": "تعذر إنشاء رمز الدعوة.",
+  "revokeInviteCodeTitle": "إلغاء رمز الدعوة",
+  "revokeInviteCodeExplanation": "لن يكون هذا الرمز صالحًا للانضمام بعد الآن.",
+  "revoke": "إلغاء",
+  "inviteCodeRevokeFailed": "تعذر إلغاء الرمز.",
+  "active": "نشط",
+  "revoked": "ملغى",
+  "expired": "منتهي الصلاحية",
+  "limitReached": "اكتمل الحد",
+  "unknown": "غير معروف",
+  "manageGroupInviteLinks": "إدارة روابط دعوة المجموعة",
+  "manageChannelInviteCodes": "إدارة رموز دعوة القناة",
+  "createGroupInviteLink": "إنشاء رابط دعوة للمجموعة",
+  "createChannelInviteCode": "إنشاء رمز دعوة للقناة",
+  "retry": "إعادة المحاولة",
+  "noInviteCodesYet": "لم يتم إنشاء رموز دعوة بعد.",
+  "expirationUnknown": "وقت انتهاء الصلاحية غير معروف",
+  "expirationLabel": "ينتهي في: {date}",
+  "@expirationLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "usesOfLimit": "{used} من {limit} استخدامات",
+  "@usesOfLimit": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "revokeTooltip": "إلغاء",
+  "groupPermissions": "أذونات المجموعة",
+  "memberPermissions": "أذونات الأعضاء",
+  "sendTextMessages": "إرسال الرسائل النصية",
+  "sendImagesFiles": "إرسال الصور والملفات",
+  "addNewMembers": "إضافة أعضاء جدد",
+  "membersCanInviteHint": "عند التفعيل، يمكن للأعضاء العاديين أيضًا دعوة أشخاص.",
+  "adminPrivileges": "صلاحيات المشرفين",
+  "editGroupNameDescriptionPhoto": "تعديل الاسم والوصف والصورة",
+  "manageMembersInviteLinks": "إدارة الأعضاء وروابط الدعوة",
+  "savePermissions": "حفظ الأذونات",
+  "groupPermissionsUpdated": "تم تحديث أذونات المجموعة.",
+  "groupPermissionsSaveFailed": "تعذر حفظ الأذونات. مالك المجموعة فقط يمكنه تغيير هذه الإعدادات."
 }
