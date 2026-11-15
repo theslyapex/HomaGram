@@ -2018,7 +2018,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               maxLength: 160,
               maxLines: 2,
               onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: _t.storyPollQuestionLabel,
                 hintText: _t.storyPollQuestionHint,
                 border: OutlineInputBorder(),
@@ -2084,7 +2084,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               maxLength: 180,
               maxLines: 2,
               onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: _t.storyQuestionBoxLabel,
                 hintText: _t.storyQuestionBoxHint,
                 border: OutlineInputBorder(),
@@ -2103,7 +2103,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               controller: _countdownTitle,
               maxLength: 100,
               onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: _t.storyCountdownLabel,
                 hintText: _t.storyCountdownHint,
                 border: OutlineInputBorder(),
@@ -2169,7 +2169,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               _updateMentionSuggestions(_overlayText);
               if (mounted) setState(() {});
             },
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: _t.storyOverlayTextLabel,
               hintText: _t.storyOverlayTextHint,
               border: OutlineInputBorder(),
@@ -2246,7 +2246,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                 DropdownButtonFormField<String>(
                   value: _audience,
                   isExpanded: true,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   ),
