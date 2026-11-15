@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+class _VerificationRequestException implements Exception {
+  const _VerificationRequestException(this.code);
+  final String code;
+}
 
 class VerificationRequestScreen extends StatefulWidget {
   const VerificationRequestScreen({super.key});
@@ -9,6 +15,7 @@ class VerificationRequestScreen extends StatefulWidget {
 }
 
 class _VerificationRequestScreenState extends State<VerificationRequestScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final _form = GlobalKey<FormState>();
   final _name = TextEditingController();
   final _phone = TextEditingController();
@@ -22,6 +29,41 @@ class _VerificationRequestScreenState extends State<VerificationRequestScreen> {
   int _step = 0;
   bool _busy = false;
   final List<XFile> _evidence = [];
+  Map<String, String> get _categoryLabels => {
+    'خبرگزاری و رسانه': _t.verificationCategoryMedia,
+    'روزنامه‌نگار': _t.verificationCategoryJournalist,
+    'خبرنگار': _t.verificationCategoryReporter,
+    'گزارشگر ورزشی': _t.verificationCategorySportsReporter,
+    'مجری': _t.verificationCategoryPresenter,
+    'بازیگر': _t.verificationCategoryActor,
+    'کارگردان': _t.verificationCategoryDirector,
+    'خواننده و موسیقی‌دان': _t.verificationCategoryMusician,
+    'نویسنده و مترجم': _t.verificationCategoryWriter,
+    'هنرمند و عکاس': _t.verificationCategoryArtist,
+    'ورزشکار': _t.verificationCategoryAthlete,
+    'مربی ورزشی': _t.verificationCategoryCoach,
+    'سیاستمدار': _t.verificationCategoryPolitician,
+    'دیپلمات': _t.verificationCategoryDiplomat,
+    'پژوهشگر و استاد دانشگاه': _t.verificationCategoryAcademic,
+    'پزشک و متخصص سلامت': _t.verificationCategoryHealthProfessional,
+    'وکیل و حقوق‌دان': _t.verificationCategoryLegal,
+    'کارآفرین': _t.verificationCategoryEntrepreneur,
+    'مدیر کسب‌وکار': _t.verificationCategoryBusinessManager,
+    'فناوری و استارتاپ': _t.verificationCategoryTechnology,
+    'آموزش و مدرس': _t.verificationCategoryEducation,
+    'فعال اجتماعی': _t.verificationCategoryActivist,
+    'فروشگاه و خرده‌فروشی': _t.verificationCategoryRetail,
+    'رستوران و کافه': _t.verificationCategoryRestaurant,
+    'پزشکی و درمانگاه': _t.verificationCategoryClinic,
+    'خدمات فنی و مکانیکی': _t.verificationCategoryTechnical,
+    'ساخت‌وساز و املاک': _t.verificationCategoryConstruction,
+    'حمل‌ونقل': _t.verificationCategoryTransport,
+    'گردشگری و هتلداری': _t.verificationCategoryTourism,
+    'سازمان مردم‌نهاد': _t.verificationCategoryNgo,
+    'شرکت و مؤسسه': _t.verificationCategoryCompany,
+    'سایر': _t.verificationCategoryOther,
+  };
+
   static const _categories = [
     'خبرگزاری و رسانه','روزنامه‌نگار','خبرنگار','گزارشگر ورزشی','مجری','بازیگر','کارگردان',
     'خواننده و موسیقی‌دان','نویسنده و مترجم','هنرمند و عکاس','ورزشکار','مربی ورزشی',
@@ -55,9 +97,9 @@ class _VerificationRequestScreenState extends State<VerificationRequestScreen> {
       for (var i = 0; i < _evidence.length; i++) {
         final file = _evidence[i];
         final bytes = await file.readAsBytes();
-        if (bytes.length > 10 * 1024 * 1024) throw StateError('هر مدرک باید کمتر از ۱۰ مگابایت باشد.');
+        if (bytes.length > 10 * 1024 * 1024) throw const _VerificationRequestException('file_size');
         final ext = file.name.split('.').last.toLowerCase();
-        if (!const ['jpg','jpeg','png','webp'].contains(ext)) throw StateError('فقط تصویر JPG، PNG یا WEBP پذیرفته می‌شود.');
+        if (!const ['jpg','jpeg','png','webp'].contains(ext)) throw const _VerificationRequestException('file_format');
         final path = '${user.id}/${DateTime.now().microsecondsSinceEpoch}_$i.$ext';
         await client.storage.from('verification-evidence').uploadBinary(path, bytes,
           fileOptions: FileOptions(contentType: ext == 'png' ? 'image/png' : ext == 'webp' ? 'image/webp' : 'image/jpeg'));
@@ -72,57 +114,60 @@ class _VerificationRequestScreenState extends State<VerificationRequestScreen> {
         'public_links': publicLinks, 'explanation': _explanation.text.trim(), 'evidence_paths': paths,
       });
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('درخواست تأیید حساب ثبت شد و در صف بررسی قرار گرفت.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t.verificationSubmitted)));
       Navigator.pop(context);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ثبت درخواست انجام نشد: $e')));
+      final message = e is _VerificationRequestException
+          ? (e.code == 'file_size' ? _t.verificationFileTooLarge : _t.verificationFileFormatInvalid)
+          : _t.verificationSubmitFailed;
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } finally { if (mounted) setState(() => _busy = false); }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('درخواست نشان تأیید')),
+    appBar: AppBar(title: Text(_t.verificationRequestTitle)),
     body: Form(key: _form, child: ListView(padding: const EdgeInsets.all(18), children: [
       LinearProgressIndicator(value: (_step + 1) / 3),
       const SizedBox(height: 12),
-      Text('مرحله ${_step + 1} از ۳', style: Theme.of(context).textTheme.labelLarge),
+      Text(_t.verificationStep(_step + 1, 3), style: Theme.of(context).textTheme.labelLarge),
       if (_step == 0) ...[
-        const Text('نوع حساب', style: TextStyle(fontWeight: FontWeight.w800)),
+        Text(_t.verificationAccountType, style: TextStyle(fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
         SegmentedButton<String>(segments: const [
-          ButtonSegment(value: 'individual', label: Text('شخص حقیقی'), icon: Icon(Icons.person_outline)),
-          ButtonSegment(value: 'organization', label: Text('شخص حقوقی'), icon: Icon(Icons.business_outlined)),
+          ButtonSegment(value: 'individual', label: Text(_t.verificationIndividual), icon: Icon(Icons.person_outline)),
+          ButtonSegment(value: 'organization', label: Text(_t.verificationOrganization), icon: Icon(Icons.business_outlined)),
         ], selected: {_type}, onSelectionChanged: (s) => setState(() => _type = s.first)),
         const SizedBox(height: 16),
         DropdownButtonFormField<String>(value: _category, isExpanded: true,
-          decoration: const InputDecoration(labelText: 'حوزه فعالیت / دسته‌بندی'),
-          items: _categories.map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
+          decoration: InputDecoration(labelText: _t.verificationCategory),
+          items: _categories.map((v) => DropdownMenuItem(value: v, child: Text(_categoryLabels[v] ?? v))).toList(),
           onChanged: (v) => setState(() => _category = v ?? 'سایر')),
         const SizedBox(height: 14),
-        TextFormField(controller: _name, decoration: InputDecoration(labelText: _type == 'individual' ? 'نام و نام خانوادگی' : 'نام رسمی شرکت یا سازمان'),
-          validator: (v) => (v?.trim().length ?? 0) < 3 ? 'این فیلد الزامی است.' : null),
-        TextFormField(controller: _phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'شماره تماس (اختیاری)')),
+        TextFormField(controller: _name, decoration: InputDecoration(labelText: _type == 'individual' ? _t.verificationFullName : _t.verificationOrganizationName),
+          validator: (v) => (v?.trim().length ?? 0) < 3 ? _t.verificationRequired : null),
+        TextFormField(controller: _phone, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: _t.verificationPhoneOptional)),
         if (_type == 'organization') ...[
-          TextFormField(controller: _registration, decoration: const InputDecoration(labelText: 'شماره ثبت شرکت')),
-          TextFormField(controller: _nationalId, decoration: const InputDecoration(labelText: 'شناسه ملی')),
+          TextFormField(controller: _registration, decoration: InputDecoration(labelText: _t.verificationRegistrationNumber)),
+          TextFormField(controller: _nationalId, decoration: InputDecoration(labelText: _t.verificationNationalId)),
         ],
       ],
       if (_step == 1) ...[
-        TextFormField(controller: _links, minLines: 3, maxLines: 5, decoration: const InputDecoration(labelText: 'لینک وب‌سایت و حساب‌های تأییدشده دیگر', hintText: 'هر لینک در یک خط')),
+        TextFormField(controller: _links, minLines: 3, maxLines: 5, decoration: InputDecoration(labelText: _t.verificationPublicLinks, hintText: _t.verificationLinksHint)),
         const SizedBox(height: 12),
-        OutlinedButton.icon(onPressed: _pickEvidence, icon: const Icon(Icons.attach_file), label: Text('افزودن مدرک یا خبر (${_evidence.length}/۵)')),
-        const Text('تصویر خبر، معرفی‌نامه، مدرک ثبت یا شواهد عمومی مرتبط را بارگذاری کنید. مدارک فقط برای بررسی مدیران قابل مشاهده‌اند.', style: TextStyle(fontSize: 12)),
+        OutlinedButton.icon(onPressed: _pickEvidence, icon: const Icon(Icons.attach_file), label: Text(_t.verificationAddEvidence(_evidence.length, 5))),
+        Text(_t.verificationEvidenceInstructions, style: TextStyle(fontSize: 12)),
         for (final file in _evidence) ListTile(dense: true, leading: const Icon(Icons.image_outlined), title: Text(file.name, maxLines: 1, overflow: TextOverflow.ellipsis), trailing: IconButton(icon: const Icon(Icons.close), onPressed: () => setState(() => _evidence.remove(file)))),
       ],
       if (_step == 2) ...[
         TextFormField(controller: _explanation, minLines: 5, maxLines: 9, maxLength: 4000,
-          decoration: const InputDecoration(labelText: 'توضیحات تکمیلی و دلیل درخواست'),
-          validator: (v) => (v?.trim().length ?? 0) < 20 ? 'حداقل ۲۰ نویسه توضیح بنویسید.' : null),
-        const Text('ارسال درخواست به معنی تضمین دریافت نشان نیست. اطلاعات نادرست می‌تواند باعث رد درخواست شود.', style: TextStyle(fontSize: 12)),
+          decoration: InputDecoration(labelText: _t.verificationExplanation),
+          validator: (v) => (v?.trim().length ?? 0) < 20 ? _t.verificationExplanationRequired : null),
+        Text(_t.verificationDisclaimer, style: TextStyle(fontSize: 12)),
       ],
       const SizedBox(height: 22),
       Row(children: [
-        if (_step > 0) Expanded(child: OutlinedButton(onPressed: _busy ? null : () => setState(() => _step--), child: const Text('قبلی'))),
+        if (_step > 0) Expanded(child: OutlinedButton(onPressed: _busy ? null : () => setState(() => _step--), child: Text(_t.verificationPrevious))),
         if (_step > 0) const SizedBox(width: 10),
         Expanded(child: FilledButton(
           onPressed: _busy ? null : () {
@@ -131,7 +176,7 @@ class _VerificationRequestScreenState extends State<VerificationRequestScreen> {
               setState(() => _step++);
             } else { _submit(); }
           },
-          child: _busy ? const SizedBox(height: 18,width: 18,child: CircularProgressIndicator(strokeWidth: 2)) : Text(_step == 2 ? 'ارسال برای بررسی' : 'ادامه'),
+          child: _busy ? const SizedBox(height: 18,width: 18,child: CircularProgressIndicator(strokeWidth: 2)) : Text(_step == 2 ? _t.verificationSubmitForReview : _t.verificationContinue),
         )),
       ]),
     ])),
