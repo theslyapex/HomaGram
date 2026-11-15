@@ -126,10 +126,31 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       if (avatarPath != null) {
         try { avatar = await client.storage.from('avatars').createSignedUrl(avatarPath, 3600); } catch (_) {}
       }
+      final authorAvatarUrls = <String, String>{};
+      final authorIds = <String>{
+        ...postRows.map((row) => row['author_id'] as String),
+        ...repostRows.map((row) => row['author_id'] as String),
+      };
+      try {
+        final authorProfiles = authorIds.isEmpty
+            ? <dynamic>[]
+            : await client.from('profiles').select('id,avatar_path').inFilter('id', authorIds.toList());
+        for (final authorProfile in authorProfiles) {
+          final path = authorProfile['avatar_path'] as String?;
+          if (path == null || path.isEmpty) continue;
+          try {
+            authorAvatarUrls[authorProfile['id'] as String] =
+                await client.storage.from('avatars').createSignedUrl(path, 3600);
+          } catch (_) {}
+        }
+      } catch (_) {}
+      if (avatar != null) authorAvatarUrls[widget.userId] = avatar;
+
       final posts = <Map<String, dynamic>>[];
       final repostPostList = <Map<String, dynamic>>[];
       for (final row in postRows) {
         final post = Map<String, dynamic>.from(row);
+        post['author_avatar_url'] = authorAvatarUrls[post['author_id']];
         final path = post['media_path'] as String?;
         if (path != null) {
           try {
@@ -144,6 +165,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       }
       for (final row in repostRows) {
         final post = Map<String, dynamic>.from(row);
+        post['author_avatar_url'] = authorAvatarUrls[post['author_id']];
         final path = post['media_path'] as String?;
         if (path != null) {
           try { post['media_url'] = await client.storage.from('post-media').createSignedUrl(path, 3600); } catch (_) {}
