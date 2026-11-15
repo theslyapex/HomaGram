@@ -42,6 +42,7 @@ class _ChannelsScreenState extends State<ChannelsScreen> {
   }
 
   void _onSearchChanged(String value) {
+    setState(() {});
     _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 350), () => _load());
   }
