@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:gal/gal.dart';
+import 'package:screen_protector/screen_protector.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -216,6 +218,7 @@ class _ChatScreenState extends State<ChatScreen> {
       builder: (context) => SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           ListTile(leading: const Icon(Icons.image_outlined), title: const Text('انتخاب تصویر'), onTap: () => Navigator.pop(context, 'image')),
+          ListTile(leading: const Icon(Icons.timer_outlined), title: const Text('ارسال تصویر زمان‌دار (۱۰ ثانیه)'), subtitle: const Text('فقط یک‌بار قابل مشاهده است'), onTap: () => Navigator.pop(context, 'timed_image')),
           ListTile(leading: const Icon(Icons.video_library_outlined), title: const Text('انتخاب ویدئو'), onTap: () => Navigator.pop(context, 'video')),
           ListTile(leading: const Icon(Icons.attach_file_rounded), title: const Text('انتخاب فایل'), onTap: () => Navigator.pop(context, 'file')),
         ]),
@@ -260,7 +263,7 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
     try {
-      final XFile? file = choice == 'image'
+      final XFile? file = (choice == 'image' || choice == 'timed_image')
           ? await _picker.pickImage(source: ImageSource.gallery, imageQuality: 88)
           : await _picker.pickVideo(source: ImageSource.gallery, maxDuration: const Duration(minutes: 5));
       if (file == null || !mounted) return;
@@ -279,6 +282,7 @@ class _ChatScreenState extends State<ChatScreen> {
         bytes: bytes,
         fileName: file.name,
         mimeType: mime,
+        viewOnce: choice == 'timed_image',
       );
       await _refresh();
     } catch (_) {
@@ -1807,9 +1811,136 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _openTimedImage(Map<String, dynamic> attachment) async {
+    var protectionEnabled = false;
+    try {
+      await ScreenProtector.preventScreenshotOn();
+      await ScreenProtector.protectDataLeakageOn();
+      protectionEnabled = true;
+      final response = await Supabase.instance.client.rpc(
+        'open_timed_image',
+        params: {'p_attachment_id': attachment['id']},
+      );
+      final row = (response as List).cast<Map<String, dynamic>>().first;
+      final path = row['storage_path'] as String;
+      final expiresAt = DateTime.parse(row['expires_at'] as String).toUtc();
+      final bytes = await Supabase.instance.client.storage.from('chat-media').download(path);
+      if (!mounted) return;
+      final remaining = expiresAt.difference(DateTime.now().toUtc());
+      if (remaining <= Duration.zero) {
+        throw StateError('Timed image expired before it could be displayed.');
+      }
+      Timer? countdown;
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) {
+          return StatefulBuilder(builder: (context, updateDialog) {
+            var seconds = remaining.inSeconds + (remaining.inMilliseconds % 1000 == 0 ? 0 : 1);
+            countdown ??= Timer.periodic(const Duration(milliseconds: 200), (timer) {
+              final left = expiresAt.difference(DateTime.now().toUtc());
+              if (left <= Duration.zero) {
+                timer.cancel();
+                if (Navigator.of(dialogContext).canPop()) Navigator.of(dialogContext).pop();
+              } else {
+                updateDialog(() {});
+              }
+            });
+            seconds = expiresAt.difference(DateTime.now().toUtc()).inSeconds +
+                (expiresAt.difference(DateTime.now().toUtc()).inMilliseconds % 1000 == 0 ? 0 : 1);
+            return PopScope(
+              canPop: false,
+              child: Dialog.fullscreen(
+                backgroundColor: Colors.black,
+                child: SafeArea(
+                  child: Stack(
+                    children: [
+                      Center(child: Image.memory(
+                        bytes, fit: BoxFit.contain,
+                        gaplessPlayback: false,
+                        errorBuilder: (_, __, ___) => const Text('تصویر قابل نمایش نیست.', style: TextStyle(color: Colors.white)),
+                      )),
+                      Positioned(
+                        top: 12, right: 16,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(22)),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            child: Text('زمان باقی‌مانده: $seconds ثانیه',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 4, left: 4,
+                        child: IconButton(
+                          onPressed: () => Navigator.of(dialogContext).pop(),
+                          icon: const Icon(Icons.close_rounded, color: Colors.white),
+                          tooltip: 'بستن تصویر',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          });
+        },
+      );
+      countdown?.cancel();
+    } catch (error) {
+      debugPrint('Open timed image failed: $error');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تصویر زمان‌دار قابل مشاهده نیست یا قبلاً باز شده است.')),
+        );
+      }
+    } finally {
+      if (protectionEnabled) {
+        try {
+          await ScreenProtector.protectDataLeakageOff();
+          await ScreenProtector.preventScreenshotOff();
+        } catch (error) {
+          debugPrint('Disable screen protection failed: $error');
+        }
+      }
+    }
+  }
+
   Widget _attachmentPreview(Map<String, dynamic> attachment) {
     final url = attachment['signed_url'] as String?;
     final mime = attachment['mime_type'] as String? ?? '';
+    if (attachment['is_view_once'] == true) {
+      return Container(
+        width: 230, padding: const EdgeInsets.all(14),
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        ),
+        child: Row(children: [
+          const Icon(Icons.timer_rounded, size: 28),
+          const SizedBox(width: 10),
+          const Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('تصویر زمان‌دار', style: TextStyle(fontWeight: FontWeight.w800)),
+              SizedBox(height: 3),
+              Text('فقط یک‌بار · نمایش ۱۰ ثانیه‌ای', style: TextStyle(fontSize: 10)),
+            ],
+          )),
+          if (attachment['uploader_id'] == Supabase.instance.client.auth.currentUser?.id)
+            const Icon(Icons.lock_outline_rounded)
+          else
+            IconButton(
+              tooltip: 'مشاهده تصویر',
+              onPressed: () => _openTimedImage(attachment),
+              icon: const Icon(Icons.visibility_rounded),
+            ),
+        ]),
+      );
+    }
     if (url == null) return const Padding(padding: EdgeInsets.all(8), child: Text('رسانه در دسترس نیست.'));
     if (mime.startsWith('image/')) {
       return Padding(
