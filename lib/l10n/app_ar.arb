@@ -2231,5 +2231,7 @@
   "quickBugReportCaptionDefault": "تم إرسال بلاغ عن مشكلة باستخدام ميزة الإبلاغ بهز الهاتف.",
   "quickBugReportCaptionDetails": "بلاغ عن مشكلة: {details}",
   "quickBugReportSubmitFailed": "تعذر إرسال البلاغ عن المشكلة. يُرجى المحاولة مرة أخرى.",
-  "groupInviteInvalid": "رابط دعوة المجموعة غير صالح أو انتهت صلاحيته."
+  "groupInviteInvalid": "رابط دعوة المجموعة غير صالح أو انتهت صلاحيته.",
+  "homagramLogoSemanticLabel": "شعار HomaGram",
+  "verifiedAccount": "حساب موثّق"
 }
