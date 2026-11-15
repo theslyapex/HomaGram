@@ -100,7 +100,7 @@ class StoryHighlightService {
     final storiesById = <String, Map<String, dynamic>>{};
     for (final row in storyRows) {
       final story = Map<String, dynamic>.from(row);
-      story['display_name'] = profile?['display_name'] ?? 'کاربر HomaGram';
+      story['display_name'] = profile?['display_name'];
       story['username'] = profile?['username'] ?? 'user';
       story['avatar_path'] = avatarPath;
       story['avatar_url'] = avatarUrl;
@@ -137,7 +137,7 @@ class StoryHighlightService {
     final cleanTitle = title.trim();
     final uniqueIds = storyIds.toSet().toList();
     if (cleanTitle.isEmpty || cleanTitle.length > 30 || uniqueIds.isEmpty || uniqueIds.length > 100) {
-      throw ArgumentError('عنوان باید ۱ تا ۳۰ نویسه و تعداد استوری‌ها ۱ تا ۱۰۰ باشد.');
+      throw ArgumentError('Invalid story highlight title or story selection.');
     }
     final ownerId = _client.auth.currentUser!.id;
     final last = await _client.from('story_highlights')
