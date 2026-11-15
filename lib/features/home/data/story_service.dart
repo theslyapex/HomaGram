@@ -346,7 +346,7 @@ class StoryService {
     return rows.map((row) {
       final story = Map<String, dynamic>.from(row);
       final profile = byId[story['author_id']] ?? <String, dynamic>{};
-      story['display_name'] = profile['display_name'] ?? 'کاربر HomaGram';
+      story['display_name'] = profile['display_name'] ?? '';
       story['username'] = profile['username'] ?? 'user';
       story['avatar_path'] = profile['avatar_path'];
       story['avatar_url'] = avatarUrls[profile['avatar_path']];
@@ -688,7 +688,7 @@ class StoryService {
       final profile = byId[id] ?? <String, dynamic>{};
       return <String, dynamic>{
         'username': profile['username'] ?? 'user',
-        'display_name': profile['display_name'] ?? 'کاربر',
+        'display_name': profile['display_name'] ?? '',
         'viewed_at': r['viewed_at'],
         'duration_seconds': (r['duration_seconds'] as num?)?.toInt() ?? 0,
         'reaction': reactionByUser[id],
