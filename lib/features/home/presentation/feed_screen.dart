@@ -467,49 +467,95 @@ class _PostCardState extends State<PostCard> {
 
   Future<void> _reportPost() async {
     const reasons = <String, String>{
-      'spam': 'هرزنامه یا تبلیغات',
-      'harassment': 'آزار و اذیت',
-      'misinformation': 'اطلاعات نادرست',
-      'inappropriate': 'محتوای نامناسب',
+      'harassment': 'توهین، آزار و تهدید',
+      'copied_content': 'محتوای کپی‌شده',
+      'copyright_claim': 'استفاده از اثر متعلق به شخص دیگر',
+      'violence': 'محتوای خشونت‌آمیز',
+      'inappropriate': 'محتوای غیراخلاقی یا نامناسب',
+      'political_insult': 'محتوای سیاسیِ توهین‌آمیز',
+      'illegal_content': 'محتوای مغایر با قوانین',
+      'spam': 'هرزنامه یا تبلیغات مزاحم',
       'other': 'سایر موارد',
     };
     final detailsController = TextEditingController();
+    final rightsHolderController = TextEditingController();
     String? selectedReason;
+    String? rightsOwner;
     final report = await showModalBottomSheet<Map<String, String>>(
       context: context, isScrollControlled: true, showDragHandle: true,
       builder: (ctx) => StatefulBuilder(builder: (ctx, setSheetState) => Padding(
         padding: EdgeInsets.fromLTRB(18, 8, 18, 18 + MediaQuery.viewInsetsOf(ctx).bottom),
-        child: SafeArea(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const Text('گزارش این پست', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 8),
-          const Text('علت گزارش را انتخاب کنید و در صورت نیاز توضیح بیشتری بنویسید.'),
-          const SizedBox(height: 12),
-          ...reasons.entries.map((e) => RadioListTile<String>(
-            value: e.key, groupValue: selectedReason, dense: true,
-            title: Text(e.value),
-            onChanged: (value) => setSheetState(() => selectedReason = value),
-          )),
-          const SizedBox(height: 8),
-          TextField(
-            controller: detailsController, maxLength: 1000, minLines: 2, maxLines: 4,
-            decoration: const InputDecoration(
-              labelText: 'توضیحات تکمیلی (اختیاری)',
-              hintText: 'شرح کوتاهی از دلیل گزارش بنویسید',
-              border: OutlineInputBorder(),
+        child: SafeArea(child: SingleChildScrollView(child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('گزارش این محتوا', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 7),
+            const Text('موردی را که با قوانین هماگرام مغایرت دارد انتخاب کنید. گزارش شما محرمانه بررسی می‌شود.',
+              style: TextStyle(fontSize: 12, height: 1.7)),
+            const SizedBox(height: 10),
+            ...reasons.entries.map((e) => RadioListTile<String>(
+              value: e.key, groupValue: selectedReason, dense: true,
+              contentPadding: EdgeInsets.zero,
+              title: Text(e.value, style: const TextStyle(fontSize: 13)),
+              onChanged: (value) => setSheetState(() {
+                selectedReason = value;
+                if (value != 'copyright_claim') rightsOwner = null;
+              }),
+            )),
+            if (selectedReason == 'copyright_claim') ...[
+              const Divider(height: 18),
+              const Text('اثر متعلق به چه کسی است؟',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+              RadioListTile<String>(
+                value: 'self', groupValue: rightsOwner, dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: const Text('خودم صاحب اثر هستم'),
+                onChanged: (v) => setSheetState(() => rightsOwner = v),
+              ),
+              RadioListTile<String>(
+                value: 'third_party', groupValue: rightsOwner, dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: const Text('اثر متعلق به شخص دیگری است'),
+                onChanged: (v) => setSheetState(() => rightsOwner = v),
+              ),
+              if (rightsOwner == 'third_party')
+                TextField(
+                  controller: rightsHolderController,
+                  maxLength: 160,
+                  decoration: const InputDecoration(
+                    labelText: 'نام صاحب اثر (در صورت اطلاع)',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+            ],
+            const SizedBox(height: 8),
+            TextField(
+              controller: detailsController, maxLength: 1000, minLines: 2, maxLines: 4,
+              decoration: const InputDecoration(
+                labelText: 'توضیحات یا مستندات تکمیلی (اختیاری)',
+                hintText: 'در صورت نیاز، توضیح کوتاهی ارائه کنید.',
+                border: OutlineInputBorder(),
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-          FilledButton(
-            onPressed: selectedReason == null ? null : () => Navigator.pop(ctx, {
-              'reason': selectedReason!,
-              'details': detailsController.text.trim(),
-            }),
-            child: const Text('ارسال گزارش'),
-          ),
-        ])),
+            const SizedBox(height: 10),
+            FilledButton(
+              onPressed: selectedReason == null ||
+                  (selectedReason == 'copyright_claim' && rightsOwner == null)
+                ? null : () => Navigator.pop(ctx, {
+                  'reason': selectedReason!,
+                  'details': detailsController.text.trim(),
+                  'rights_owner': rightsOwner ?? '',
+                  'rights_holder_name': rightsHolderController.text.trim(),
+                }),
+              child: const Text('ارسال گزارش'),
+            ),
+          ],
+        ))),
       )),
     );
     detailsController.dispose();
+    rightsHolderController.dispose();
     if (report == null) return;
     try {
       await AuthService.client.from('post_reports').insert({
@@ -517,12 +563,14 @@ class _PostCardState extends State<PostCard> {
         'reporter_id': _userId,
         'reason': report['reason'],
         'details': (report['details'] ?? '').isEmpty ? null : report['details'],
+        'rights_owner': (report['rights_owner'] ?? '').isEmpty ? null : report['rights_owner'],
+        'rights_holder_name': (report['rights_holder_name'] ?? '').isEmpty ? null : report['rights_holder_name'],
       });
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('گزارش شما ثبت شد و برای بررسی مدیران ارسال شد.')));
+        const SnackBar(content: Text('گزارش شما ثبت شد و برای بررسی تیم هماگرام ارسال شد.')));
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('این پست قبلاً گزارش شده یا ثبت گزارش ممکن نیست.')));
+        const SnackBar(content: Text('این محتوا قبلاً گزارش شده یا ثبت گزارش ممکن نیست.')));
     }
   }
 
