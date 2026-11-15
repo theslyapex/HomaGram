@@ -48,6 +48,60 @@ class _MessagingScreenState extends State<MessagingScreen> {
     }
   }
 
+  Future<void> _joinGroupByInvite() async {
+    final controller = TextEditingController();
+    final token = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('پیوستن به گروه'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 64,
+          textDirection: TextDirection.ltr,
+          decoration: const InputDecoration(
+            labelText: 'کد دعوت گروه',
+            hintText: 'کد ۶۴ رقمی را وارد کنید',
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
+            child: const Text('پیوستن'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (!mounted || token == null) return;
+    if (!RegExp(r'^[0-9a-fA-F]{64}$').hasMatch(token)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('کد دعوت معتبر نیست.')),
+      );
+      return;
+    }
+    try {
+      final conversationId = await MessagingService.joinGroupByInvite(token);
+      final row = await Supabase.instance.client
+          .from('conversations')
+          .select('title')
+          .eq('id', conversationId)
+          .single();
+      final title = row['title'] as String? ?? 'گروه';
+      await _load();
+      if (!mounted) return;
+      Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => ChatScreen(conversationId: conversationId, title: title),
+      ));
+    } catch (error) {
+      debugPrint('Join group by invite failed: $error');
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('پیوستن انجام نشد؛ کد ممکن است منقضی، لغوشده یا تکمیل‌شده باشد.')),
+      );
+    }
+  }
+
   Future<void> _newGroup() async {
     final id = await showModalBottomSheet<String>(
       context: context,
@@ -130,6 +184,11 @@ class _MessagingScreenState extends State<MessagingScreen> {
               builder: (_) => const ChannelsScreen(),
             )),
             icon: const Icon(Icons.campaign_outlined),
+          )),
+          HomaGramSpringPress(child: IconButton(
+            tooltip: 'پیوستن با کد دعوت گروه',
+            onPressed: _joinGroupByInvite,
+            icon: const Icon(Icons.key_rounded),
           )),
           HomaGramSpringPress(child: IconButton(
             tooltip: 'ساخت گروه',
