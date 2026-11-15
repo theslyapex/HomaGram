@@ -1643,7 +1643,12 @@ class _ChatScreenState extends State<ChatScreen> {
                          (myRole == 'admin' && role == 'member' &&
                           (!isGroup || info['admins_can_manage_members'] == true)));
                     return ListTile(
-                      leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
+                      leading: CircleAvatar(
+                        backgroundImage: member['avatar_url'] is String
+                            ? NetworkImage(member['avatar_url'] as String) : null,
+                        child: member['avatar_url'] is String
+                            ? null : const Icon(Icons.person_outline_rounded),
+                      ),
                       title: Text(member['display_name'] as String? ?? ''),
                       subtitle: Text('@${member['username']} • ${role == 'owner' ? _t.owner : role == 'admin' ? _t.admin : _t.member}'),
                       trailing: canAct
@@ -1755,6 +1760,76 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                 ),
+              if (!isGroup && !isChannel && _peerUserId != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                  child: Row(children: [
+                    Expanded(child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: sheetContext,
+                          builder: (dialogContext) => AlertDialog(
+                            title: Text(_t.adminCommunityBlock),
+                            content: const Text('این کاربر دیگر نمی‌تواند با شما گفتگو کند.'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(_t.cancel)),
+                              FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: Text(_t.adminCommunityBlock)),
+                            ],
+                          ),
+                        );
+                        if (confirmed != true) return;
+                        try {
+                          await Supabase.instance.client.from('user_blocks').insert({
+                            'blocker_id': _myId, 'blocked_id': _peerUserId,
+                          });
+                          if (sheetContext.mounted) Navigator.pop(sheetContext);
+                          if (mounted) Navigator.pop(context);
+                        } catch (error) {
+                          debugPrint('Block chat peer failed: $error');
+                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(_t.memberActionFailed)),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.block_rounded),
+                      label: Text(_t.adminCommunityBlock),
+                    )),
+                    const SizedBox(width: 8),
+                    Expanded(child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(foregroundColor: Theme.of(sheetContext).colorScheme.error),
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: sheetContext,
+                          builder: (dialogContext) => AlertDialog(
+                            title: Text(_t.delete),
+                            content: const Text('این گفتگو فقط از فهرست گفتگوهای شما حذف می‌شود.'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(_t.cancel)),
+                              FilledButton(
+                                style: FilledButton.styleFrom(backgroundColor: Theme.of(dialogContext).colorScheme.error),
+                                onPressed: () => Navigator.pop(dialogContext, true), child: Text(_t.delete),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirmed != true) return;
+                        try {
+                          await MessagingService.leaveConversation(widget.conversationId);
+                          if (sheetContext.mounted) Navigator.pop(sheetContext);
+                          if (mounted) Navigator.pop(context);
+                        } catch (error) {
+                          debugPrint('Delete direct conversation failed: $error');
+                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(_t.deleteCommunityFailed)),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      label: Text(_t.delete),
+                    )),
+                  ]),
+                ),
+              ),
               SafeArea(
                 top: false,
                 child: Padding(
