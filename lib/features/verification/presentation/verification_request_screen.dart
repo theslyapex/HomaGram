@@ -148,9 +148,12 @@ class _VerificationRequestScreenState extends State<VerificationRequestScreen> {
         const SizedBox(height: 14),
         TextFormField(controller: _name, decoration: InputDecoration(labelText: _type == 'individual' ? _t.verificationFullName : _t.verificationOrganizationName),
           validator: (v) => (v?.trim().length ?? 0) < 3 ? _t.verificationRequired : null),
+        const SizedBox(height: 14),
         TextFormField(controller: _phone, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: _t.verificationPhoneOptional)),
         if (_type == 'organization') ...[
+          const SizedBox(height: 14),
           TextFormField(controller: _registration, decoration: InputDecoration(labelText: _t.verificationRegistrationNumber)),
+          const SizedBox(height: 14),
           TextFormField(controller: _nationalId, decoration: InputDecoration(labelText: _t.verificationNationalId)),
         ],
       ],
