@@ -2,6 +2,7 @@ import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:video_player/video_player.dart';
@@ -160,11 +161,26 @@ class StoryInteractiveText extends StatelessWidget {
 
 
 
-String? _storyOverlayFont(String? value) {
+TextStyle _storyOverlayFontStyle(
+  String? value, {
+  double fontSize = 24,
+  FontWeight fontWeight = FontWeight.w800,
+  double height = 1.35,
+}) {
+  final base = TextStyle(fontSize: fontSize, fontWeight: fontWeight, height: height);
   switch (value) {
-    case 'serif': return 'serif';
-    case 'mono': return 'monospace';
-    default: return null;
+    case 'vazirmatn':
+      return GoogleFonts.vazirmatn(textStyle: base);
+    case 'cairo':
+      return GoogleFonts.cairo(textStyle: base);
+    case 'amiri':
+      return GoogleFonts.amiri(textStyle: base);
+    case 'markazi':
+      return GoogleFonts.markaziText(textStyle: base);
+    case 'lalezar':
+      return GoogleFonts.lalezar(textStyle: base.copyWith(fontWeight: FontWeight.w400));
+    default:
+      return base.copyWith(fontFamily: 'Estedad');
   }
 }
 
@@ -612,10 +628,10 @@ class _StoryOverlayTextView extends StatelessWidget {
                 child: StoryInteractiveText(
                   text: text, textAlign: TextAlign.center, maxLines: 6,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: _storyOverlayFontStyle(
+                    story['overlay_font'] as String?,
+                  ).copyWith(
                     color: storyOverlayColor(story['overlay_color'] as String?),
-                    fontSize: 24, fontFamily: _storyOverlayFont(story['overlay_font'] as String?),
-                    height: 1.35, fontWeight: FontWeight.w800,
                     shadows: const [Shadow(color: Colors.black54, blurRadius: 8)],
                   ),
                 ),
@@ -1822,10 +1838,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                           child: Text(
                             _overlayText.text, textAlign: TextAlign.center,
                             maxLines: 5, overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: storyOverlayColor(_overlayColor), fontSize: 24,
-                              fontFamily: _storyOverlayFont(_overlayFont), height: 1.35,
-                              fontWeight: FontWeight.w800,
+                            style: _storyOverlayFontStyle(_overlayFont).copyWith(
+                              color: storyOverlayColor(_overlayColor),
                               shadows: const [Shadow(color: Colors.black54, blurRadius: 8)],
                             ),
                           ),
@@ -2192,12 +2206,17 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           const SizedBox(height: 12),
           Text('قلم متن', style: Theme.of(context).textTheme.labelMedium),
           const SizedBox(height: 7),
-          Wrap(spacing: 8, children: [
-            ('estedad', 'پیش‌فرض'),
-            ('serif', 'کلاسیک'),
-            ('mono', 'فنی'),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            ('estedad', 'استعداد'),
+            ('vazirmatn', 'وزیرمتن'),
+            ('cairo', 'کایرو'),
+            ('amiri', 'امیری'),
+            ('markazi', 'مرکزی'),
+            ('lalezar', 'لاله‌زار'),
           ].map((item) => ChoiceChip(
-            label: Text(item.$2, style: TextStyle(fontFamily: _storyOverlayFont(item.$1))),
+            label: Text(item.$2, style: _storyOverlayFontStyle(
+              item.$1, fontSize: 13, fontWeight: FontWeight.w700, height: 1.1,
+            )),
             selected: _overlayFont == item.$1,
             onSelected: _busy ? null : (_) => setState(() => _overlayFont = item.$1),
           )).toList()),
