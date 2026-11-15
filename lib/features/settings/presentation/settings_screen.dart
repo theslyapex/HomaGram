@@ -67,7 +67,7 @@ class SettingsScreen extends StatelessWidget {
       _SettingEntry(Icons.person_remove_alt_1_rounded, _t(context).deleteAccountRequest, _t(context).submitFormalSupportRequest,
         () => _requestAccountDeletion(context)),
       _SettingEntry(Icons.folder_shared_outlined, _t(context).dataAndAccountRequests, _t(context).dataCopyOrDeletion,
-        () => _open(context, _t(context).dataAndAccountRequests, const [
+        () => _open(context, _t(context).dataAndAccountRequests, [
           _PolicySection('دسترسی و دریافت نسخه', 'برای درخواست نسخه‌ای از اطلاعات مرتبط با حساب، از گفت‌وگوی پشتیبانی داخل برنامه پیام دهید. درخواست باید از همان حساب ثبت شود تا امکان بررسی مالکیت حساب فراهم باشد.'),
           _PolicySection('اصلاح اطلاعات', 'نام نمایشی، نام کاربری و اطلاعاتی را که در بخش ویرایش نمایه قابل تغییر است، از همان بخش اصلاح کنید. برای داده‌هایی که امکان ویرایش مستقیم ندارند، درخواست خود را به پشتیبانی ارسال کنید.'),
           _PolicySection(_t(context).deleteAccountRequest, 'برای ثبت درخواست حذف حساب، از گفت‌وگوی پشتیبانی داخل برنامه استفاده کنید. پیش از اجرای حذف، پیامدهای آن، مواردی که ممکن است طبق قانون یا برای رسیدگی به گزارش‌ها و اختلاف‌ها نگهداری شوند، و وضعیت محتوای منتشرشده باید به شما توضیح داده شود. این صفحه به‌تنهایی حساب را حذف نمی‌کند.'),
