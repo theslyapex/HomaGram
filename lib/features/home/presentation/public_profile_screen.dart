@@ -12,6 +12,7 @@ import 'story_highlights.dart';
 import 'feed_screen.dart' show PostCard;
 import 'reels_screen.dart';
 import '../../../core/utils/persian_date.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class PublicProfileScreen extends StatefulWidget {
   const PublicProfileScreen({required this.userId, super.key});
@@ -22,6 +23,7 @@ class PublicProfileScreen extends StatefulWidget {
 }
 
 class _PublicProfileScreenState extends State<PublicProfileScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   bool _loading = true;
   bool _following = false;
   bool _busy = false;
@@ -168,7 +170,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         _loading = false;
       });
     } catch (_) {
-      if (mounted) setState(() { _loading = false; _error = 'پروفایل دریافت نشد یا دسترسی به آن ممکن نیست.'; });
+      if (mounted) setState(() { _loading = false; _error = _t.publicProfileLoadFailed; });
     }
   }
 
@@ -196,7 +198,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       }
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('عملیات دنبال‌کردن انجام نشد. دوباره تلاش کنید.')),
+        SnackBar(content: Text(_t.followActionFailed)),
       );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -212,10 +214,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             : _repostPosts;
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isMe ? 'پروفایل من' : 'پروفایل کاربر'),
+        title: Text(_isMe ? _t.myProfile : _t.userProfile),
         actions: [
           if (_isMe) HomaGramSpringPress(child: IconButton(
-            tooltip: 'ویرایش پروفایل و تنظیمات حساب',
+            tooltip: _t.editProfileSettings,
             onPressed: _editProfile,
             icon: const Icon(Icons.edit_outlined),
           )),
@@ -229,10 +231,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 _header(),
                 const SizedBox(height: 18),
                 Row(children: [
-                  _stat('پست‌ها', _posts.where((p) => p['is_reel'] != true).length),
-                  _stat('ریلز', _posts.where((p) => p['is_reel'] == true).length),
-                  _stat('دنبال‌کننده', _followers, onTap: () => _showConnections(true)),
-                  _stat('دنبال‌شونده', _followingCount, onTap: () => _showConnections(false)),
+                  _stat(_t.posts, _posts.where((p) => p['is_reel'] != true).length),
+                  _stat(_t.reels, _posts.where((p) => p['is_reel'] == true).length),
+                  _stat(_t.follower, _followers, onTap: () => _showConnections(true)),
+                  _stat(_t.following, _followingCount, onTap: () => _showConnections(false)),
                 ]),
                 const SizedBox(height: 14),
                 StoryHighlightsStrip(ownerId: widget.userId, isOwner: _isMe),
@@ -241,10 +243,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                   Card(
                     child: ListTile(
                       leading: const Icon(Icons.visibility_outlined),
-                      title: const Text('بازدیدکنندگان پروفایل'),
+                      title: Text(_t.profileVisitors),
                       subtitle: Text(_visitorsEnabled
-                          ? '$_visitorCount بازدیدکننده ثبت‌شده'
-                          : 'نمایش بازدیدکنندگان در تنظیمات حریم خصوصی غیرفعال است.'),
+                          ? _t.profileVisitorCount(_visitorCount)
+                          : _t.profileVisitorsDisabled),
                       trailing: const Icon(Icons.chevron_left_rounded),
                       onTap: _visitorsEnabled ? _showVisitors : null,
                     ),
@@ -252,18 +254,18 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 ],
                 const SizedBox(height: 20),
                 Row(children: [
-                  Expanded(child: _sectionButton(0, Icons.grid_on_rounded, 'پست‌ها')),
-                  Expanded(child: _sectionButton(1, Icons.play_circle_outline_rounded, 'ریلز')),
-                  Expanded(child: _sectionButton(2, Icons.repeat_rounded, 'بازنشرها ($_reposts)')),
+                  Expanded(child: _sectionButton(0, Icons.grid_on_rounded, _t.posts)),
+                  Expanded(child: _sectionButton(1, Icons.play_circle_outline_rounded, _t.reels)),
+                  Expanded(child: _sectionButton(2, Icons.repeat_rounded, _t.repostsCount(_reposts))),
                 ]),
                 const SizedBox(height: 14),
                 if (visiblePosts.isEmpty)
                   Padding(
                     padding: const EdgeInsets.all(30),
                     child: Text(
-                      _section == 0 ? 'هنوز پستی منتشر نشده است.'
-                          : _section == 1 ? 'هنوز ریلزی منتشر نشده است.'
-                          : 'هنوز بازنشری ثبت نشده است.',
+                      _section == 0 ? _t.noPostsYet
+                          : _section == 1 ? _t.noReelsYet
+                          : _t.noRepostsYet,
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Color(0xFF8490A4)),
                     ),
@@ -313,7 +315,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         const SizedBox(height: 13),
         Row(mainAxisSize: MainAxisSize.min, children: [
           Flexible(child: Text(
-            displayName?.isNotEmpty == true ? displayName! : 'کاربر HomaGram',
+            displayName?.isNotEmpty == true ? displayName! : _t.homagramUser,
             maxLines: 1, overflow: TextOverflow.ellipsis,
             style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900),
           )),
@@ -328,7 +330,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           Row(mainAxisSize: MainAxisSize.min, children: [
             const Icon(Icons.cake_outlined, size: 15, color: Color(0xFFB9DDE8)),
             const SizedBox(width: 6),
-            Text('متولد ${persianDate(DateTime.parse(birthDate))}',
+            Text(_t.bornOn,
               style: const TextStyle(color: Color(0xFFD6E8F0), fontSize: 12)),
           ]),
         ],
@@ -342,7 +344,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           SizedBox(width: double.infinity, child: HomaGramSpringPress(child: FilledButton.icon(
             onPressed: _editProfile,
             icon: const Icon(Icons.edit_outlined),
-            label: const Text('ویرایش پروفایل'),
+            label: const Text(_t.editProfile),
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF35BDB6),
               foregroundColor: const Color(0xFF081A2A),
@@ -354,13 +356,13 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
               onPressed: _busy ? null : _toggleFollow,
               child: _busy ? const SizedBox(width: 18, height: 18,
                 child: CircularProgressIndicator(strokeWidth: 2))
-                : Text(_following ? 'دنبال می‌کنید' : 'دنبال کردن'),
+                : Text(_following ? _t.followingAction : _t.follow),
             ))),
             const SizedBox(width: 9),
             Expanded(child: HomaGramSpringPress(child: OutlinedButton.icon(
               onPressed: _openMessage,
               icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-              label: const Text('پیام'),
+              label: const Text(_t.message),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
                 side: const BorderSide(color: Colors.white54),
@@ -372,7 +374,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           child: TextButton.icon(
             onPressed: _shareProfile,
             icon: const Icon(Icons.ios_share_rounded, color: Colors.white70, size: 16),
-            label: const Text('اشتراک‌گذاری پروفایل', style: TextStyle(color: Colors.white70, fontSize: 11)),
+            label: const Text(_t.shareProfile, style: TextStyle(color: Colors.white70, fontSize: 11)),
           ),
         ),
       ]),
@@ -387,20 +389,20 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       Navigator.of(context).push(MaterialPageRoute<void>(
         builder: (_) => ChatScreen(
           conversationId: id,
-          title: name?.isNotEmpty == true ? name! : 'گفت‌وگوی خصوصی',
+          title: name?.isNotEmpty == true ? name! : _t.privateConversation,
         ),
       ));
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('شروع گفت‌وگو ممکن نشد. ممکن است این کاربر دریافت پیام را محدود کرده باشد.')),
+        const SnackBar(content: Text(_t.startConversationFailed)),
       );
     }
   }
 
   Future<void> _shareProfile() async {
     final username = _profile?['username'] as String? ?? 'user';
-    final name = _profile?['display_name'] as String? ?? 'کاربر هماگرام';
-    await SharePlus.instance.share(ShareParams(text: '$name در هماگرام\n@$username'));
+    final name = _profile?['display_name'] as String? ?? _t.homagramUser;
+    await SharePlus.instance.share(ShareParams(text: _t.profileShareText(name, username)));
   }
 
   Widget _profileMediaGrid(List<Map<String, dynamic>> items) => GridView.builder(
@@ -424,7 +426,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
               ? Center(child: Padding(
                   padding: const EdgeInsets.all(8),
                   child: Text(
-                    (post['caption'] as String? ?? '').isEmpty ? 'پست متنی' : post['caption'] as String,
+                    (post['caption'] as String? ?? '').isEmpty ? _t.textPost : post['caption'] as String,
                     maxLines: 5,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
@@ -498,16 +500,16 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           height: MediaQuery.of(sheetContext).size.height * .72,
           child: Column(children: [
             Padding(padding: const EdgeInsets.all(16), child: Text(
-              followers ? 'دنبال‌کنندگان' : 'دنبال‌شوندگان',
+              followers ? _t.followers : _t.followingList,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
             Expanded(child: ordered.isEmpty
-              ? const Center(child: Text('هنوز کاربری در این فهرست نیست.'))
+              ? Center(child: Text(_t.emptyConnections))
               : ListView.builder(itemCount: ordered.length, itemBuilder: (context, index) {
                   final p = ordered[index];
                   return ListTile(
                     leading: const CircleAvatar(child: Icon(Icons.person_outline)),
                     title: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Flexible(child: Text(p['display_name'] as String? ?? 'کاربر HomaGram',
+                      Flexible(child: Text(p['display_name'] as String? ?? _t.homagramUser,
                         maxLines: 1, overflow: TextOverflow.ellipsis)),
                       const SizedBox(width: 4),
                       HomaGramVerifiedBadge(userId: p['id'] as String?),
@@ -525,7 +527,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       );
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('دریافت فهرست کاربران انجام نشد.')));
+        const SnackBar(content: Text(_t.loadConnectionsFailed)));
     }
   }
 
@@ -536,16 +538,16 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       builder: (sheetContext) => SafeArea(child: SizedBox(
         height: MediaQuery.of(sheetContext).size.height * .72,
         child: Column(children: [
-          const Padding(padding: EdgeInsets.all(16), child: Text('بازدیدکنندگان پروفایل',
+          const Padding(padding: EdgeInsets.all(16), child: Text(_t.profileVisitors,
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
           Expanded(child: _visitors.isEmpty
-            ? const Center(child: Text('هنوز بازدیدکننده‌ای ثبت نشده است.'))
+            ? const Center(child: Text(_t.noProfileVisitorsYet))
             : ListView.builder(itemCount: _visitors.length, itemBuilder: (context, index) {
                 final visitor = _visitors[index];
                 final date = DateTime.tryParse(visitor['viewed_at'] as String? ?? '')?.toLocal();
                 return ListTile(
                   leading: const CircleAvatar(child: Icon(Icons.person_outline)),
-                  title: Text(visitor['display_name'] as String? ?? 'کاربر HomaGram'),
+                  title: Text(visitor['display_name'] as String? ?? _t.homagramUser),
                   subtitle: Text('@' + (visitor['username'] as String? ?? 'user') +
                     (date == null ? '' : ' · ' + persianDate(date))),
                   onTap: () {
@@ -569,7 +571,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     }
     Navigator.of(context).push(MaterialPageRoute<void>(
       builder: (_) => Scaffold(
-        appBar: AppBar(title: const Text('نمایش پست')),
+        appBar: AppBar(title: const Text(_t.viewPost)),
         body: ListView(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 28),
           children: [
