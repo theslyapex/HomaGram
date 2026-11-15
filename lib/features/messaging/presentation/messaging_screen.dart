@@ -28,6 +28,8 @@ class _MessagingScreenState extends State<MessagingScreen> {
     'ویدئو' => _t.videoPreview,
     'فایل صوتی' => _t.audioFilePreview,
     'فایل' => _t.filePreview,
+    'مدیر سابق' => _t.formerAdmin,
+    'کانال خصوصی' => _t.privateChannel,
     _ => value,
   };
   List<ConversationPreview> _items = [];
