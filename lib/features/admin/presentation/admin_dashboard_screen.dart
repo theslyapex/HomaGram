@@ -1,6 +1,7 @@
 import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../data/admin_service.dart';
 import 'admin_user_detail_screen.dart';
 import 'admin_verification_screen.dart';
@@ -11,50 +12,56 @@ class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => DefaultTabController(
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    return DefaultTabController(
     length: 8,
     child: Scaffold(
       appBar: AppBar(
-        title: const Text('مدیریت هماگرام', style: TextStyle(fontWeight: FontWeight.w900)),
-        bottom: const TabBar(isScrollable: true, tabs: [
-          Tab(icon: Icon(Icons.dashboard_outlined), text: 'نمای کلی'),
-          Tab(icon: Icon(Icons.people_alt_outlined), text: 'کاربران'),
-          Tab(icon: Icon(Icons.visibility_outlined), text: 'نظارت محتوا'),
-          Tab(icon: Icon(Icons.flag_outlined), text: 'گزارش پست‌ها'),
-          Tab(icon: Icon(Icons.chat_bubble_outline), text: 'گزارش پیام‌ها'),
-          Tab(icon: Icon(Icons.history_rounded), text: 'سوابق مدیران'),
-          Tab(icon: Icon(Icons.verified_user_outlined), text: 'تأیید هویت'),
-          Tab(icon: Icon(Icons.groups_2_outlined), text: 'گروه‌ها و کانال‌ها'),
+        title: Text(t.adminTitle, style: TextStyle(fontWeight: FontWeight.w900)),
+        bottom: TabBar(isScrollable: true, tabs: [
+          Tab(icon: Icon(Icons.dashboard_outlined), text: t.adminOverview),
+          Tab(icon: Icon(Icons.people_alt_outlined), text: t.adminUsers),
+          Tab(icon: Icon(Icons.visibility_outlined), text: t.adminContentModeration),
+          Tab(icon: Icon(Icons.flag_outlined), text: t.adminPostReports),
+          Tab(icon: Icon(Icons.chat_bubble_outline), text: t.adminMessageReports),
+          Tab(icon: Icon(Icons.history_rounded), text: t.adminAuditLogs),
+          Tab(icon: Icon(Icons.verified_user_outlined), text: t.adminVerificationTab),
+          Tab(icon: Icon(Icons.groups_2_outlined), text: t.adminCommunities),
         ]),
       ),
       body: const HomaGramEntrance(child: TabBarView(children: [
         _OverviewTab(), _UsersTab(), AdminModerationScreen(), _ReportsTab(), _MessageReportsTab(), _AuditLogsTab(), _VerificationTab(), AdminCommunitiesScreen(),
       ])),
     ),
-  );
+    );
+  }
 }
 
 class _VerificationTab extends StatelessWidget {
   const _VerificationTab();
   @override
-  Widget build(BuildContext context) => Center(child: Padding(
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    return Center(child: Padding(
     padding: const EdgeInsets.all(24),
     child: Column(mainAxisSize: MainAxisSize.min, children: [
       const Icon(Icons.verified_user_rounded, size: 52, color: Color(0xFF3195F5)),
       const SizedBox(height: 12),
-      const Text('بررسی درخواست‌های نشان تأیید', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17)),
+      Text(t.adminVerificationHeading, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17)),
       const SizedBox(height: 8),
-      const Text('مدارک اشخاص حقیقی و حقوقی را بررسی و وضعیت درخواست را مدیریت کنید.', textAlign: TextAlign.center),
+      Text(t.adminVerificationDescription, textAlign: TextAlign.center),
       const SizedBox(height: 16),
       FilledButton.icon(
         onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
           builder: (_) => const AdminVerificationScreen(),
         )),
         icon: const Icon(Icons.open_in_new_rounded),
-        label: const Text('باز کردن درخواست‌ها'),
+        label: Text(t.adminVerificationOpenRequests),
       ),
     ]),
   ));
+  }
 }
 
 class _OverviewTab extends StatefulWidget {
@@ -64,6 +71,7 @@ class _OverviewTab extends StatefulWidget {
 }
 
 class _OverviewTabState extends State<_OverviewTab> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   AdminDashboardStats? _stats;
   bool _loading = true;
   String? _error;
@@ -79,7 +87,7 @@ class _OverviewTabState extends State<_OverviewTab> {
       setState(() { _stats = result; _loading = false; });
     } catch (_) {
       if (!mounted) return;
-      setState(() { _loading = false; _error = 'دریافت آمار مدیریتی انجام نشد.'; });
+      setState(() { _loading = false; _error = _t.adminStatsLoadFailed; });
     }
   }
 
@@ -89,15 +97,15 @@ class _OverviewTabState extends State<_OverviewTab> {
     if (_error != null) return _RetryView(message: _error!, onRetry: _load);
     final s = _stats!;
     final entries = <_Metric>[
-      _Metric('کاربران', s.users, Icons.people_alt_outlined),
-      _Metric('پست‌ها', s.posts, Icons.grid_view_rounded),
-      _Metric('استوری‌ها', s.stories, Icons.auto_awesome_outlined),
-      _Metric('ریلز', s.reels, Icons.video_collection_outlined),
-      _Metric('پیام‌ها', s.messages, Icons.chat_bubble_outline_rounded),
-      _Metric('گروه‌ها', s.groups, Icons.groups_outlined),
-      _Metric('کانال‌ها', s.channels, Icons.campaign_outlined),
-      _Metric('گزارش‌های در انتظار', s.pendingPostReports, Icons.flag_outlined),
-      _Metric('پشتیبانی باز', s.openSupportConversations, Icons.support_agent_rounded),
+      _Metric(_t.adminMetricUsers, s.users, Icons.people_alt_outlined),
+      _Metric(_t.adminMetricPosts, s.posts, Icons.grid_view_rounded),
+      _Metric(_t.adminMetricStories, s.stories, Icons.auto_awesome_outlined),
+      _Metric(_t.adminMetricReels, s.reels, Icons.video_collection_outlined),
+      _Metric(_t.adminMetricMessages, s.messages, Icons.chat_bubble_outline_rounded),
+      _Metric(_t.adminMetricGroups, s.groups, Icons.groups_outlined),
+      _Metric(_t.adminMetricChannels, s.channels, Icons.campaign_outlined),
+      _Metric(_t.adminMetricPendingReports, s.pendingPostReports, Icons.flag_outlined),
+      _Metric(_t.adminMetricOpenSupport, s.openSupportConversations, Icons.support_agent_rounded),
     ];
     return RefreshIndicator(
       onRefresh: _load,
@@ -117,23 +125,23 @@ class _OverviewTabState extends State<_OverviewTab> {
                   colors: [Color(0xFF14213D), Color(0xFF283E67)],
                 ),
               ),
-              child: const Row(children: [
+              child: Row(children: [
                 Icon(Icons.admin_panel_settings_outlined, color: Color(0xFF55D6D0), size: 34),
                 SizedBox(width: 14),
                 Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('مرکز کنترل هماگرام', style: TextStyle(
+                    Text(_t.adminControlCenter, style: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.w900, fontSize: 17)),
                     SizedBox(height: 5),
-                    Text('مدیریت کاربران، محتوا و گزارش‌ها',
+                    Text(_t.adminControlCenterSubtitle,
                       style: TextStyle(color: Color(0xFFD4E1F5), fontSize: 12)),
                   ],
                 )),
               ]),
             ),
             const SizedBox(height: 18),
-            Text('آمار کلی', style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            Text(_t.adminOverallStats, style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w900)),
             const SizedBox(height: 12),
             Wrap(
@@ -142,8 +150,8 @@ class _OverviewTabState extends State<_OverviewTab> {
                 SizedBox(width: width, child: _MetricCard(item: item))],
             ),
             const SizedBox(height: 18),
-            const Text(
-              'آمار مستقیماً از دیتابیس خوانده می‌شود؛ مجوزها در سمت سرور کنترل می‌شوند.',
+            Text(
+              _t.adminStatsSecurityNote,
               style: TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF7A879B)),
             ),
           ],
@@ -191,6 +199,7 @@ class _UsersTab extends StatefulWidget {
 }
 
 class _UsersTabState extends State<_UsersTab> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final _search = TextEditingController();
   Timer? _timer;
   List<AdminUserSummary> _users = [];
@@ -210,7 +219,7 @@ class _UsersTabState extends State<_UsersTab> {
       setState(() { _users = result; _loading = false; });
     } catch (_) {
       if (!mounted) return;
-      setState(() { _loading = false; _error = 'دریافت فهرست کاربران انجام نشد.'; });
+      setState(() { _loading = false; _error = _t.adminUsersLoadFailed; });
     }
   }
 
@@ -227,10 +236,10 @@ class _UsersTabState extends State<_UsersTab> {
         controller: _search,
         onChanged: _searchChanged,
         decoration: InputDecoration(
-          hintText: 'جست‌وجوی نام یا نام کاربری',
+          hintText: _t.adminSearchUsersHint,
           prefixIcon: const Icon(Icons.search_rounded),
           suffixIcon: HomaGramSpringPress(child: IconButton(
-            tooltip: 'پاک‌کردن',
+            tooltip: _t.adminClearSearch,
             onPressed: () { _search.clear(); _load(); },
             icon: const Icon(Icons.close_rounded),
           )),
@@ -246,7 +255,7 @@ class _UsersTabState extends State<_UsersTab> {
             child: _users.isEmpty
               ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
                   SizedBox(height: 100), Icon(Icons.person_search_outlined, size: 48),
-                  SizedBox(height: 12), Center(child: Text('کاربری پیدا نشد.')),
+                  SizedBox(height: 12), Center(child: Text(_t.adminNoUsersFound)),
                 ])
               : ListView.separated(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -265,10 +274,11 @@ class _UserCard extends StatelessWidget {
   final AdminUserSummary user;
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
     final name = user.displayName?.trim().isNotEmpty == true
       ? user.displayName!.trim()
-      : (user.username?.trim().isNotEmpty == true ? '@${user.username}' : 'کاربر هماگرام');
+      : (user.username?.trim().isNotEmpty == true ? '@${user.username}' : t.adminUnknownUser);
     return Card(
       margin: EdgeInsets.zero,
       child: InkWell(
@@ -299,13 +309,13 @@ class _UserCard extends StatelessWidget {
                 HomaGramVerifiedBadge(userId: user.id, size: 14),
               ]),
               const SizedBox(height: 4),
-              Text('@${user.username ?? 'بدون نام کاربری'}',
+              Text('@${user.username ?? t.adminNoUsername}',
                 textDirection: TextDirection.ltr, maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall),
               const SizedBox(height: 4),
               Text(
-                'شناسه: ${user.id.substring(0, 8)}…  •  عضویت: ${_adminDate(user.createdAt)}',
+                t.adminUserIdJoined(user.id.substring(0, 8), _adminDate(user.createdAt, t)),
                 maxLines: 2, overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.labelSmall),
             ],
@@ -327,6 +337,7 @@ class _ReportsTab extends StatefulWidget {
 }
 
 class _ReportsTabState extends State<_ReportsTab> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   List<AdminPostReport> _reports = [];
   bool _loading = true;
   String? _error;
@@ -344,7 +355,7 @@ class _ReportsTabState extends State<_ReportsTab> {
       setState(() { _reports = result; _loading = false; });
     } catch (_) {
       if (!mounted) return;
-      setState(() { _loading = false; _error = 'دریافت گزارش‌ها انجام نشد.'; });
+      setState(() { _loading = false; _error = _t.adminReportsLoadFailed; });
     }
   }
 
@@ -357,7 +368,7 @@ class _ReportsTabState extends State<_ReportsTab> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ثبت نتیجه بررسی گزارش انجام نشد.')),
+        SnackBar(content: Text(_t.adminReportReviewFailed)),
       );
     } finally {
       if (mounted) setState(() => _workingId = null);
@@ -377,13 +388,13 @@ class _ReportsTabState extends State<_ReportsTab> {
       Padding(
         padding: const EdgeInsets.fromLTRB(14, 10, 14, 2),
         child: Row(children: [
-          Expanded(child: Text('بررسی‌نشده: ${_reports.where((r) => r.status == 'pending').length}',
+          Expanded(child: Text(_t.adminPendingCount(_reports.where((r) => r.status == 'pending').length),
             style: const TextStyle(fontWeight: FontWeight.w800))),
           SegmentedButton<String>(
             segments: const [
-              ButtonSegment(value: 'pending', label: Text('بررسی‌نشده')),
-              ButtonSegment(value: 'reviewed', label: Text('بررسی‌شده')),
-              ButtonSegment(value: 'all', label: Text('همه')),
+              ButtonSegment(value: 'pending', label: Text(_t.adminFilterPending)),
+              ButtonSegment(value: 'reviewed', label: Text(_t.adminFilterReviewed)),
+              ButtonSegment(value: 'all', label: Text(_t.adminFilterAll)),
             ],
             selected: {_filter},
             onSelectionChanged: (value) => setState(() => _filter = value.first),
@@ -396,7 +407,7 @@ class _ReportsTabState extends State<_ReportsTab> {
       child: visibleReports.isEmpty
         ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
             SizedBox(height: 110), Icon(Icons.task_alt_rounded, size: 48, color: Color(0xFF20A77A)),
-            SizedBox(height: 12), Center(child: Text('گزارش ثبت‌شده‌ای وجود ندارد.')),
+            SizedBox(height: 12), Center(child: Text(_t.adminNoPostReports)),
           ])
         : ListView.separated(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -412,44 +423,44 @@ class _ReportsTabState extends State<_ReportsTab> {
                   padding: const EdgeInsets.all(15),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(children: [
-                      Expanded(child: Text(_reasonLabel(report.reason),
+                      Expanded(child: Text(_reasonLabel(report.reason, _t),
                         style: const TextStyle(fontWeight: FontWeight.w900))),
                       _ReportStatus(status: report.status),
                     ]),
                     const SizedBox(height: 9),
                     Text(report.postCaption?.trim().isNotEmpty == true
-                      ? report.postCaption!.trim() : 'پست بدون توضیح',
+                      ? report.postCaption!.trim()  : _t.adminPostWithoutCaption,
                       maxLines: 3, overflow: TextOverflow.ellipsis),
                     if (report.details?.trim().isNotEmpty == true) ...[
                       const SizedBox(height: 8),
-                      Text('توضیح گزارش: ${report.details}',
+                      Text(_t.adminReportDetails(report.details!),
                         style: Theme.of(context).textTheme.bodySmall),
                     ],
                     if (report.rightsOwner != null) ...[
                       const SizedBox(height: 7),
-                      Text('مالکیت اثر: ${report.rightsOwner == 'self' ? 'گزارش‌دهنده مدعی مالکیت اثر است' : 'اثر متعلق به شخص دیگری است'}',
+                      Text(_t.adminRightsOwner(report.rightsOwner == 'self' ? _t.adminReporterClaimsOwnership : _t.adminThirdPartyOwnsWork),
                         style: Theme.of(context).textTheme.bodySmall),
                     ],
                     if (report.rightsHolderName?.trim().isNotEmpty == true) ...[
                       const SizedBox(height: 5),
-                      Text('نام صاحب اثر: ${report.rightsHolderName}',
+                      Text(_t.adminRightsHolderName(report.rightsHolderName!),
                         style: Theme.of(context).textTheme.bodySmall),
                     ],
                     if (report.authorUsername?.isNotEmpty == true || report.postAuthorId != null) ...[
                       const SizedBox(height: 5),
-                      Text('صاحب محتوا: ${report.authorDisplayName ?? 'کاربر'}  •  @${report.authorUsername ?? 'نامشخص'}',
+                      Text(_t.adminContentOwner(report.authorDisplayName ?? _t.storyUserFallback, report.authorUsername ?? _t.adminUnknown),
                         style: Theme.of(context).textTheme.bodySmall),
                     ],
                     const SizedBox(height: 8),
                     Text(
-                      'شناسه پست: ${report.postId.substring(0, 8)}…  •  ${_adminDate(report.createdAt)}',
+                      _t.adminPostIdDate(report.postId.substring(0, 8), _adminDate(report.createdAt, _t)),
                       style: Theme.of(context).textTheme.labelSmall),
                     const SizedBox(height: 5),
-                    Text('شناسه گزارش‌دهنده: ${report.reporterId}',
+                    Text(_t.adminReporterId(report.reporterId),
                       style: Theme.of(context).textTheme.labelSmall),
                     if (report.reviewNote?.isNotEmpty == true) ...[
                       const SizedBox(height: 8),
-                      Text('یادداشت مدیر: ${report.reviewNote}',
+                      Text(_t.adminManagerNote(report.reviewNote!),
                         style: Theme.of(context).textTheme.bodySmall),
                     ],
                     if (pending) ...[
@@ -458,7 +469,7 @@ class _ReportsTabState extends State<_ReportsTab> {
                         HomaGramSpringPress(child: OutlinedButton.icon(
                           onPressed: _workingId == report.id ? null : () => _review(report, 'dismissed'),
                           icon: const Icon(Icons.close_rounded, size: 18),
-                          label: const Text('رد گزارش'),
+                          label: Text(_t.adminDismissReport),
                         )),
                         HomaGramSpringPress(child: FilledButton.icon(
                           onPressed: _workingId == report.id ? null : () => _review(report, 'reviewed'),
@@ -466,11 +477,11 @@ class _ReportsTabState extends State<_ReportsTab> {
                             ? const SizedBox(width: 16, height: 16,
                                 child: CircularProgressIndicator(strokeWidth: 2))
                             : const Icon(Icons.check_rounded, size: 18),
-                          label: const Text('بررسی شد'),
+                          label: Text(_t.adminMarkReviewed),
                         )),
                         HomaGramSpringPress(child: FilledButton.tonal(
                           onPressed: _workingId == report.id ? null : () => _review(report, 'actioned'),
-                          child: const Text('اقدام انجام شد'),
+                          child: Text(_t.adminActionCompleted),
                         )),
                       ]),
                     ],
@@ -490,6 +501,7 @@ class _MessageReportsTab extends StatefulWidget {
   State<_MessageReportsTab> createState() => _MessageReportsTabState();
 }
 class _MessageReportsTabState extends State<_MessageReportsTab> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   List<Map<String,dynamic>> _items = [];
   bool _loading = true;
   String? _error;
@@ -505,7 +517,7 @@ class _MessageReportsTabState extends State<_MessageReportsTab> {
       setState(() { _items = result; _loading = false; });
     } catch (_) {
       if (!mounted) return;
-      setState(() { _loading = false; _error = 'دریافت گزارش پیام‌ها انجام نشد.'; });
+      setState(() { _loading = false; _error = _t.adminMessageReportsLoadFailed; });
     }
   }
   Future<void> _review(Map<String,dynamic> item, String status) async {
@@ -517,7 +529,7 @@ class _MessageReportsTabState extends State<_MessageReportsTab> {
       await _load();
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ثبت نتیجه بررسی انجام نشد.')));
+        SnackBar(content: Text(_t.adminReportReviewFailed)));
     } finally { if (mounted) setState(() => _working = null); }
   }
   @override
@@ -533,7 +545,7 @@ class _MessageReportsTabState extends State<_MessageReportsTab> {
       Padding(
         padding: const EdgeInsets.fromLTRB(14, 10, 14, 2),
         child: Row(children: [
-          Expanded(child: Text('بررسی‌نشده: ${_items.where((r) => r['status'] == 'pending').length}',
+          Expanded(child: Text(_t.adminPendingCount(_items.where((r) => r['status'] == 'pending').length),
             style: const TextStyle(fontWeight: FontWeight.w800))),
           SegmentedButton<String>(
             segments: const [
@@ -552,7 +564,7 @@ class _MessageReportsTabState extends State<_MessageReportsTab> {
       child: visibleItems.isEmpty
         ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
             SizedBox(height: 100), Icon(Icons.verified_outlined, size: 48),
-            SizedBox(height: 12), Center(child: Text('گزارش پیام ثبت نشده است.')),
+            SizedBox(height: 12), Center(child: Text(_t.adminNoMessageReports)),
           ])
         : ListView.separated(
             padding: const EdgeInsets.all(14), itemCount: visibleItems.length,
@@ -565,31 +577,31 @@ class _MessageReportsTabState extends State<_MessageReportsTab> {
                 padding: const EdgeInsets.all(14),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Row(children: [
-                    Expanded(child: Text(_messageReason(item['reason']?.toString() ?? ''),
+                    Expanded(child: Text(_messageReason(item['reason']?.toString() ?? '', _t),
                       style: const TextStyle(fontWeight: FontWeight.w900))),
                     _ReportStatus(status: item['status']?.toString() ?? 'pending'),
                   ]),
                   const SizedBox(height: 8),
                   Text((item['message_body'] as String?)?.trim().isNotEmpty == true
-                    ? item['message_body'] as String : 'پیام بدون متن یا دارای پیوست',
+                    ? item['message_body'] as String  : _t.adminMessageWithoutText,
                     maxLines: 5, overflow: TextOverflow.ellipsis),
                   if ((item['details'] as String?)?.isNotEmpty == true) ...[
-                    const SizedBox(height: 7), Text('توضیح: ${item['details']}'),
+                    const SizedBox(height: 7), Text(_t.adminMessageReportDetails(item['details'])),
                   ],
                   const SizedBox(height: 7),
-                  Text('شناسه پیام: ${item['message_id']}',
+                  Text(_t.adminMessageId(item['message_id']),
                     style: Theme.of(context).textTheme.labelSmall),
-                  Text('شناسه گزارش‌دهنده: ${item['reporter_id']}',
+                  Text(_t.adminReporterId(item['reporter_id']),
                     style: Theme.of(context).textTheme.labelSmall),
                   if (pending) ...[
                     const SizedBox(height: 10),
                     Wrap(spacing: 8, children: [
                       HomaGramSpringPress(child: OutlinedButton(onPressed: _working == id ? null : () => _review(item,'dismissed'),
-                        child: const Text('رد گزارش'))),
+                        child: Text(_t.adminDismissReport))),
                       HomaGramSpringPress(child: FilledButton(onPressed: _working == id ? null : () => _review(item,'reviewed'),
-                        child: const Text('بررسی شد'))),
+                        child: Text(_t.adminMarkReviewed))),
                       HomaGramSpringPress(child: FilledButton.tonal(onPressed: _working == id ? null : () => _review(item,'actioned'),
-                        child: const Text('اقدام انجام شد'))),
+                        child: Text(_t.adminActionCompleted))),
                     ]),
                   ],
                 ]),
@@ -600,9 +612,9 @@ class _MessageReportsTabState extends State<_MessageReportsTab> {
     ]);
   }
 }
-String _messageReason(String value) => switch(value) {
-  'spam' => 'هرزنامه', 'harassment' => 'آزار و اذیت', 'threat' => 'تهدید',
-  'privacy' => 'نقض حریم خصوصی', 'inappropriate' => 'محتوای نامناسب', 'other' => 'سایر موارد', _ => value,
+String _messageReason(String value, AppLocalizations t) => switch(value) {
+  'spam' => t.adminReasonSpam, 'harassment' => t.adminReasonHarassment, 'threat' => t.adminReasonThreat,
+  'privacy' => t.adminReasonPrivacy, 'inappropriate' => t.adminReasonInappropriate, 'other' => t.adminReasonOther, _ => value,
 };
 
 class _ReportStatus extends StatelessWidget {
@@ -610,16 +622,17 @@ class _ReportStatus extends StatelessWidget {
   final String status;
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final color = status == 'pending'
       ? const Color(0xFFE29A31)
       : status == 'dismissed'
         ? Theme.of(context).colorScheme.onSurfaceVariant
         : const Color(0xFF20A77A);
     final label = switch (status) {
-      'pending' => 'بررسی‌نشده',
-      'dismissed' => 'رد شده',
-      'actioned' => 'اقدام شده',
-      'reviewed' => 'بررسی شده',
+      'pending' => t.adminFilterPending,
+      'dismissed' => t.adminStatusDismissed,
+      'actioned' => t.adminStatusActioned,
+      'reviewed' => t.adminFilterReviewed,
       _ => status,
     };
     return Container(
@@ -645,6 +658,7 @@ class _AuditLogsTab extends StatefulWidget {
 }
 
 class _AuditLogsTabState extends State<_AuditLogsTab> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   List<AdminAuditLog> _logs = [];
   bool _loading = true;
   String? _error;
@@ -659,22 +673,22 @@ class _AuditLogsTabState extends State<_AuditLogsTab> {
       setState(() { _logs = result; _loading = false; });
     } catch (_) {
       if (!mounted) return;
-      setState(() { _loading = false; _error = 'دریافت سوابق مدیریتی انجام نشد.'; });
+      setState(() { _loading = false; _error = _t.adminAuditLoadFailed; });
     }
   }
 
   String _date(DateTime? value) {
-    if (value == null) return 'زمان نامشخص';
+    if (value == null) return _t.adminUnknownTime;
     final d = value.toLocal();
     return '${d.year}/${d.month.toString().padLeft(2, '0')}/${d.day.toString().padLeft(2, '0')}  '
       '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
   }
 
   String _label(String action) => switch (action) {
-    'post_report_reviewed' => 'بررسی گزارش پست',
-    'message_report_reviewed' => 'بررسی گزارش پیام',
-    'user_suspended' => 'محدودسازی حساب',
-    'user_unsuspended' => 'رفع محدودیت حساب',
+    'post_report_reviewed' => _t.adminAuditPostReportReviewed,
+    'message_report_reviewed' => _t.adminAuditMessageReportReviewed,
+    'user_suspended' => _t.adminAuditUserSuspended,
+    'user_unsuspended' => _t.adminAuditUserUnsuspended,
     _ => action.replaceAll('_', ' '),
   };
 
@@ -687,7 +701,7 @@ class _AuditLogsTabState extends State<_AuditLogsTab> {
       child: _logs.isEmpty
         ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
             SizedBox(height: 110), Icon(Icons.history_rounded, size: 46),
-            SizedBox(height: 12), Center(child: Text('هنوز سابقه مدیریتی ثبت نشده است.')),
+            SizedBox(height: 12), Center(child: Text(_t.adminAuditEmpty)),
           ])
         : ListView.separated(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -697,7 +711,7 @@ class _AuditLogsTabState extends State<_AuditLogsTab> {
             itemBuilder: (context, index) {
               final log = _logs[index];
               final actor = log.actorDisplayName?.trim().isNotEmpty == true
-                ? log.actorDisplayName! : (log.actorUsername == null ? 'مدیر' : '@${log.actorUsername}');
+                ? log.actorDisplayName! : (log.actorUsername == null ? _t.adminManager : '@${log.actorUsername}');
               final target = log.targetDisplayName?.trim().isNotEmpty == true
                 ? log.targetDisplayName! : (log.targetUsername == null ? null : '@${log.targetUsername}');
               return Card(
@@ -712,22 +726,22 @@ class _AuditLogsTabState extends State<_AuditLogsTab> {
                         style: const TextStyle(fontWeight: FontWeight.w900))),
                     ]),
                     const SizedBox(height: 7),
-                    Text('مدیر اجراکننده: $actor', style: Theme.of(context).textTheme.bodySmall),
-                    if (target != null) Text('کاربر مرتبط: $target',
+                    Text(_t.adminAuditActor(actor), style: Theme.of(context).textTheme.bodySmall),
+                    if (target != null) Text(_t.adminAuditTarget(target),
                       style: Theme.of(context).textTheme.bodySmall),
                     const SizedBox(height: 5),
                     Text(_date(log.createdAt), style: Theme.of(context).textTheme.labelSmall),
                     if (log.metadata.isNotEmpty) ...[
                       const SizedBox(height: 8),
-                      Text('جزئیات: ${log.metadata.entries.map((e) => '${e.key}: ${e.value}').join('  •  ')}',
+                      Text(_t.adminAuditDetails(log.metadata.entries.map((e) => '${e.key}: ${e.value}').join('  •  ')),
                         style: Theme.of(context).textTheme.labelSmall,
                         maxLines: 3, overflow: TextOverflow.ellipsis),
                     ],
                     const SizedBox(height: 5),
-                    Text('شناسه مدیر: ${log.actorId}',
+                    Text(_t.adminAuditActorId(log.actorId),
                       textDirection: TextDirection.ltr, style: Theme.of(context).textTheme.labelSmall),
                     if (log.targetUserId != null)
-                      Text('شناسه کاربر: ${log.targetUserId}',
+                      Text(_t.adminAuditTargetId(log.targetUserId!),
                         textDirection: TextDirection.ltr, style: Theme.of(context).textTheme.labelSmall),
                   ]),
                 ),
@@ -743,7 +757,9 @@ class _RetryView extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
   @override
-  Widget build(BuildContext context) => Center(
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    return Center(
     child: Padding(
       padding: const EdgeInsets.all(24),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -751,28 +767,29 @@ class _RetryView extends StatelessWidget {
         const SizedBox(height: 12),
         Text(message, textAlign: TextAlign.center),
         const SizedBox(height: 12),
-        HomaGramSpringPress(child: FilledButton(onPressed: onRetry, child: const Text('تلاش دوباره'))),
+        HomaGramSpringPress(child: FilledButton(onPressed: onRetry, child: Text(t.adminRetry))),
       ]),
     ),
-  );
+    );
+  }
 }
 
-String _reasonLabel(String reason) => switch (reason) {
-  'spam' => 'هرزنامه یا تبلیغات مزاحم',
-  'harassment' => 'توهین، آزار و تهدید',
-  'misinformation' => 'اطلاعات نادرست',
-  'copied_content' => 'محتوای کپی‌شده',
-  'copyright_claim' => 'نقض حقوق مالکیت اثر',
-  'violence' => 'محتوای خشونت‌آمیز',
-  'inappropriate' => 'محتوای غیراخلاقی یا نامناسب',
-  'political_insult' => 'محتوای سیاسیِ توهین‌آمیز',
-  'illegal_content' => 'محتوای مغایر با قوانین',
-  'other' => 'سایر موارد',
+String _reasonLabel(String reason, AppLocalizations t) => switch (reason) {
+  'spam' => t.adminReasonSpam,
+  'harassment' => t.adminReasonHarassment,
+  'misinformation' => t.adminReasonMisinformation,
+  'copied_content' => t.adminReasonCopiedContent,
+  'copyright_claim' => t.adminReasonCopyright,
+  'violence' => t.adminReasonViolence,
+  'inappropriate' => t.adminReasonInappropriate,
+  'political_insult' => t.adminReasonPoliticalInsult,
+  'illegal_content' => t.adminReasonIllegal,
+  'other' => t.adminReasonOther,
   _ => reason,
 };
 
-String _adminDate(DateTime? date) {
-  if (date == null) return 'نامشخص';
+String _adminDate(DateTime? date, AppLocalizations t) {
+  if (date == null) return t.adminUnknownTime;
   final d = date.toLocal();
   return '${d.year}/${d.month.toString().padLeft(2, '0')}/${d.day.toString().padLeft(2, '0')}';
 }
