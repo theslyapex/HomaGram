@@ -106,7 +106,7 @@ class StoryInteractiveText extends StatelessWidget {
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('بازکردن لینک ممکن نشد.')),
+          SnackBar(content: Text(t.storyOpenLinkFailed)),
         );
       }
     }
@@ -2954,6 +2954,7 @@ class _StoryMedia extends StatefulWidget {
 }
 
 class _StoryMediaState extends State<_StoryMedia> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   VideoPlayerController? _video;
   VideoPlayerController? _music;
   bool _loading = true;
