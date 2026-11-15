@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -1764,16 +1765,21 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final bytes = await _downloadAttachmentBytes(attachment);
       if (bytes == null) return;
-      await Gal.putVideoBytes(bytes);
-      if (!mounted) return;
+      final name = (attachment['file_name'] as String?)?.trim();
+      final fileName = name == null || name.isEmpty ? 'HomaGram-video.mp4' : name;
+      final savedPath = await FilePicker.platform.saveFile(
+        fileName: fileName,
+        bytes: bytes,
+      );
+      if (!mounted || savedPath == null) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ویدئو در گالری دستگاه ذخیره شد.')),
+        const SnackBar(content: Text('ویدئو با موفقیت ذخیره شد.')),
       );
     } catch (error) {
       debugPrint('Save chat video failed: $error');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ذخیره ویدئو انجام نشد؛ دسترسی گالری و اتصال را بررسی کنید.')),
+        const SnackBar(content: Text('دانلود ویدئو انجام نشد؛ دوباره تلاش کنید.')),
       );
     }
   }
