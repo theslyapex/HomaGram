@@ -1111,5 +1111,59 @@
         "type": "String"
       }
     }
+  },
+  "highlightManageCollection": "إدارة مجموعة المميزة",
+  "highlightEditTitleStories": "تعديل العنوان والقصص",
+  "highlightDelete": "حذف المميزة",
+  "highlightDeleteConfirm": "هل تريد حذف «{title}»؟ ستبقى قصصك المؤرشفة محفوظة.",
+  "highlightDeleteFailed": "تعذر حذف المميزة.",
+  "highlightReorderFailed": "تعذر إعادة ترتيب المميزات.",
+  "highlightNew": "جديد",
+  "highlightCoverTooLarge": "يجب أن يكون حجم صورة الغلاف أقل من 5 ميغابايت.",
+  "highlightCoverFailed": "تعذر اختيار صورة الغلاف أو تحميلها.",
+  "highlightTitleLength": "يجب أن يتراوح عنوان المميزة بين 1 و30 حرفًا.",
+  "highlightSelectStory": "اختر قصة واحدة على الأقل.",
+  "highlightSaveFailed": "تعذر حفظ المميزة. حاول مرة أخرى.",
+  "highlightCreate": "إنشاء مميزة",
+  "highlightEdit": "تعديل المميزة",
+  "highlightArchiveLoadFailed": "تعذر تحميل أرشيف القصص.",
+  "highlightNoStories": "ليس لديك قصص نشطة أو مؤرشفة لإضافتها.",
+  "highlightTitleLabel": "عنوان المميزة",
+  "highlightTitleHint": "مثال: الرحلات، المشاريع، اللحظات",
+  "highlightCustomCover": "غلاف مخصص للمميزة",
+  "highlightCoverDescription": "اختر صورة من معرض الصور أو استخدم إحدى القصص كغلاف.",
+  "highlightChooseGallery": "اختر من المعرض",
+  "highlightRemoveCover": "إزالة الصورة المحددة",
+  "highlightSelectedStories": "القصص النشطة والمؤرشفة • تم تحديد {count} | ★ اختر الغلاف",
+  "highlightSaving": "جارٍ الحفظ…",
+  "highlightCreateCount": "إنشاء مميزة ({count})",
+  "highlightSaveCount": "حفظ التغييرات ({count})",
+  "@highlightDeleteConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "@highlightSelectedStories": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@highlightCreateCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@highlightSaveCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }
