@@ -163,5 +163,60 @@
     "placeholders": {
       "message": {}
     }
+  },
+  "publicProfileLoadFailed": "پروفایل دریافت نشد یا دسترسی به آن ممکن نیست.",
+  "followActionFailed": "عملیات دنبال‌کردن انجام نشد. دوباره تلاش کنید.",
+  "myProfile": "پروفایل من",
+  "userProfile": "پروفایل کاربر",
+  "editProfileSettings": "ویرایش پروفایل و تنظیمات حساب",
+  "posts": "پست‌ها",
+  "reels": "ریلز",
+  "follower": "دنبال‌کننده",
+  "following": "دنبال‌شونده",
+  "profileVisitors": "بازدیدکنندگان پروفایل",
+  "profileVisitorsDisabled": "نمایش بازدیدکنندگان در تنظیمات حریم خصوصی غیرفعال است.",
+  "followers": "دنبال‌کنندگان",
+  "followingList": "دنبال‌شوندگان",
+  "reposts": "بازنشرها",
+  "noPostsYet": "هنوز پستی منتشر نشده است.",
+  "noReelsYet": "هنوز ریلزی منتشر نشده است.",
+  "noRepostsYet": "هنوز بازنشری ثبت نشده است.",
+  "homagramUser": "کاربر HomaGram",
+  "editProfile": "ویرایش پروفایل",
+  "followingAction": "دنبال می‌کنید",
+  "follow": "دنبال کردن",
+  "message": "پیام",
+  "shareProfile": "اشتراک‌گذاری پروفایل",
+  "privateConversation": "گفت‌وگوی خصوصی",
+  "startConversationFailed": "شروع گفت‌وگو ممکن نشد. ممکن است این کاربر دریافت پیام را محدود کرده باشد.",
+  "textPost": "پست متنی",
+  "emptyConnections": "هنوز کاربری در این فهرست نیست.",
+  "loadConnectionsFailed": "دریافت فهرست کاربران انجام نشد.",
+  "viewPost": "نمایش پست",
+  "noProfileVisitorsYet": "هنوز بازدیدکننده‌ای ثبت نشده است.",
+  "profileVisitorCount": "{count} بازدیدکننده ثبت‌شده",
+  "repostsCount": "بازنشرها ({count})",
+  "bornOn": "متولد {date}",
+  "profileShareText": "{name} در هماگرام\n@{username}",
+  "@profileVisitorCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "@repostsCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "@bornOn": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "@profileShareText": {
+    "placeholders": {
+      "name": {},
+      "username": {}
+    }
   }
 }
