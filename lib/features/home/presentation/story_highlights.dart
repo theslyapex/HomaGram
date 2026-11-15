@@ -184,7 +184,7 @@ class StoryHighlightService {
     final uniqueIds = storyIds.toSet().toList();
     if (cleanTitle.isEmpty || cleanTitle.length > 30 ||
         uniqueIds.isEmpty || uniqueIds.length > 100) {
-      throw ArgumentError('عنوان باید ۱ تا ۳۰ نویسه و تعداد استوری‌ها ۱ تا ۱۰۰ باشد.');
+      throw ArgumentError('Invalid story highlight data.');
     }
 
     final ownerId = _client.auth.currentUser!.id;
