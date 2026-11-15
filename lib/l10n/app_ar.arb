@@ -1496,5 +1496,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "sharedPostTitle": "منشور على HomaGram",
+  "sharedPostUnavailable": "هذا المنشور غير متاح. ربما تم حذفه أو أن حساب الناشر خاص."
 }
