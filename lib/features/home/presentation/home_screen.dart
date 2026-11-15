@@ -125,9 +125,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-                ),
-              ),
-            ],
           ),
         ),
       ),
@@ -196,13 +193,8 @@ class _HomeScreenState extends State<HomeScreen> {
         top: false,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 560),
-                child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(32),
