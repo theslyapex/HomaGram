@@ -1478,5 +1478,23 @@
         "type": "String"
       }
     }
+  },
+  "videoTrimUnsupported": "This video can't be edited.",
+  "videoTrimSaveFailed": "Couldn't trim and save the video. Please try again.",
+  "videoTrimTitle": "Edit video",
+  "videoTrimInstructions": "Move the two handles to choose the start and end of the video segment.",
+  "videoTrimRange": "Select video range",
+  "videoTrimDuration": "Selected duration: {selected} • Maximum: {maximum}",
+  "videoTrimPreparing": "Preparing…",
+  "videoTrimConfirm": "Confirm video trim",
+  "@videoTrimDuration": {
+    "placeholders": {
+      "selected": {
+        "type": "String"
+      },
+      "maximum": {
+        "type": "String"
+      }
+    }
   }
 }
