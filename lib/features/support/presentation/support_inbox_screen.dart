@@ -68,7 +68,7 @@ class _SupportInboxScreenState extends State<SupportInboxScreen> {
               : RefreshIndicator(
                   onRefresh: _load,
                   child: _items.isEmpty
-                      ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [
+                      ? ListView(physics: const AlwaysScrollableScrollPhysics(), children: [
                           SizedBox(height: 125),
                           Icon(Icons.mark_chat_unread_outlined, size: 56, color: Color(0xFF8B6CF6)),
                           SizedBox(height: 14),
