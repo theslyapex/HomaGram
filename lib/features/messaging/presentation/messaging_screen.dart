@@ -184,7 +184,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
         title: const Text('پیام‌ها', style: TextStyle(fontWeight: FontWeight.w900)),
         actions: [
           HomaGramSpringPress(child: IconButton(
-            tooltip: 'کانال‌ها',
+            tooltip: 'کشف عمومی',
             onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
               builder: (_) => const ChannelsScreen(),
             )),
