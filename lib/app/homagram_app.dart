@@ -110,20 +110,20 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
       final send = await showDialog<bool>(
         context: dialogContext,
         builder: (ctx) => AlertDialog(
-          title: const Text('گزارش سریع مشکل'),
+          title: Text(_t.quickBugReportTitle),
           content: SizedBox(
             width: 360,
             child: SingleChildScrollView(child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('تصویر همین صفحه ثبت شده است. پیش از ارسال، پیش‌نمایش را بررسی کنید و اطلاعات خصوصی ناخواسته را ارسال نکنید.',
+                Text(_t.quickBugReportScreenshotPrivacy,
                   style: TextStyle(fontSize: 12, height: 1.7)),
                 const SizedBox(height: 10),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(13),
                   child: Image.memory(bytes, height: 190, fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Text('پیش‌نمایش تصویر در دسترس نیست.')),
+                    errorBuilder: (_, __, ___) => Text(_t.quickBugReportPreviewUnavailable)),
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -131,9 +131,9 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
                   minLines: 2,
                   maxLines: 4,
                   maxLength: 1200,
-                  decoration: const InputDecoration(
-                    labelText: 'توضیح مشکل یا باگ',
-                    hintText: 'چه اتفاقی افتاد؟',
+                  decoration: InputDecoration(
+                    labelText: _t.quickBugReportDescriptionLabel,
+                    hintText: _t.quickBugReportDescriptionHint,
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -141,11 +141,11 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
             )),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('لغو')),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(_t.cancel)),
             FilledButton.icon(
               onPressed: () => Navigator.pop(ctx, true),
               icon: const Icon(Icons.send_rounded),
-              label: const Text('ارسال به پشتیبانی'),
+              label: Text(_t.quickBugReportSend),
             ),
           ],
         ),
@@ -158,8 +158,8 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
         fileName: 'homagram-bug-report.png',
         mimeType: 'image/png',
         caption: controller.text.trim().isEmpty
-            ? 'گزارش خطا از طریق قابلیت تکان‌دادن گوشی.'
-            : 'گزارش خطا: ${controller.text.trim()}',
+            ? _t.quickBugReportCaptionDefault
+            : _t.quickBugReportCaptionDetails(controller.text.trim()),
       );
       if (!mounted) return;
       homagramNavigatorKey.currentState?.push(MaterialPageRoute<void>(
@@ -168,7 +168,7 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
     } catch (_) {
       final context = homagramNavigatorKey.currentContext;
       if (context != null && mounted) ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-        const SnackBar(content: Text('ثبت گزارش خطا انجام نشد. دوباره تلاش کنید.')),
+        SnackBar(content: Text(_t.quickBugReportSubmitFailed)),
       );
     } finally {
       controller.dispose();
@@ -407,7 +407,7 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
           .select('title')
           .eq('id', conversationId)
           .single();
-      final title = row['title'] as String? ?? 'گروه';
+      final title = row['title'] as String? ?? _t.group;
       final navigator = homagramNavigatorKey.currentState;
       if (navigator == null) return;
       navigator.push(
@@ -423,8 +423,8 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
       final context = homagramNavigatorKey.currentContext;
       if (context != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('لینک دعوت گروه معتبر نیست یا اعتبار آن پایان یافته است.'),
+          SnackBar(
+            content: Text(_t.groupInviteInvalid),
           ),
         );
       }
