@@ -1077,5 +1077,12 @@
         "type": "String"
       }
     }
-  }
+  },
+  "reelsLoadFailed": "ویدئوها بارگذاری نشدند.",
+  "reelsEmptyTitle": "هنوز ریلزی منتشر نشده است",
+  "reelsEmptyMessage": "اولین ویدئوی کوتاه را با برش حداکثر دو دقیقه‌ای منتشر کنید.",
+  "reelsCreateFirst": "ساخت اولین ریلز",
+  "reelsShareTitle": "ریلز در HomaGram",
+  "reelsReportTitle": "گزارش این ریلز",
+  "reelsReportSuccess": "گزارش ریلز ثبت شد و برای بررسی ارسال شد."
 }
