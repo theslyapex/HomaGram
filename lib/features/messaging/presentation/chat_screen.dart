@@ -923,8 +923,8 @@ class _ChatScreenState extends State<ChatScreen> {
           return SizedBox(
             height: MediaQuery.sizeOf(sheetContext).height * .72,
             child: Column(children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(18, 4, 18, 12),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 4, 18, 12),
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: Text(isGroup ? 'مدیریت لینک‌های دعوت گروه' : 'مدیریت کدهای دعوت کانال', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
