@@ -2,9 +2,13 @@ import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../auth/data/auth_service.dart';
 import 'public_profile_screen.dart';
+import 'feed_screen.dart' show PostCommentsScreen;
+import '../../messaging/data/messaging_service.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key, this.initialQuery});
@@ -342,6 +346,236 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
   VideoPlayerController? _video;
   bool _videoReady = false;
   bool _muted = true;
+  bool _liked = false, _saved = false, _reposted = false, _busy = false;
+  int _likes = 0, _comments = 0;
+  String get _postId => widget.post['id'] as String;
+  String get _uid => AuthService.client.auth.currentUser!.id;
+
+  @override
+  void initState() {
+    super.initState();
+    _likes = (widget.post['like_count'] as int?) ?? 0;
+    _loadInteractions();
+  }
+
+  Future<void> _loadInteractions() async {
+    try {
+      final c = AuthService.client;
+      final results = await Future.wait([
+        c.from('post_likes').select('user_id').eq('post_id', _postId),
+        c.from('post_comments').select('id').eq('post_id', _postId),
+        c.from('post_likes').select('post_id').eq('post_id', _postId).eq('user_id', _uid).maybeSingle(),
+        c.from('saved_posts').select('post_id').eq('post_id', _postId).eq('user_id', _uid).maybeSingle(),
+        c.from('post_reposts').select('post_id').eq('post_id', _postId).eq('user_id', _uid).maybeSingle(),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _likes = (results[0] as List).length;
+        _comments = (results[1] as List).length;
+        _liked = results[2] != null;
+        _saved = results[3] != null;
+        _reposted = results[4] != null;
+        widget.post['like_count'] = _likes;
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _toggleLike() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      final q = AuthService.client.from('post_likes');
+      if (_liked) {
+        await q.delete().eq('post_id', _postId).eq('user_id', _uid);
+      } else {
+        await q.insert({'post_id': _postId, 'user_id': _uid});
+      }
+      if (mounted) setState(() {
+        _liked = !_liked;
+        _likes += _liked ? 1 : -1;
+        widget.post['like_count'] = _likes;
+      });
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ثبت پسند پست انجام نشد.')));
+    } finally { if (mounted) setState(() => _busy = false); }
+  }
+
+  Future<void> _openComments() async {
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => PostCommentsScreen(postId: _postId),
+    ));
+    if (mounted) {
+      try {
+        final rows = await AuthService.client.from('post_comments')
+          .select('id').eq('post_id', _postId);
+        if (mounted) setState(() => _comments = rows.length);
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _sharePost() async {
+    final choice = await showModalBottomSheet<String>(
+      context: context, showDragHandle: true, useSafeArea: true,
+      builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        const Padding(padding: EdgeInsets.all(16), child: Text('همرسانی پست',
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900))),
+        ListTile(leading: const Icon(Icons.send_rounded),
+          title: const Text('ارسال برای کاربران HomaGram'),
+          onTap: () => Navigator.pop(ctx, 'internal')),
+        ListTile(leading: const Icon(Icons.link_rounded), title: const Text('کپی پیوند پست'),
+          onTap: () => Navigator.pop(ctx, 'copy')),
+        ListTile(leading: const Icon(Icons.ios_share_rounded), title: const Text('اشتراک‌گذاری خارج از برنامه'),
+          onTap: () => Navigator.pop(ctx, 'external')),
+      ])),
+    );
+    if (!mounted || choice == null) return;
+    final link = Uri(scheme: 'homagram', host: 'post', path: '/$_postId');
+    if (choice == 'copy') {
+      await Clipboard.setData(ClipboardData(text: link.toString()));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('پیوند پست کپی شد.')));
+    } else if (choice == 'external') {
+      await SharePlus.instance.share(ShareParams(
+        text: 'این پست را در HomaGram ببین:\n$link', subject: 'پست در HomaGram'));
+    } else {
+      await _shareToUsers();
+    }
+  }
+
+  Future<void> _shareToUsers() async {
+    final controller = TextEditingController();
+    List<Map<String, dynamic>> users = [];
+    bool loading = false;
+    String? error;
+    final selected = <String, Map<String, dynamic>>{};
+    await showModalBottomSheet<void>(
+      context: context, isScrollControlled: true, useSafeArea: true, showDragHandle: true,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setSheet) {
+        Future<void> search(String value) async {
+          final term = value.trim();
+          if (term.length < 2) { setSheet(() { users = []; error = null; }); return; }
+          setSheet(() => loading = true);
+          try {
+            final c = AuthService.client;
+            final byName = await c.from('profiles').select('id,username,display_name')
+              .neq('id', _uid).ilike('display_name', '%$term%').limit(15);
+            final byUser = await c.from('profiles').select('id,username,display_name')
+              .neq('id', _uid).ilike('username', '%$term%').limit(15);
+            final merged = <String, Map<String,dynamic>>{};
+            for (final u in [...byName, ...byUser]) { merged[u['id'] as String] = Map<String,dynamic>.from(u); }
+            setSheet(() { users = merged.values.toList(); loading = false; error = null; });
+          } catch (_) { setSheet(() { loading = false; error = 'جست‌وجوی کاربران انجام نشد.'; }); }
+        }
+        return Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(ctx).bottom),
+          child: SizedBox(height: MediaQuery.sizeOf(ctx).height * .68,
+            child: Column(children: [
+              const Padding(padding: EdgeInsets.all(14), child: Text('انتخاب گیرندگان',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17))),
+              Padding(padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextField(controller: controller, onChanged: search,
+                  decoration: const InputDecoration(prefixIcon: Icon(Icons.search),
+                    hintText: 'نام یا نام کاربری را جست‌وجو کنید'))),
+              Expanded(child: loading ? const Center(child: CircularProgressIndicator())
+                : error != null ? Center(child: Text(error!))
+                : users.isEmpty ? const Center(child: Text('برای یافتن کاربر جست‌وجو کنید.'))
+                : ListView.builder(itemCount: users.length, itemBuilder: (_, i) {
+                    final u = users[i]; final id = u['id'] as String;
+                    final name = (u['display_name'] as String?)?.trim();
+                    return CheckboxListTile(value: selected.containsKey(id),
+                      title: Text(name?.isNotEmpty == true ? name! : '@${u['username']}'),
+                      subtitle: Text('@${u['username']}'),
+                      onChanged: (v) => setSheet(() {
+                        if (v == true) { selected[id] = u; } else { selected.remove(id); }
+                      }));
+                  })),
+              SafeArea(top: false, child: Padding(padding: const EdgeInsets.all(14),
+                child: SizedBox(width: double.infinity, child: FilledButton.icon(
+                  onPressed: selected.isEmpty ? null : () => Navigator.pop(ctx),
+                  icon: const Icon(Icons.send), label: Text('ارسال برای ${selected.length} نفر'))))),
+            ]),
+          ),
+        );
+      }),
+    );
+    controller.dispose();
+    if (selected.isEmpty) return;
+    var sent = 0;
+    for (final user in selected.values) {
+      try {
+        final conversation = await MessagingService.createDirectConversation(user['id'] as String);
+        await MessagingService.sendTextMessage(conversation,
+          'HOMAGRAM_POST:$_postId\\nاین پست را برای شما فرستادم.');
+        sent++;
+      } catch (_) {}
+    }
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(sent == 0 ? 'ارسال پست انجام نشد.' : 'پست برای $sent نفر ارسال شد.')));
+  }
+
+  Future<void> _postMenu() async {
+    final choice = await showModalBottomSheet<String>(context: context, showDragHandle: true,
+      builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        ListTile(leading: Icon(_saved ? Icons.bookmark_remove_outlined : Icons.bookmark_add_outlined),
+          title: Text(_saved ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره پست'),
+          onTap: () => Navigator.pop(ctx, 'save')),
+        ListTile(leading: Icon(_reposted ? Icons.repeat_on : Icons.repeat),
+          title: Text(_reposted ? 'لغو بازنشر' : 'بازنشر در صفحه من'),
+          onTap: () => Navigator.pop(ctx, 'repost')),
+        ListTile(leading: const Icon(Icons.ios_share_outlined), title: const Text('ارسال پست'),
+          onTap: () => Navigator.pop(ctx, 'share')),
+        if (widget.post['author_id'] == _uid) ...[
+          ListTile(leading: const Icon(Icons.edit_outlined), title: const Text('ویرایش پست'),
+            onTap: () => Navigator.pop(ctx, 'edit')),
+          ListTile(leading: const Icon(Icons.delete_outline, color: Colors.red),
+            title: const Text('حذف پست', style: TextStyle(color: Colors.red)),
+            onTap: () => Navigator.pop(ctx, 'delete')),
+        ] else
+          ListTile(leading: const Icon(Icons.flag_outlined), title: const Text('گزارش پست'),
+            onTap: () => Navigator.pop(ctx, 'report')),
+      ])));
+    if (choice == null || !mounted) return;
+    if (choice == 'share') { await _sharePost(); return; }
+    if (choice == 'save' || choice == 'repost') {
+      final table = choice == 'save' ? 'saved_posts' : 'post_reposts';
+      final current = choice == 'save' ? _saved : _reposted;
+      try {
+        final q = AuthService.client.from(table);
+        if (current) { await q.delete().eq('post_id', _postId).eq('user_id', _uid); }
+        else { await q.insert({'post_id': _postId, 'user_id': _uid}); }
+        if (mounted) setState(() {
+          if (choice == 'save') { _saved = !current; } else { _reposted = !current; }
+        });
+      } catch (_) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('این عملیات انجام نشد.')));
+      }
+      return;
+    }
+    if (choice == 'report') {
+      final reason = await showDialog<String>(context: context, builder: (ctx) => AlertDialog(
+        title: const Text('گزارش پست'),
+        content: const Text('آیا می‌خواهید این پست را برای بررسی گزارش کنید؟'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, 'other'), child: const Text('ثبت گزارش')),
+        ],
+      ));
+      if (reason != null) {
+        try {
+          await AuthService.client.from('post_reports').insert({
+            'post_id': _postId, 'reporter_id': _uid, 'reason': reason,
+          });
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('گزارش شما ثبت شد.')));
+        } catch (_) {
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('ثبت گزارش انجام نشد.')));
+        }
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -430,8 +664,16 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
       Positioned(
         left: 18, right: 72, bottom: 34,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(author?.isNotEmpty == true ? author! : '@$username',
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16)),
+          Row(children: [
+            Expanded(child: GestureDetector(
+              onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                builder: (_) => PublicProfileScreen(userId: widget.post['author_id'] as String))),
+              child: Text(author?.isNotEmpty == true ? author! : '@$username',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16)))),
+            IconButton(onPressed: _postMenu,
+              icon: const Icon(Icons.more_horiz_rounded, color: Colors.white),
+              style: IconButton.styleFrom(backgroundColor: Colors.black45)),
+          ]),
           if (caption.trim().isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(caption, maxLines: 5, overflow: TextOverflow.ellipsis,
@@ -439,8 +681,32 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
           ],
         ]),
       ),
+      Positioned(
+        right: 12, bottom: 34,
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          _actionButton(
+            icon: _liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+            label: '$_likes', color: _liked ? Colors.redAccent : Colors.white,
+            onTap: _busy ? null : _toggleLike),
+          const SizedBox(height: 14),
+          _actionButton(icon: Icons.mode_comment_outlined, label: '$_comments',
+            onTap: _openComments),
+          const SizedBox(height: 14),
+          _actionButton(icon: Icons.send_outlined, label: 'ارسال',
+            onTap: _sharePost),
+        ]),
+      ),
       if (isVideo && !_videoReady)
         const Center(child: CircularProgressIndicator(color: Colors.white)),
     ]);
   }
+
+  Widget _actionButton({required IconData icon, required String label,
+    required VoidCallback? onTap, Color color = Colors.white}) =>
+    Column(mainAxisSize: MainAxisSize.min, children: [
+      IconButton(onPressed: onTap, icon: Icon(icon, color: color, size: 29),
+        style: IconButton.styleFrom(backgroundColor: Colors.black45)),
+      Text(label, style: const TextStyle(color: Colors.white, fontSize: 11,
+        fontWeight: FontWeight.w700, shadows: [Shadow(color: Colors.black, blurRadius: 5)])),
+    ]);
 }
