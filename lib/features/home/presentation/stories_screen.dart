@@ -92,6 +92,7 @@ class StoryInteractiveText extends StatelessWidget {
   }
 
   Future<void> _openLink(BuildContext context, String raw) async {
+    final t = AppLocalizations.of(context)!;
     final cleaned = raw.replaceFirst(RegExp(r'[.,!?،؛:]+$'), '');
     final uri = Uri.tryParse(cleaned);
     if (uri == null || !{'http', 'https'}.contains(uri.scheme)) return;
@@ -99,7 +100,7 @@ class StoryInteractiveText extends StatelessWidget {
       final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
       if (!opened && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('بازکردن لینک ممکن نشد.')),
+          SnackBar(content: Text(t.storyOpenLinkFailed)),
         );
       }
     } catch (_) {
@@ -3121,7 +3122,7 @@ class _StoryMediaState extends State<_StoryMedia> {
           const Icon(Icons.cloud_off_rounded, color: Colors.white70, size: 42),
           const SizedBox(height: 12),
           const Text(
-            'پخش ویدئو انجام نشد. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.',
+            _t.storyVideoPlaybackFailed,
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.white, height: 1.7),
           ),
@@ -3156,13 +3157,13 @@ class _StoryMediaState extends State<_StoryMedia> {
     if (widget.story['media_type'] == 'video') {
       if (_hasError) return _errorView();
       if (_loading || _video?.value.isInitialized != true) {
-        return const Center(
+        return Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               CircularProgressIndicator(color: Colors.white),
               SizedBox(height: 12),
-              Text('در حال بارگذاری ویدئو…', style: TextStyle(color: Colors.white70)),
+              Text(_t.storyVideoLoading, style: TextStyle(color: Colors.white70)),
             ],
           ),
         );
@@ -3324,7 +3325,7 @@ class _StoryArchiveScreenState extends State<StoryArchiveScreen> {
             bottom: 5, left: 5, right: 5,
             child: Text(
               createdAt == null
-                  ? 'تاریخ نامشخص'
+                  ? _t.storyUnknownTime
                   : persianDate(createdAt),
               textAlign: TextAlign.center,
               style: const TextStyle(
