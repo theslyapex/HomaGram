@@ -985,6 +985,7 @@ class CreateStoryScreen extends StatefulWidget {
 }
 
 class _CreateStoryScreenState extends State<CreateStoryScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final _picker = ImagePicker();
   final _caption = TextEditingController();
   final _overlayText = TextEditingController();
@@ -1132,17 +1133,17 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           : mime == 'image/jpeg' || mime == 'image/png' || mime == 'image/webp' ||
               RegExp(r'\.(jpe?g|png|webp)$').hasMatch(name);
       if (!valid) {
-        _notice('فرمت این رسانه پشتیبانی نمی‌شود.', true);
+        _notice(_t.storyUnsupportedMedia, true);
         return;
       }
       final size = await picked.length();
       if (size == 0 || size > 50 * 1024 * 1024) {
-        _notice('حجم رسانه باید حداکثر ۵۰ مگابایت باشد.', true);
+        _notice(_t.storyMediaSizeLimit, true);
         return;
       }
       setState(() { _file = picked; _type = video ? 'video' : 'image'; _textMode = false; });
     } catch (_) {
-      _notice('انتخاب رسانه انجام نشد.', true);
+      _notice(_t.storyMediaPickFailed, true);
     }
   }
 
@@ -1159,11 +1160,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       final picked = result.files.single;
       final path = picked.path;
       if (path == null || path.isEmpty) {
-        _notice('دسترسی به فایل انتخاب‌شده ممکن نشد.', true);
+        _notice(_t.storyFileAccessFailed, true);
         return;
       }
       if (picked.size <= 0 || picked.size > 5 * 1024 * 1024) {
-        _notice('حجم استیکر باید حداکثر ۵ مگابایت باشد.', true);
+        _notice(_t.storyStickerSizeLimit, true);
         return;
       }
       final ext = picked.extension?.toLowerCase() ?? '';
@@ -1173,11 +1174,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       };
       final mime = mimeByExt[ext];
       if (mime == null) {
-        _notice('فقط فایل‌های GIF، JPG، PNG و WebP پشتیبانی می‌شوند.', true);
+        _notice(_t.storyStickerFormats, true);
         return;
       }
       if (_stickers.length >= 20) {
-        _notice('حداکثر ۲۰ استیکر می‌توانید اضافه کنید.', true);
+        _notice(_t.storyStickerLimit, true);
         return;
       }
       setState(() {
@@ -1190,7 +1191,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         });
       });
     } catch (_) {
-      _notice('انتخاب استیکر انجام نشد.', true);
+      _notice(_t.storyStickerPickFailed, true);
     }
   }
 
@@ -1200,12 +1201,12 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       if (result == null || result.files.isEmpty || !mounted) return;
       final picked = result.files.single;
       final path = picked.path;
-      if (path == null || path.isEmpty) { _notice('دسترسی به فایل موسیقی ممکن نشد.', true); return; }
-      if (picked.size <= 0 || picked.size > 15 * 1024 * 1024) { _notice('حجم موسیقی باید حداکثر ۱۵ مگابایت باشد.', true); return; }
+      if (path == null || path.isEmpty) { _notice(_t.storyMusicAccessFailed, true); return; }
+      if (picked.size <= 0 || picked.size > 15 * 1024 * 1024) { _notice(_t.storyMusicSizeLimit, true); return; }
       final ext = picked.extension?.toLowerCase() ?? '';
       const mimeByExt = {'mp3':'audio/mpeg','m4a':'audio/mp4','aac':'audio/aac','wav':'audio/wav'};
       final mime = mimeByExt[ext];
-      if (mime == null) { _notice('فقط فایل‌های MP3، M4A، AAC و WAV پشتیبانی می‌شوند.', true); return; }
+      if (mime == null) { _notice(_t.storyMusicFormats, true); return; }
       final preview = VideoPlayerController.file(File(path));
       await preview.initialize().timeout(const Duration(seconds: 20));
       if (!mounted) { await preview.dispose(); return; }
@@ -1213,7 +1214,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       await preview.setVolume(_musicVolume);
       await _musicPreview?.dispose();
       setState(() { _musicFile = File(path); _musicFileName = picked.name; _musicMimeType = mime; _musicPreview = preview; _musicDuration = preview.value.duration; _musicStartMs = 0; });
-    } catch (_) { _notice('بارگذاری یا پیش‌نمایش موسیقی انجام نشد. فایل دیگری انتخاب کنید.', true); }
+    } catch (_) { _notice(_t.storyMusicLoadFailed, true); }
   }
 
   Future<void> _toggleMusicPreview() async {
@@ -1223,7 +1224,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       if (preview.value.isPlaying) { await preview.pause(); }
       else { await preview.seekTo(Duration(milliseconds: _musicStartMs)); await preview.setVolume(_musicVolume); await preview.play(); }
       if (mounted) setState(() {});
-    } catch (_) { _notice('پخش پیش‌نمایش موسیقی انجام نشد.', true); }
+    } catch (_) { _notice(_t.storyMusicPreviewFailed, true); }
   }
 
   Future<void> _removeMusic() async {
@@ -1275,18 +1276,18 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       initialDate: initial,
       firstDate: DateTime(now.year, now.month, now.day),
       lastDate: now.add(const Duration(days: 365)),
-      helpText: 'تاریخ پایان شمارش معکوس',
+      helpText: _t.storyCountdownEndDate,
     );
     if (date == null || !mounted) return;
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(initial),
-      helpText: 'ساعت پایان',
+      helpText: _t.storyCountdownEndTime,
     );
     if (time == null || !mounted) return;
     final target = DateTime(date.year, date.month, date.day, time.hour, time.minute);
     if (!target.isAfter(DateTime.now().add(const Duration(seconds: 10)))) {
-      _notice('زمان پایان باید در آینده باشد.', true);
+      _notice(_t.storyCountdownMustBeFuture, true);
       return;
     }
     setState(() => _countdownTarget = target);
@@ -1361,11 +1362,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   Future<void> _saveDraft() async {
     if (_busy) return;
     if (_textMode && _caption.text.trim().isEmpty) {
-      _notice('برای ذخیره پیش‌نویس، ابتدا متن استوری را وارد کنید.', true);
+      _notice(_t.storyDraftTextRequired, true);
       return;
     }
     if (!_textMode && _file == null) {
-      _notice('ابتدا یک تصویر یا ویدئو انتخاب کنید.', true);
+      _notice(_t.storyDraftMediaRequired, true);
       return;
     }
     setState(() => _busy = true);
@@ -1418,9 +1419,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         musicMimeType: _musicMimeType,
         stickers: _stickers,
       );
-      _notice('پیش‌نویس با موفقیت ذخیره شد.');
+      _notice(_t.storyDraftSaved);
     } catch (_) {
-      _notice('ذخیره پیش‌نویس انجام نشد. فضای ذخیره‌سازی یا اتصال را بررسی کنید.', true);
+      _notice(_t.storyDraftSaveFailed, true);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -1432,12 +1433,12 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     try {
       drafts = await StoryService.loadDrafts();
     } catch (_) {
-      _notice('دریافت پیش‌نویس‌ها انجام نشد.', true);
+      _notice(_t.storyDraftLoadFailed, true);
       return;
     }
     if (!mounted) return;
     if (drafts.isEmpty) {
-      _notice('هنوز پیش‌نویسی ذخیره نکرده‌ای.');
+      _notice(_t.storyNoDrafts);
       return;
     }
     final selectedId = await showModalBottomSheet<String>(
@@ -1453,9 +1454,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(children: [
-                  const Expanded(child: Text('پیش‌نویس‌های من',
+                  Expanded(child: Text(_t.storyMyDrafts,
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900))),
-                  Text('${drafts.length} مورد',
+                  Text(_t.storyDraftCount(drafts.length),
                     style: const TextStyle(color: HomaGramTheme.turquoise)),
                 ]),
                 const SizedBox(height: 12),
@@ -1478,13 +1479,13 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                             (data['media_type'] == 'video' ? Icons.videocam_outlined : Icons.image_outlined),
                             color: HomaGramTheme.turquoise),
                         ),
-                        title: Text(title.isEmpty ? 'پیش‌نویس $type' : title,
+                        title: Text(title.isEmpty ? _t.storyDraftTitle(type) : title,
                           maxLines: 1, overflow: TextOverflow.ellipsis),
                         subtitle: Text(date == null ? type :
                           '$type • ${date.year}/${date.month.toString().padLeft(2,'0')}/${date.day.toString().padLeft(2,'0')}'),
                         onTap: () => Navigator.pop(sheetContext, draft['id'] as String),
                         trailing: HomaGramSpringPress(child: IconButton(
-                          tooltip: 'حذف پیش‌نویس',
+                          tooltip: _t.storyDeleteDraft,
                           icon: const Icon(Icons.delete_outline_rounded),
                           onPressed: () async {
                             try {
@@ -1496,7 +1497,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                             } catch (_) {
                               if (sheetContext.mounted) {
                                 ScaffoldMessenger.of(sheetContext).showSnackBar(
-                                  const SnackBar(content: Text('حذف پیش‌نویس انجام نشد.')),
+                                  SnackBar(content: Text(_t.storyDraftDeleteFailed)),
                                 );
                               }
                             }
@@ -1591,10 +1592,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       }
       if (mounted) {
         setState(() {});
-        _notice('پیش‌نویس بازیابی شد؛ می‌توانی ویرایش را ادامه بدهی.');
+        _notice(_t.storyDraftRestored);
       }
     } catch (_) {
-      _notice('بازیابی پیش‌نویس انجام نشد.', true);
+      _notice(_t.storyDraftRestoreFailed, true);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
