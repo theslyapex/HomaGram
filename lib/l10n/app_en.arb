@@ -2238,5 +2238,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "homagramLogoSemanticLabel": "HomaGram logo",
+  "verifiedAccount": "Verified account"
 }
