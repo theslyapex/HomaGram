@@ -382,5 +382,141 @@
         "type": "int"
       }
     }
-  }
+  },
+  "activityHistoryLoadFailed": "دریافت تاریخچه فعالیت‌ها ممکن نشد.",
+  "channelCreated": "ایجاد کانال",
+  "memberAdded": "افزودن عضو",
+  "memberRemoved": "حذف عضو",
+  "memberRoleChanged": "تغییر نقش عضو",
+  "channelPermissionsChanged": "تغییر دسترسی اعضا",
+  "channelDetailsChanged": "ویرایش اطلاعات کانال",
+  "ownershipTransferred": "انتقال مالکیت",
+  "inviteCreated": "ساخت کد دعوت",
+  "inviteRevoked": "لغو کد دعوت",
+  "adminActivity": "فعالیت مدیریتی",
+  "noAdminActivityYet": "هنوز فعالیت مدیریتی ثبت نشده است.",
+  "newMemberAddedToChannel": "عضو جدید به کانال اضافه شد.",
+  "memberAddedToChannel": "{target} به کانال اضافه شد.",
+  "@memberAddedToChannel": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "memberRemovedFromChannel": "یک عضو از کانال حذف شد.",
+  "namedMemberRemovedFromChannel": "{target} از کانال حذف شد.",
+  "@namedMemberRemovedFromChannel": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "channelOwnershipTransferred": "مالکیت کانال منتقل شد.",
+  "newChannelOwner": "مالک جدید: {target}",
+  "@newChannelOwner": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "textAndMediaPermissions": "ارسال متن: {textStatus} • رسانه: {mediaStatus}",
+  "@textAndMediaPermissions": {
+    "placeholders": {
+      "textStatus": {
+        "type": "String"
+      },
+      "mediaStatus": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteValidityAndLimit": "اعتبار: {expiry} • سقف استفاده: {limit}",
+  "@inviteValidityAndLimit": {
+    "placeholders": {
+      "expiry": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteCodeDisabledActivity": "یک کد دعوت غیرفعال شد.",
+  "channelNameActivity": "نام کانال: {title}",
+  "@channelNameActivity": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "channelDetailsUpdatedActivity": "اطلاعات کانال به‌روزرسانی شد.",
+  "channelCreatedActivity": "کانال ایجاد شد.",
+  "systemAdmin": "مدیر سیستم",
+  "inviteCodesLoadFailed": "دریافت کدهای دعوت ممکن نشد.",
+  "listRefreshFailed": "به‌روزرسانی فهرست ممکن نشد.",
+  "createNewInviteCode": "ساخت کد دعوت جدید",
+  "validityHours": "اعتبار به ساعت (۱ تا ۷۲۰)",
+  "hoursRangeError": "عدد باید بین ۱ تا ۷۲۰ باشد.",
+  "maximumUses": "حداکثر دفعات استفاده (۱ تا ۵۰۰)",
+  "usesRangeError": "عدد باید بین ۱ تا ۵۰۰ باشد.",
+  "createCode": "ساخت کد",
+  "inviteCodeReady": "کد دعوت آماده است",
+  "inviteLinkExpiryHint": "این لینک فقط تا زمان انقضا یا تکمیل ظرفیت فعال است. آن را برای افراد موردنظر بفرستید.",
+  "inviteCodeOneTimeHint": "این کد فقط همین بار نمایش داده می‌شود. آن را در جای امن نگه دارید و برای افراد موردنظر بفرستید.",
+  "copyInviteLink": "کپی لینک دعوت",
+  "copyCode": "کپی کد",
+  "close": "بستن",
+  "inviteCodeCreateFailed": "ساخت کد دعوت انجام نشد.",
+  "revokeInviteCodeTitle": "غیرفعال‌سازی کد دعوت",
+  "revokeInviteCodeExplanation": "با این کار، کد دیگر برای عضویت قابل استفاده نخواهد بود.",
+  "revoke": "غیرفعال کن",
+  "inviteCodeRevokeFailed": "غیرفعال‌سازی کد انجام نشد.",
+  "active": "فعال",
+  "revoked": "غیرفعال‌شده",
+  "expired": "منقضی‌شده",
+  "limitReached": "ظرفیت تکمیل",
+  "unknown": "نامشخص",
+  "manageGroupInviteLinks": "مدیریت لینک‌های دعوت گروه",
+  "manageChannelInviteCodes": "مدیریت کدهای دعوت کانال",
+  "createGroupInviteLink": "ساخت لینک دعوت گروه",
+  "createChannelInviteCode": "ساخت کد دعوت کانال",
+  "retry": "تلاش دوباره",
+  "noInviteCodesYet": "هنوز کد دعوتی ساخته نشده است.",
+  "expirationUnknown": "زمان انقضا نامشخص",
+  "expirationLabel": "انقضا: {date}",
+  "@expirationLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "usesOfLimit": "{used} از {limit} استفاده",
+  "@usesOfLimit": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "revokeTooltip": "غیرفعال‌سازی",
+  "groupPermissions": "دسترسی‌های گروه",
+  "memberPermissions": "دسترسی اعضا",
+  "sendTextMessages": "ارسال پیام متنی",
+  "sendImagesFiles": "ارسال تصویر و فایل",
+  "addNewMembers": "افزودن اعضای جدید",
+  "membersCanInviteHint": "در صورت فعال بودن، اعضای عادی هم می‌توانند افراد را دعوت کنند.",
+  "adminPrivileges": "اختیارات مدیران",
+  "editGroupNameDescriptionPhoto": "ویرایش نام، توضیحات و تصویر",
+  "manageMembersInviteLinks": "مدیریت اعضا و لینک‌های دعوت",
+  "savePermissions": "ذخیره دسترسی‌ها",
+  "groupPermissionsUpdated": "دسترسی‌های گروه به‌روزرسانی شد.",
+  "groupPermissionsSaveFailed": "ذخیره دسترسی‌ها انجام نشد. فقط مالک گروه می‌تواند این تنظیمات را تغییر دهد."
 }
