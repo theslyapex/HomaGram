@@ -1704,9 +1704,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       ],
     ),
     body: ListView(
-      physics: _drawingMode
-          ? const NeverScrollableScrollPhysics()
-          : const AlwaysScrollableScrollPhysics(),
+      // Keep the editor scrollable while drawing so users can bring the canvas
+      // into view; the drawing gesture layer is limited to the media canvas.
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(18),
       children: [
         if (_textMode)
