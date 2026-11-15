@@ -1805,5 +1805,62 @@
         "type": "String"
       }
     }
+  },
+  "adminModerationLoadFailed": "تعذّر تحميل قائمة المحتوى. تحقق من صلاحيات المسؤول والاتصال.",
+  "adminModerationPreviewUnavailable": "معاينة الوسائط غير متاحة لهذا المحتوى.",
+  "adminModerationReelPreview": "معاينة الريلز",
+  "adminClose": "إغلاق",
+  "adminModerationVideoPreviewFailed": "تعذّر تشغيل معاينة الفيديو.",
+  "adminModerationImageLoadFailed": "تعذّر تحميل الصورة.",
+  "adminModerationDefaultWarning": "قد يخالف المحتوى الذي نشرته جزءًا من قواعد HomaGram. يرجى مراجعة إرشادات المجتمع قبل نشر محتوى آخر.",
+  "adminModerationWarnTitle": "إرسال تحذير إلى المستخدم",
+  "adminModerationWarningText": "نص التحذير",
+  "adminModerationSendWarning": "إرسال التحذير",
+  "adminModerationWarningSent": "تم إرسال التحذير إلى المستخدم.",
+  "adminModerationBanTitle": "تعليق حساب المستخدم",
+  "adminModerationBanInstruction": "اختر مدة التعليق. حسابات المسؤولين محمية من هذا الإجراء.",
+  "adminDuration24Hours": "24 ساعة",
+  "adminDuration7Days": "7 أيام",
+  "adminDuration30Days": "30 يومًا",
+  "adminDurationLongTerm": "مدة طويلة",
+  "adminModerationConfirmBan": "تأكيد التعليق",
+  "adminModerationUserBanned": "تم تعليق حساب المستخدم.",
+  "adminModerationProfileCleanupTitle": "إزالة محتوى الملف الشخصي",
+  "adminModerationProfileCleanupDescription": "ستتم إزالة النبذة وعنوان الموقع وصورة الملف الشخصي. سيبقى الحساب واسم المستخدم، وسيتلقى صاحب الحساب إشعارًا.",
+  "adminModerationProfileCleanup": "تنظيف الملف الشخصي",
+  "adminModerationProfileCleaned": "تمت إزالة معلومات عرض الملف الشخصي.",
+  "adminModerationDeleteTitle": "حذف المحتوى",
+  "adminModerationDeleteDescription": "ستتم إزالة هذا المنشور أو الريلز من HomaGram وسيُرسل تحذير إلى صاحبه. لا يمكن التراجع عن هذا الإجراء.",
+  "adminModerationDeleteAndWarn": "الحذف وإرسال تحذير",
+  "adminModerationDeletedAndWarned": "تم حذف المحتوى وإرسال تحذير إلى صاحبه.",
+  "adminModerationActionFailed": "تعذّر تنفيذ إجراء الإشراف. تحقق من النتيجة وحاول مرة أخرى.",
+  "adminTypePost": "منشور",
+  "adminTypeReel": "ريلز",
+  "adminTypeProfile": "ملف شخصي",
+  "adminTypeContent": "محتوى",
+  "adminModerationPublishedContent": "المحتوى المنشور",
+  "adminContentTypePosts": "المنشورات",
+  "adminContentTypeReels": "ريلز",
+  "adminContentTypeProfiles": "الملفات الشخصية",
+  "adminModerationLoading": "جارٍ التحميل…",
+  "adminModerationShowMore": "عرض المزيد",
+  "adminModerationContentId": "معرّف المحتوى: {id} • {date}",
+  "adminModerationOwnerId": "معرّف صاحب المحتوى: {id}",
+  "@adminModerationContentId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@adminModerationOwnerId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
   }
 }
