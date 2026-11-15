@@ -1401,8 +1401,15 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         );
                         if (selected == null) return;
-                        await manageMember(selected['id'] as String, 'add');
-                        if (sheetContext.mounted) setSheetState(() {});
+                        try {
+                          await manageMember(selected['id'] as String, 'add');
+                          if (sheetContext.mounted) setSheetState(() {});
+                        } catch (error) {
+                          debugPrint('Add conversation member failed: $error');
+                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('افزودن عضو انجام نشد؛ ممکن است این کاربر از قبل عضو باشد یا دسترسی لازم را نداشته باشید.')),
+                          );
+                        }
                       },
                     ),
                 ]),
@@ -1471,8 +1478,15 @@ class _ChatScreenState extends State<ChatScreen> {
                                   }
                                   return;
                                 }
-                                await manageMember(member['user_id'] as String, action);
-                                if (sheetContext.mounted) setSheetState(() {});
+                                try {
+                                  await manageMember(member['user_id'] as String, action);
+                                  if (sheetContext.mounted) setSheetState(() {});
+                                } catch (error) {
+                                  debugPrint('Group member action failed: $error');
+                                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('انجام عملیات روی عضو ممکن نشد. سطح دسترسی را بررسی کنید.')),
+                                  );
+                                }
                               },
                               itemBuilder: (_) => [
                                 if (myRole == 'owner' && role == 'member')
