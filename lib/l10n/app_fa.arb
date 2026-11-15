@@ -1182,5 +1182,84 @@
   "storiesReload": "بارگذاری دوباره",
   "storiesArchiveFailed": "آرشیو بارگذاری نشد.",
   "storiesTryAgain": "تلاش دوباره",
-  "storiesArchiveEmpty": "هنوز استوری منقضی‌شده‌ای ندارید."
+  "storiesArchiveEmpty": "هنوز استوری منقضی‌شده‌ای ندارید.",
+  "storyVoteFailed": "ثبت رأی انجام نشد؛ ممکن است مهلت نظرسنجی تمام شده باشد.",
+  "storyAnswerQuestion": "پاسخ به پرسش",
+  "storyYourAnswer": "پاسخ شما",
+  "storyCancel": "انصراف",
+  "storySend": "ارسال",
+  "storyAnswerSent": "پاسخ شما ثبت شد.",
+  "storyAnswerFailed": "ثبت پاسخ انجام نشد؛ ممکن است مهلت استوری تمام شده باشد.",
+  "storyAudienceResponses": "پاسخ‌های مخاطبان • {count}",
+  "storyNoResponses": "هنوز پاسخی دریافت نشده است.",
+  "storyUserFallback": "کاربر",
+  "storyPrivateReply": "پاسخ خصوصی",
+  "storyQuestionReplyMessage": "پاسخ به باکس پرسش استوری: {message}",
+  "storyPrivateReplySent": "پاسخ خصوصی ارسال شد.",
+  "storyMessageSendFailed": "ارسال پیام انجام نشد.",
+  "storyReactionSent": "واکنش شما ثبت شد.",
+  "storyReactionFailed": "ثبت واکنش انجام نشد.",
+  "storyReplyToStory": "پاسخ به استوری",
+  "storyYourMessage": "پیام شما",
+  "storyReplyMessage": "پاسخ به استوری: {message}",
+  "storyReplySentPrivately": "پاسخ از طریق پیام خصوصی ارسال شد.",
+  "storyReplyFailed": "ارسال پاسخ انجام نشد.",
+  "storyAnalytics": "آمار و تحلیل استوری",
+  "storyViews": "بازدید",
+  "storyReactions": "واکنش",
+  "storyAverageWatch": "میانگین تماشا",
+  "storyTotalWatchTime": "مجموع زمان تماشا: {time}",
+  "storyViewerList": "فهرست بازدیدکنندگان • {count}",
+  "storyNoViews": "هنوز بازدیدی ثبت نشده است.",
+  "storyUnknownTime": "زمان نامشخص",
+  "storyWatchedFor": "تماشا: {time}",
+  "storyAnalyticsFailed": "آمار استوری بارگذاری نشد.",
+  "storyDeleteTitle": "حذف استوری",
+  "storyDeleteConfirm": "این استوری حذف شود؟",
+  "storyDelete": "حذف",
+  "storyDeleteFailed": "حذف استوری انجام نشد.",
+  "storyPublishTimeUnknown": "زمان انتشار نامشخص",
+  "storyViewAudience": "مشاهده بازدیدکنندگان",
+  "@storyAudienceResponses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyQuestionReplyMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "@storyReplyMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "@storyTotalWatchTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@storyViewerList": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyWatchedFor": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  }
 }
