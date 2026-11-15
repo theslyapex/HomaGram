@@ -1342,5 +1342,103 @@
   "storyQuestionLengthInvalid": "Enter a question-box prompt between 1 and 180 characters.",
   "storyCountdownInvalid": "Enter a valid countdown title and time.",
   "storyPollInvalid": "Complete the poll question and options without duplicates.",
-  "storyPublishFailed": "Couldn't publish the story. Check your connection or media format."
+  "storyPublishFailed": "Couldn't publish the story. Check your connection or media format.",
+  "storyStudioTitle": "Story studio",
+  "storyDrafts": "Drafts",
+  "storySaveDraft": "Save draft",
+  "storyPreviewPlaceholder": "Your story text will appear here",
+  "storyPollQuestionDefault": "Poll question",
+  "storyPollOptionDefault": "Option",
+  "storyQuestionBoxDefault": "Question box",
+  "storyCountdownDefault": "Countdown",
+  "storySmaller": "Smaller",
+  "storyLarger": "Larger",
+  "storyRotateLeft": "Rotate left",
+  "storyRotateRight": "Rotate right",
+  "storyResetElement": "Reset position and size",
+  "storyRemoveElement": "Remove selected element",
+  "storyCreateText": "Create a text story",
+  "storyChooseImage": "Choose image",
+  "storyChooseVideo": "Choose video (up to 60 seconds)",
+  "storyBackToMediaStory": "Back to image story",
+  "storyMusicTitle": "Story music",
+  "storyAddMusic": "Add music from device",
+  "storySelectedMusic": "Selected music",
+  "storyStopPreview": "Stop preview",
+  "storyPlayPreview": "Play preview",
+  "storyRemoveMusic": "Remove music",
+  "storyStartAt": "Start at",
+  "storyMusicPlaybackNote": "Music plays with your story. When music is added to a video, the video's original audio is muted.",
+  "storyStickersTitle": "Stickers",
+  "storyImageOrGif": "Image or GIF",
+  "storyRemoveAll": "Remove all",
+  "storyStickerInstructions": "Drag a sticker onto the preview. Use two fingers to resize or rotate it. Press and hold a sticker to remove it.",
+  "storyAddPoll": "Add a poll",
+  "storyPollSubtitle": "Viewers can vote in your story.",
+  "storyPollQuestionLabel": "Poll question",
+  "storyPollQuestionHint": "For example, which design do you prefer?",
+  "storyPollOptionLabel": "Option {number}",
+  "storyRemoveOption": "Remove option",
+  "storyAddOption": "Add option",
+  "storyPollInstructions": "Each poll has 2 to 4 options. Each person can vote once and may change their vote later.",
+  "storyAddQuestionBox": "Add a question box",
+  "storyQuestionBoxSubtitle": "Viewers can send you private text responses.",
+  "storyQuestionBoxLabel": "Question prompt",
+  "storyQuestionBoxHint": "For example, what would you like to know?",
+  "storyAddCountdown": "Add a countdown",
+  "storyCountdownSubtitle": "Show a countdown to an event or important time.",
+  "storyCountdownLabel": "Countdown title",
+  "storyCountdownHint": "For example, an event launch",
+  "storyDateAndTime": "Date and time: {year}/{month}/{day} • {hour}:{minute}",
+  "storyDrawingTool": "Freehand drawing",
+  "storyDrawOnMedia": "Draw on the media",
+  "storyEnableDrawing": "Enable drawing",
+  "storyPen": "Pen",
+  "storyEraser": "Eraser",
+  "storyUndo": "Undo",
+  "storyClearAll": "Clear all",
+  "storyBrushThickness": "Brush thickness",
+  "storyOverlayTextLabel": "Text on image or video",
+  "storyOverlayTextHint": "Write text, then drag or resize it on the preview",
+  "storyTextColor": "Text color",
+  "storyTextFont": "Text font",
+  "storyOverlayInstructions": "Drag the text on the preview to move it. Use two fingers to resize it.",
+  "storyAudienceTitle": "Story audience",
+  "storyAudienceEveryone": "Everyone allowed by your privacy settings",
+  "storyAudienceFollowers": "Followers only",
+  "storyAudienceCloseFriends": "Close friends only",
+  "storyAudienceEveryoneNote": "Your account privacy settings and blocked users are still respected.",
+  "storyAudienceFollowersNote": "Only followers who are allowed to view your account can see this story.",
+  "storyAudienceCloseFriendsNote": "Only people on your private close friends list can see this story.",
+  "storyCaptionText": "Story text",
+  "storyMediaDescription": "Image or video description (optional)",
+  "storyExpiryNote": "Your story leaves public view after 24 hours and remains in your personal archive.",
+  "storyPublishing": "Publishing…",
+  "storyPublish": "Publish story",
+  "@storyPollOptionLabel": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "@storyDateAndTime": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      },
+      "month": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "hour": {
+        "type": "String"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  }
 }
