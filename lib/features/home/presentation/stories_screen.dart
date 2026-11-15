@@ -2328,6 +2328,7 @@ class StoryViewerScreen extends StatefulWidget {
 
 class _StoryViewerScreenState extends State<StoryViewerScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   late final AnimationController _progress;
   int _index = 0;
   int _replayNonce = 0;
@@ -2517,7 +2518,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ثبت رأی انجام نشد؛ ممکن است مهلت نظرسنجی تمام شده باشد.')),
+          SnackBar(content: Text(_t.storyVoteFailed)),
         );
       }
     } finally {
@@ -2530,12 +2531,12 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     if (question is! Map || _busy || _isMine) return;
     final controller = TextEditingController(text: question['my_response'] as String? ?? '');
     final response = await showDialog<String>(context: context, builder: (ctx) => AlertDialog(
-      title: const Text('پاسخ به پرسش'),
+      title: Text(_t.storyAnswerQuestion),
       content: TextField(controller: controller, autofocus: true, maxLength: 1000, minLines: 2, maxLines: 5,
-        decoration: const InputDecoration(hintText: 'پاسخ شما', border: OutlineInputBorder())),
+        decoration: InputDecoration(hintText: _t.storyYourAnswer, border: const OutlineInputBorder())),
       actions: [
-        HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف'))),
-        HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('ارسال'))),
+        HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text(_t.storyCancel))),
+        HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: Text(_t.storySend))),
       ],
     ));
     controller.dispose();
@@ -2545,10 +2546,10 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
       final updated = await StoryService.submitStoryQuestionResponse(question['id'] as String, response);
       if (mounted && updated['story_id'] == _story['id']) {
         setState(() => _story['question_box_data'] = updated);
-        _notice('پاسخ شما ثبت شد.');
+        _notice(_t.storyAnswerSent);
       }
     } catch (_) {
-      if (mounted) _notice('ثبت پاسخ انجام نشد؛ ممکن است مهلت استوری تمام شده باشد.', error: true);
+      if (mounted) _notice(_t.storyAnswerFailed, error: true);
     } finally { if (mounted) setState(() => _busy = false); }
   }
 
@@ -2562,25 +2563,25 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
         height: MediaQuery.of(ctx).size.height * .65,
         child: Column(children: [
           Padding(padding: const EdgeInsets.all(16),
-            child: Text('پاسخ‌های مخاطبان • ${responses.length}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16))),
+            child: Text(_t.storyAudienceResponses(responses.length), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16))),
           Expanded(child: responses.isEmpty
-            ? const Center(child: Text('هنوز پاسخی دریافت نشده است.'))
+            ? Center(child: Text(_t.storyNoResponses))
             : ListView.separated(
                 itemCount: responses.length, separatorBuilder: (_, __) => const Divider(height: 1),
                 itemBuilder: (_, i) {
                   final item = responses[i];
                   return ListTile(
                     leading: const CircleAvatar(child: Icon(Icons.person_outline)),
-                    title: Text(item['display_name'] as String? ?? 'کاربر'),
+                    title: Text(item['display_name'] as String? ?? _t.storyUserFallback),
                     subtitle: Text(item['response'] as String? ?? ''),
                     trailing: HomaGramSpringPress(child: IconButton(
-                      tooltip: 'پاسخ خصوصی', icon: const Icon(Icons.reply_rounded),
+                      tooltip: _t.storyPrivateReply, icon: const Icon(Icons.reply_rounded),
                       onPressed: () async {
                         Navigator.pop(ctx);
                         try {
-                          await StoryService.replyToStory(item['user_id'] as String, 'پاسخ به باکس پرسش استوری: ${item['response']}');
-                          if (mounted) _notice('پاسخ خصوصی ارسال شد.');
-                        } catch (_) { if (mounted) _notice('ارسال پیام انجام نشد.', error: true); }
+                          await StoryService.replyToStory(item['user_id'] as String, _t.storyQuestionReplyMessage(item['response'].toString()));
+                          if (mounted) _notice(_t.storyPrivateReplySent);
+                        } catch (_) { if (mounted) _notice(_t.storyMessageSendFailed, error: true); }
                       },
                     )),
                   );
@@ -2595,9 +2596,9 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     setState(() => _busy = true);
     try {
       await StoryService.react(_story['id'] as String, emoji);
-      if (mounted) _notice('واکنش شما ثبت شد.');
+      if (mounted) _notice(_t.storyReactionSent);
     } catch (_) {
-      if (mounted) _notice('ثبت واکنش انجام نشد.', error: true);
+      if (mounted) _notice(_t.storyReactionFailed, error: true);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -2606,21 +2607,21 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
   Future<void> _reply() async {
     final controller = TextEditingController();
     final text = await showDialog<String>(context: context, builder: (ctx) => AlertDialog(
-      title: const Text('پاسخ به استوری'),
+      title: Text(_t.storyReplyToStory),
       content: TextField(controller: controller, autofocus: true, maxLength: 1000,
-        minLines: 1, maxLines: 4, decoration: const InputDecoration(hintText: 'پیام شما')),
+        minLines: 1, maxLines: 4, decoration: InputDecoration(hintText: _t.storyYourMessage)),
       actions: [
-        HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('لغو'))),
-        HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('ارسال'))),
+        HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text(_t.storyCancel))),
+        HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: Text(_t.storySend))),
       ],
     ));
     controller.dispose();
     if (text == null || text.isEmpty) return;
     try {
-      await StoryService.replyToStory(_story['author_id'] as String, 'پاسخ به استوری: $text');
-      if (mounted) _notice('پاسخ از طریق پیام خصوصی ارسال شد.');
+      await StoryService.replyToStory(_story['author_id'] as String, _t.storyReplyMessage(text));
+      if (mounted) _notice(_t.storyReplySentPrivately);
     } catch (_) {
-      if (mounted) _notice('ارسال پاسخ انجام نشد.', error: true);
+      if (mounted) _notice(_t.storyReplyFailed, error: true);
     }
   }
 
@@ -2647,19 +2648,19 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 child: Column(children: [
-                  const Text('آمار و تحلیل استوری', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+                  Text(_t.storyAnalytics, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 12),
                   Row(children: [
-                    _analyticsMetric('بازدید', '${analytics['view_count']}', Icons.visibility_outlined),
+                    _analyticsMetric(_t.storyViews, '${analytics['view_count']}', Icons.visibility_outlined),
                     const SizedBox(width: 8),
-                    _analyticsMetric('واکنش', '${analytics['reaction_count']}', Icons.favorite_border_rounded),
+                    _analyticsMetric(_t.storyReactions, '${analytics['reaction_count']}', Icons.favorite_border_rounded),
                     const SizedBox(width: 8),
-                    _analyticsMetric('میانگین تماشا', _formatWatchTime(analytics['average_watch_seconds'] as int), Icons.timer_outlined),
+                    _analyticsMetric(_t.storyAverageWatch, _formatWatchTime(analytics['average_watch_seconds'] as int), Icons.timer_outlined),
                   ]),
                   const SizedBox(height: 8),
                   Align(
                     alignment: Alignment.centerRight,
-                    child: Text('مجموع زمان تماشا: ${_formatWatchTime(analytics['total_watch_seconds'] as int)}',
+                    child: Text(_t.storyTotalWatchTime(_formatWatchTime(analytics['total_watch_seconds'] as int)),
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                   ),
                   if (reactionCounts.isNotEmpty) ...[
@@ -2670,19 +2671,19 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                   ],
                   const Divider(height: 18),
                   Align(alignment: Alignment.centerRight,
-                    child: Text('فهرست بازدیدکنندگان • ${viewers.length}',
+                    child: Text(_t.storyViewerList(viewers.length),
                       style: const TextStyle(fontWeight: FontWeight.w800))),
                 ]),
               ),
               Expanded(child: viewers.isEmpty
-                  ? const Center(child: Text('هنوز بازدیدی ثبت نشده است.'))
+                  ? Center(child: Text(_t.storyNoViews))
                   : ListView.separated(
                       itemCount: viewers.length,
                       separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
                       itemBuilder: (_, i) {
                         final viewer = viewers[i];
                         final viewedAt = DateTime.tryParse(viewer['viewed_at']?.toString() ?? '')?.toLocal();
-                        final time = viewedAt == null ? 'زمان نامشخص' :
+                        final time = viewedAt == null ? _t.storyUnknownTime :
                           '${viewedAt.hour.toString().padLeft(2, '0')}:${viewedAt.minute.toString().padLeft(2, '0')}';
                         final reaction = viewer['reaction'];
                         final watch = (viewer['duration_seconds'] as num?)?.toInt() ?? 0;
@@ -2699,7 +2700,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
         ),
       );
     } catch (_) {
-      if (mounted) _notice('آمار استوری بارگذاری نشد.', error: true);
+      if (mounted) _notice(_t.storyAnalyticsFailed, error: true);
     }
   }
 
@@ -2724,11 +2725,11 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
 
   Future<void> _delete() async {
     final yes = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-      title: const Text('حذف استوری'),
-      content: const Text('این استوری حذف شود؟'),
+      title: Text(_t.storyDeleteTitle),
+      content: Text(_t.storyDeleteConfirm),
       actions: [
-        HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('انصراف'))),
-        HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('حذف'))),
+        HomaGramSpringPress(child: TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(_t.storyCancel))),
+        HomaGramSpringPress(child: FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(_t.storyDelete))),
       ],
     ));
     if (yes != true) return;
@@ -2745,7 +2746,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
       }
       if (mounted) Navigator.of(context).pop(true);
     } catch (_) {
-      if (mounted) _notice('حذف استوری انجام نشد.', error: true);
+      if (mounted) _notice(_t.storyDeleteFailed, error: true);
     }
   }
 
@@ -2758,7 +2759,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
 
   String _storyTimestamp(dynamic rawValue) {
     final date = DateTime.tryParse(rawValue?.toString() ?? '')?.toLocal();
-    if (date == null) return 'زمان انتشار نامشخص';
+    if (date == null) return _t.storyPublishTimeUnknown;
     final time = '${date.hour.toString().padLeft(2, '0')}:'
         '${date.minute.toString().padLeft(2, '0')}';
     const latin = '0123456789';
@@ -2914,7 +2915,7 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
               ? Align(alignment: Alignment.center, child: HomaGramSpringPress(child: OutlinedButton.icon(
                   onPressed: _showViewers,
                   style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: const BorderSide(color: Colors.white54)),
-                  icon: const Icon(Icons.visibility_outlined), label: const Text('مشاهده بازدیدکنندگان'))))
+                  icon: const Icon(Icons.visibility_outlined), label: Text(_t.storyViewAudience))))
               : Row(children: [
                   ...['❤️','🔥','👏','😂','😮'].map((e) => HomaGramSpringPress(child: IconButton(
                     onPressed: _busy ? null : () => _react(e),
