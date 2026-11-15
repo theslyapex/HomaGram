@@ -19,6 +19,17 @@ class MessagingScreen extends StatefulWidget {
 
 class _MessagingScreenState extends State<MessagingScreen> {
   AppLocalizations get _t => AppLocalizations.of(context)!;
+
+  String _localizedPreviewText(String value) => switch (value) {
+    'گفت‌وگوی خصوصی' => _t.privateConversation,
+    'هنوز پیامی ارسال نشده' => _t.noMessagesYet,
+    'پیام حذف شده است' => _t.deletedMessagePreview,
+    'تصویر' => _t.imagePreview,
+    'ویدئو' => _t.videoPreview,
+    'فایل صوتی' => _t.audioFilePreview,
+    'فایل' => _t.filePreview,
+    _ => value,
+  };
   List<ConversationPreview> _items = [];
   RealtimeChannel? _channel;
   bool _loading = true;
@@ -186,7 +197,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
     final normalizedSearch = _searchTerm.trim().toLowerCase();
     final visibleItems = normalizedSearch.isEmpty ? _items : _items.where((item) =>
       item.title.toLowerCase().contains(normalizedSearch) ||
-      item.subtitle.toLowerCase().contains(normalizedSearch)).toList();
+      _localizedPreviewText(item.subtitle).toLowerCase().contains(normalizedSearch)).toList();
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -426,14 +437,14 @@ class _MessagingScreenState extends State<MessagingScreen> {
                                         : null,
                                   ),
                                   title: Row(mainAxisSize: MainAxisSize.min, children: [
-                                    Flexible(child: Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                                    Flexible(child: Text(_localizedPreviewText(item.title), maxLines: 1, overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(fontWeight: FontWeight.w800))),
                                     const SizedBox(width: 4),
                                     HomaGramVerifiedBadge(userId: item.peerUserId),
                                   ]),
                                   subtitle: Padding(
                                     padding: const EdgeInsets.only(top: 5),
-                                    child: Text(item.subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+                                    child: Text(_localizedPreviewText(item.subtitle), maxLines: 1, overflow: TextOverflow.ellipsis),
                                   ),
                                   trailing: Text(_date(item.updatedAt), style: Theme.of(context).textTheme.labelSmall),
                                   onLongPress: () => _showConversationActions(item),
