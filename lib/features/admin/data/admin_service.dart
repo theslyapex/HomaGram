@@ -102,6 +102,47 @@ class AdminModerationItem {
   );
 }
 
+class AdminCommunitySummary {
+  const AdminCommunitySummary({
+    required this.id,
+    required this.kind,
+    required this.title,
+    required this.ownerId,
+    required this.ownerUsername,
+    required this.ownerDisplayName,
+    required this.createdAt,
+    required this.isPublic,
+    required this.slug,
+    required this.description,
+    required this.memberCount,
+    required this.isBlocked,
+    required this.blockReason,
+  });
+
+  final String id, kind, title;
+  final String? ownerId, ownerUsername, ownerDisplayName, slug, description, blockReason;
+  final DateTime? createdAt;
+  final bool isPublic, isBlocked;
+  final int memberCount;
+
+  factory AdminCommunitySummary.fromJson(Map<String, dynamic> json) =>
+      AdminCommunitySummary(
+        id: json['conversation_id']?.toString() ?? '',
+        kind: json['kind']?.toString() ?? 'group',
+        title: json['title']?.toString() ?? 'بدون نام',
+        ownerId: json['owner_id']?.toString(),
+        ownerUsername: json['owner_username'] as String?,
+        ownerDisplayName: json['owner_display_name'] as String?,
+        createdAt: DateTime.tryParse(json['created_at']?.toString() ?? ''),
+        isPublic: json['is_public'] as bool? ?? false,
+        slug: json['slug'] as String?,
+        description: json['description'] as String?,
+        memberCount: (json['member_count'] as num?)?.toInt() ?? 0,
+        isBlocked: json['is_blocked'] as bool? ?? false,
+        blockReason: json['block_reason'] as String?,
+      );
+}
+
 class AdminService {
   AdminService._();
   static SupabaseClient get _client => Supabase.instance.client;
@@ -130,6 +171,35 @@ class AdminService {
     final result = await _client.rpc('admin_user_detail', params: {'p_user_id': userId});
     if (result is! Map) throw const FormatException('Invalid admin user detail');
     return Map<String, dynamic>.from(result);
+  }
+
+  static Future<List<AdminCommunitySummary>> loadCommunities({
+    String kind = 'all',
+    String search = '',
+    int offset = 0,
+  }) async {
+    final result = await _client.rpc('admin_list_communities', params: {
+      'p_kind': kind,
+      'p_search': search.trim().isEmpty ? null : search.trim(),
+      'p_limit': 50,
+      'p_offset': offset,
+    });
+    if (result is! List) return [];
+    return result.map((row) => AdminCommunitySummary.fromJson(
+      Map<String, dynamic>.from(row as Map),
+    )).toList();
+  }
+
+  static Future<void> moderateCommunity({
+    required String conversationId,
+    required String action,
+    String? message,
+  }) async {
+    await _client.rpc('admin_moderate_community', params: {
+      'p_conversation_id': conversationId,
+      'p_action': action,
+      'p_message': message,
+    });
   }
 
   static Future<List<AdminModerationItem>> loadModerationContent({String type = 'all', int offset = 0}) async {
