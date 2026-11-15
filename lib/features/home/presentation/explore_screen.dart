@@ -1,6 +1,7 @@
 import 'package:homagram/app/presentation/homagram_branding.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
@@ -19,6 +20,7 @@ class ExploreScreen extends StatefulWidget {
 }
 
 class _ExploreScreenState extends State<ExploreScreen> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   final _search = TextEditingController();
   Timer? _debounce;
   Timer? _autoRefreshTimer;
@@ -142,7 +144,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       setState(() { _posts = posts; _users = users; _communities = communities; _hashtags = tags.take(12).toList(); _loading = false; _error = null; });
     } catch (_) {
       if (!mounted) return;
-      setState(() { _loading = false; _error = 'محتوای اکسپلور بارگذاری نشد. اتصال را بررسی و دوباره تلاش کنید.'; });
+      setState(() { _loading = false; _error = _t.exploreLoadFailed; });
     } finally {
       _refreshInProgress = false;
     }
@@ -156,8 +158,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('کشف HomaGram', style: TextStyle(fontWeight: FontWeight.w900)),
-        actions: [HomaGramSpringPress(child: IconButton(onPressed: () => _load(), tooltip: 'تازه‌سازی',
+        title: Text(_t.exploreTitle, style: TextStyle(fontWeight: FontWeight.w900)),
+        actions: [HomaGramSpringPress(child: IconButton(onPressed: () => _load(), tooltip: _t.refresh,
           icon: const Icon(Icons.refresh_rounded))), const SizedBox(width: 4)],
       ),
       body: HomaGramEntrance(child: Column(children: [
@@ -168,7 +170,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             textInputAction: TextInputAction.search,
             onSubmitted: (value) => _load(term: value),
             decoration: InputDecoration(
-              hintText: 'جست‌وجوی افراد، پست‌ها، گروه‌ها و کانال‌ها',
+              hintText: _t.exploreSearchHint,
               prefixIcon: const Icon(Icons.search_rounded),
               suffixIcon: _search.text.isEmpty ? null : HomaGramSpringPress(child: IconButton(
                 onPressed: () { _search.clear(); _load(term: ''); },
@@ -184,10 +186,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 14),
             children: [
-              ChoiceChip(label: const Text('جدیدترین'), selected: !_popular,
+              ChoiceChip(label: Text(_t.exploreLatest), selected: !_popular,
                 onSelected: (_) { setState(() => _popular = false); _load(); }),
               const SizedBox(width: 8),
-              ChoiceChip(label: const Text('محبوب‌ترین'), selected: _popular,
+              ChoiceChip(label: Text(_t.explorePopular), selected: _popular,
                 onSelected: (_) { setState(() => _popular = true); _load(); }),
             ],
           ),
@@ -209,7 +211,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 const Icon(Icons.cloud_off_rounded, size: 46), const SizedBox(height: 12),
                 Text(_error!, textAlign: TextAlign.center),
-                HomaGramSpringPress(child: TextButton.icon(onPressed: () => _load(), icon: const Icon(Icons.refresh), label: const Text('تلاش دوباره'))),
+                HomaGramSpringPress(child: TextButton.icon(onPressed: () => _load(), icon: const Icon(Icons.refresh), label: Text(_t.exploreRetry))),
               ]),
             ))
             : RefreshIndicator(
@@ -218,11 +220,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 if (_communities.isNotEmpty) SliverToBoxAdapter(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     const Padding(padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
-                      child: Text('گروه‌ها و کانال‌های عمومی', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900))),
+                      child: Text(_t.exploreCommunities, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900))),
                     ..._communities.map((community) {
                       final isChannel = community['kind'] == 'channel';
                       final isMember = community['is_member'] == true;
-                      final title = community['title'] as String? ?? (isChannel ? 'کانال' : 'گروه');
+                      final title = community['title'] as String? ?? (isChannel ? _t.exploreChannelFallback : _t.exploreGroupFallback);
                       return ListTile(
                         leading: CircleAvatar(child: Icon(isChannel ? Icons.campaign_outlined : Icons.groups_outlined)),
                         title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -242,10 +244,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                 ChatScreen(conversationId: community['conversation_id'] as String, title: title)));
                             } catch (_) {
                               if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('پیوستن یا بازکردن گفتگو انجام نشد.')));
+                                const SnackBar(content: Text(_t.exploreJoinFailed)));
                             }
                           },
-                          child: Text(isMember ? 'ورود' : 'پیوستن'),
+                          child: Text(isMember ? _t.exploreOpen : _t.exploreJoin),
                         ),
                       );
                     }),
@@ -254,7 +256,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 if (_users.isNotEmpty) SliverToBoxAdapter(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     const Padding(padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
-                      child: Text('افراد', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900))),
+                      child: Text(_t.explorePeople, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900))),
                     SizedBox(height: 90, child: ListView.separated(
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       scrollDirection: Axis.horizontal, itemCount: _users.length,
@@ -287,12 +289,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 ),
                 SliverToBoxAdapter(child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-                  child: Text(_searching ? 'نتایج پست‌ها' : 'پست‌های عمومی',
+                  child: Text(_searching ? _t.explorePostResults : _t.explorePublicPosts,
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
                 )),
                 if (_posts.isEmpty)
                   const SliverFillRemaining(hasScrollBody: false,
-                    child: Center(child: Text('محتوایی برای نمایش پیدا نشد.')))
+                    child: Center(child: Text(_t.exploreNoContent)))
                 else
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(2, 0, 2, 18),
@@ -406,7 +408,7 @@ class _ExplorePostViewerState extends State<_ExplorePostViewer> {
           alignment: Alignment.topRight,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(12, 18, 16, 0),
-            child: Text('کشف', style: const TextStyle(
+            child: Text(AppLocalizations.of(context)!.exploreTab, style: const TextStyle(
               color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800,
               shadows: [Shadow(color: Colors.black87, blurRadius: 8)],
             )),
@@ -427,6 +429,7 @@ class _ExplorePostPage extends StatefulWidget {
 }
 
 class _ExplorePostPageState extends State<_ExplorePostPage> {
+  AppLocalizations get _t => AppLocalizations.of(context)!;
   VideoPlayerController? _video;
   bool _videoReady = false;
   bool _muted = true;
@@ -481,7 +484,7 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
       });
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ثبت پسند پست انجام نشد.')));
+        const SnackBar(content: Text(_t.exploreLikeFailed)));
     } finally { if (mounted) setState(() => _busy = false); }
   }
 
@@ -502,14 +505,14 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
     final choice = await showModalBottomSheet<String>(
       context: context, showDragHandle: true, useSafeArea: true,
       builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Padding(padding: EdgeInsets.all(16), child: Text('همرسانی پست',
+        const Padding(padding: EdgeInsets.all(16), child: Text(_t.exploreSharePost,
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900))),
         ListTile(leading: const Icon(Icons.send_rounded),
-          title: const Text('ارسال برای کاربران HomaGram'),
+          title: Text(_t.exploreSendToUsers),
           onTap: () => Navigator.pop(ctx, 'internal')),
-        ListTile(leading: const Icon(Icons.link_rounded), title: const Text('کپی پیوند پست'),
+        ListTile(leading: const Icon(Icons.link_rounded), title: Text(_t.exploreCopyPostLink),
           onTap: () => Navigator.pop(ctx, 'copy')),
-        ListTile(leading: const Icon(Icons.ios_share_rounded), title: const Text('اشتراک‌گذاری خارج از برنامه'),
+        ListTile(leading: const Icon(Icons.ios_share_rounded), title: Text(_t.exploreShareExternal),
           onTap: () => Navigator.pop(ctx, 'external')),
       ])),
     );
@@ -518,10 +521,10 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
     if (choice == 'copy') {
       await Clipboard.setData(ClipboardData(text: link.toString()));
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('پیوند پست کپی شد.')));
+        const SnackBar(content: Text(_t.explorePostCopied)));
     } else if (choice == 'external') {
       await SharePlus.instance.share(ShareParams(
-        text: 'این پست را در HomaGram ببین:\n$link', subject: 'پست در HomaGram'));
+        text: _t.exploreShareText(link.toString()), subject: _t.exploreSharePost));
     } else {
       await _shareToUsers();
     }
@@ -549,21 +552,21 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
             final merged = <String, Map<String,dynamic>>{};
             for (final u in [...byName, ...byUser]) { merged[u['id'] as String] = Map<String,dynamic>.from(u); }
             setSheet(() { users = merged.values.toList(); loading = false; error = null; });
-          } catch (_) { setSheet(() { loading = false; error = 'جست‌وجوی کاربران انجام نشد.'; }); }
+          } catch (_) { setSheet(() { loading = false; error = _t.exploreSearchUsersFailed; }); }
         }
         return Padding(
           padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(ctx).bottom),
           child: SizedBox(height: MediaQuery.sizeOf(ctx).height * .68,
             child: Column(children: [
-              const Padding(padding: EdgeInsets.all(14), child: Text('انتخاب گیرندگان',
+              const Padding(padding: EdgeInsets.all(14), child: Text(_t.exploreSelectRecipients,
                 style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17))),
               Padding(padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: TextField(controller: controller, onChanged: search,
                   decoration: const InputDecoration(prefixIcon: Icon(Icons.search),
-                    hintText: 'نام یا نام کاربری را جست‌وجو کنید'))),
+                    hintText: _t.exploreSearchUsersHint))),
               Expanded(child: loading ? const Center(child: CircularProgressIndicator())
                 : error != null ? Center(child: Text(error!))
-                : users.isEmpty ? const Center(child: Text('برای یافتن کاربر جست‌وجو کنید.'))
+                : users.isEmpty ? const Center(child: Text(_t.exploreSearchUsersPrompt))
                 : ListView.builder(itemCount: users.length, itemBuilder: (_, i) {
                     final u = users[i]; final id = u['id'] as String;
                     final name = (u['display_name'] as String?)?.trim();
@@ -577,7 +580,7 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
               SafeArea(top: false, child: Padding(padding: const EdgeInsets.all(14),
                 child: SizedBox(width: double.infinity, child: FilledButton.icon(
                   onPressed: selected.isEmpty ? null : () => Navigator.pop(ctx),
-                  icon: const Icon(Icons.send), label: Text('ارسال برای ${selected.length} نفر'))))),
+                  icon: const Icon(Icons.send), label: Text(_t.exploreSendToCount(selected.length)))))),
             ]),
           ),
         );
@@ -590,27 +593,27 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
       try {
         final conversation = await MessagingService.createDirectConversation(user['id'] as String);
         await MessagingService.sendTextMessage(conversation,
-          'HOMAGRAM_POST:$_postId\\nاین پست را برای شما فرستادم.');
+          'HOMAGRAM_POST:$_postId\\n${_t.exploreSharePostMessage}');
         sent++;
       } catch (_) {}
     }
     if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(sent == 0 ? 'ارسال پست انجام نشد.' : 'پست برای $sent نفر ارسال شد.')));
+      SnackBar(content: Text(sent == 0 ? _t.explorePostSendFailed : _t.explorePostSentCount(sent))));
   }
 
   Future<void> _postMenu() async {
     final choice = await showModalBottomSheet<String>(context: context, showDragHandle: true,
       builder: (ctx) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
         ListTile(leading: Icon(_saved ? Icons.bookmark_remove_outlined : Icons.bookmark_add_outlined),
-          title: Text(_saved ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره پست'),
+          title: Text(_saved ? _t.exploreUnsavePost : _t.exploreSavePost),
           onTap: () => Navigator.pop(ctx, 'save')),
         ListTile(leading: Icon(_reposted ? Icons.repeat_on : Icons.repeat),
-          title: Text(_reposted ? 'لغو بازنشر' : 'بازنشر در صفحه من'),
+          title: Text(_reposted ? _t.exploreUndoRepost : _t.exploreRepost),
           onTap: () => Navigator.pop(ctx, 'repost')),
-        ListTile(leading: const Icon(Icons.ios_share_outlined), title: const Text('ارسال پست'),
+        ListTile(leading: const Icon(Icons.ios_share_outlined), title: Text(_t.exploreSendPost),
           onTap: () => Navigator.pop(ctx, 'share')),
         if (widget.post['author_id'] != _uid)
-          ListTile(leading: const Icon(Icons.flag_outlined), title: const Text('گزارش پست'),
+          ListTile(leading: const Icon(Icons.flag_outlined), title: Text(_t.exploreReportPost),
             onTap: () => Navigator.pop(ctx, 'report')),
       ])));
     if (choice == null || !mounted) return;
@@ -627,17 +630,17 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
         });
       } catch (_) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('این عملیات انجام نشد.')));
+          const SnackBar(content: Text(_t.exploreActionFailed)));
       }
       return;
     }
     if (choice == 'report') {
       final reason = await showDialog<String>(context: context, builder: (ctx) => AlertDialog(
-        title: const Text('گزارش پست'),
-        content: const Text('آیا می‌خواهید این پست را برای بررسی گزارش کنید؟'),
+        title: Text(_t.exploreReportPost),
+        content: Text(_t.exploreReportConfirm),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, 'other'), child: const Text('ثبت گزارش')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(_t.exploreCancel)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, 'other'), child: Text(_t.exploreSubmitReport)),
         ],
       ));
       if (reason != null) {
@@ -646,10 +649,10 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
             'post_id': _postId, 'reporter_id': _uid, 'reason': reason,
           });
           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('گزارش شما ثبت شد.')));
+            const SnackBar(content: Text(_t.exploreReportSuccess)));
         } catch (_) {
           if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('ثبت گزارش انجام نشد.')));
+            const SnackBar(content: Text(_t.exploreReportFailed)));
         }
       }
     }
@@ -775,7 +778,7 @@ class _ExplorePostPageState extends State<_ExplorePostPage> {
           _actionButton(icon: Icons.mode_comment_outlined, label: '$_comments',
             onTap: _openComments),
           const SizedBox(height: 14),
-          _actionButton(icon: Icons.send_outlined, label: 'ارسال',
+          _actionButton(icon: Icons.send_outlined, label: _t.exploreSendAction,
             onTap: _sharePost),
         ]),
       ),
