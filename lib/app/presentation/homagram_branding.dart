@@ -5,6 +5,7 @@ import 'package:flutter/physics.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../theme/app_theme.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 class HomaGramLogo extends StatelessWidget {
   const HomaGramLogo({super.key, this.size = 88, this.fit = BoxFit.contain});
@@ -18,7 +19,7 @@ class HomaGramLogo extends StatelessWidget {
         width: size,
         height: size,
         fit: fit,
-        semanticLabel: 'لوگوی هماگرام',
+        semanticLabel: AppLocalizations.of(context)!.homagramLogoSemanticLabel,
         errorBuilder: (_, __, ___) => Icon(
           Icons.hub_rounded,
           size: size * .68,
@@ -54,7 +55,7 @@ class HomaGramVerifiedBadge extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.data != true) return const SizedBox.shrink();
         return Tooltip(
-          message: 'حساب تأییدشده',
+          message: AppLocalizations.of(context)!.verifiedAccount,
           child: Icon(Icons.verified_rounded, color: const Color(0xFF3195F5), size: size),
         );
       },
