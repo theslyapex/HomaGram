@@ -1,3 +1,4 @@
+import 'app_language.dart';
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -420,14 +421,16 @@ class _HomaGramAppState extends State<HomaGramApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) => ValueListenableBuilder<ThemeMode>(
       valueListenable: HomaGramTheme.mode,
-      builder: (context, themeMode, _) => RepaintBoundary(
+      builder: (context, themeMode, _) => AnimatedBuilder(
+        animation: AppLanguage.instance,
+        builder: (context, __) => RepaintBoundary(
         key: homagramScreenCaptureKey,
         child: MaterialApp(
         navigatorKey: homagramNavigatorKey,
         title: 'HomaGram',
         debugShowCheckedModeBanner: false,
-        locale: const Locale('fa'),
-        supportedLocales: const [Locale('fa'), Locale('en')],
+        locale: AppLanguage.instance.locale,
+        supportedLocales: const [Locale('fa'), Locale('en'), Locale('ar')],
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
