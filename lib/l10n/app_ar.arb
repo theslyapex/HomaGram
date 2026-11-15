@@ -374,5 +374,13 @@
   "mediaSendingDisabled": "إرسال الوسائط معطل في هذه المجموعة",
   "writeMessage": "اكتب رسالتك…",
   "messagingDisabled": "إرسال الرسائل معطل",
-  "offline": "غير متصل"
+  "offline": "غير متصل",
+  "selectedPeople": "تم تحديد {count}",
+  "@selectedPeople": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
