@@ -1544,5 +1544,37 @@
         "type": "int"
       }
     }
-  }
+  },
+  "verificationCategoryMedia": "News and media",
+  "verificationCategoryJournalist": "Journalist",
+  "verificationCategoryReporter": "Reporter",
+  "verificationCategorySportsReporter": "Sports reporter",
+  "verificationCategoryPresenter": "Presenter",
+  "verificationCategoryActor": "Actor",
+  "verificationCategoryDirector": "Director",
+  "verificationCategoryMusician": "Singer and musician",
+  "verificationCategoryWriter": "Writer and translator",
+  "verificationCategoryArtist": "Artist and photographer",
+  "verificationCategoryAthlete": "Athlete",
+  "verificationCategoryCoach": "Sports coach",
+  "verificationCategoryPolitician": "Politician",
+  "verificationCategoryDiplomat": "Diplomat",
+  "verificationCategoryAcademic": "Researcher and university professor",
+  "verificationCategoryHealthProfessional": "Doctor and health professional",
+  "verificationCategoryLegal": "Lawyer and legal professional",
+  "verificationCategoryEntrepreneur": "Entrepreneur",
+  "verificationCategoryBusinessManager": "Business manager",
+  "verificationCategoryTechnology": "Technology and startup",
+  "verificationCategoryEducation": "Education and teaching",
+  "verificationCategoryActivist": "Social activist",
+  "verificationCategoryRetail": "Retail and store",
+  "verificationCategoryRestaurant": "Restaurant and café",
+  "verificationCategoryClinic": "Medical and clinic",
+  "verificationCategoryTechnical": "Technical and mechanical services",
+  "verificationCategoryConstruction": "Construction and real estate",
+  "verificationCategoryTransport": "Transportation",
+  "verificationCategoryTourism": "Tourism and hospitality",
+  "verificationCategoryNgo": "Nonprofit organization",
+  "verificationCategoryCompany": "Company and institution",
+  "verificationCategoryOther": "Other"
 }
