@@ -321,10 +321,17 @@ class AdminService {
     if (result.isEmpty) return result;
     final ids = result.map((r) => r['user_id'] as String).toSet().toList();
     final profiles = await _client.from('profiles')
-      .select('id,username,display_name').inFilter('id', ids);
+      .select('id,username,display_name,avatar_path').inFilter('id', ids);
     final byId = {for (final p in profiles) p['id'] as String: Map<String,dynamic>.from(p)};
     for (final row in result) {
-      row['profile'] = byId[row['user_id']];
+      final applicant = byId[row['user_id']];
+      if (applicant != null) {
+        final avatarPath = applicant['avatar_path'] as String?;
+        if (avatarPath != null && avatarPath.isNotEmpty) {
+          try { applicant['avatar_url'] = await _client.storage.from('avatars').createSignedUrl(avatarPath, 900); } catch (_) {}
+        }
+      }
+      row['profile'] = applicant;
       final signed = <String>[];
       for (final path in (row['evidence_paths'] as List? ?? const [])) {
         try { signed.add(await _client.storage.from('verification-evidence').createSignedUrl(path.toString(), 900)); } catch (_) {}
