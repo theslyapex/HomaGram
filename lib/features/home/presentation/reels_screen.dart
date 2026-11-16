@@ -73,7 +73,47 @@ class _ReelsScreenState extends State<ReelsScreen> {
       output.add(item);
     }
     if (widget.initialReelId != null) {
-      final targetIndex = output.indexWhere((item) => item['id'] == widget.initialReelId);
+      var targetIndex = output.indexWhere((item) => item['id'] == widget.initialReelId);
+      // A reel opened from an older profile post may fall outside the latest
+      // feed page. Fetch that exact visible post instead of opening a blank page.
+      if (targetIndex < 0) {
+        try {
+          final targetRow = await client.from('posts')
+              .select('id,author_id,author_username,author_display_name,caption,media_path,media_type,cover_path,created_at,is_public,is_reel')
+              .eq('id', widget.initialReelId!)
+              .maybeSingle();
+          if (targetRow != null) {
+            final target = Map<String, dynamic>.from(targetRow);
+            final targetPath = target['media_path'] as String?;
+            if (targetPath != null && targetPath.isNotEmpty) {
+              target['media_url'] = await client.storage.from('post-media')
+                  .createSignedUrl(targetPath, 3600);
+              final targetCover = target['cover_path'] as String?;
+              if (targetCover != null && targetCover.isNotEmpty) {
+                try {
+                  target['cover_url'] = await client.storage.from('post-media')
+                      .createSignedUrl(targetCover, 3600);
+                } catch (_) {}
+              }
+              final targetAuthor = target['author_id'] as String?;
+              if (targetAuthor != null) {
+                final profile = await client.from('profiles')
+                    .select('avatar_path').eq('id', targetAuthor).maybeSingle();
+                final targetAvatar = profile?['avatar_path'] as String?;
+                if (targetAvatar != null && targetAvatar.isNotEmpty) {
+                  try {
+                    target['avatar_url'] = await client.storage.from('avatars')
+                        .createSignedUrl(targetAvatar, 3600);
+                  } catch (_) {}
+                }
+              }
+              target['is_mine'] = target['author_id'] == uid;
+              output.insert(0, target);
+            }
+          }
+        } catch (_) {}
+        targetIndex = output.indexWhere((item) => item['id'] == widget.initialReelId);
+      }
       if (targetIndex >= 0) _activeIndex = targetIndex;
     }
     return output;
