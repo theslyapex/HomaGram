@@ -240,8 +240,6 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
       if (mounted) setState(() => _loading = false);
     } catch (_) {
       if (mounted) setState(() => _loading = false);
-    } catch (_) {
-      if (mounted) setState(() => _loading = false);
       await controller.dispose();
       if (identical(_video, controller)) _video = null;
     }
