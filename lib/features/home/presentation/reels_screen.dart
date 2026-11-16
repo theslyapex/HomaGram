@@ -711,9 +711,11 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
           bottom: safeBottom + 190,
           child: Align(
             alignment: Alignment.center,
-            child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
               _action(
                 Icons.favorite_rounded,
                 _likes.toString(),
@@ -750,8 +752,9 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
                 _muted ? 'بی‌صدا' : 'صدا',
                 onTap: _toggleMute,
               ),
-            ],
-          ),
+                ],
+              ),
+            ),
           ),
         ),
       ],
