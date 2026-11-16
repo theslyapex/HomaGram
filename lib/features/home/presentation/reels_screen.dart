@@ -50,7 +50,8 @@ class _ReelsScreenState extends State<ReelsScreen> {
     for (final row in rows) {
       final item = Map<String, dynamic>.from(row);
       final path = item['media_path'] as String?;
-      if (path == null || item['media_type'] != 'video') continue;
+      if (path == null || path.isEmpty ||
+          (item['media_type'] != 'video' && item['is_reel'] != true)) continue;
       try {
         item['media_url'] = await client.storage.from('post-media').createSignedUrl(path, 3600);
       } catch (_) {
@@ -174,6 +175,7 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
   int _likes = 0;
   int _comments = 0;
   bool _showPlay = false;
+  bool _muted = false;
 
   String get _id => widget.reel['id'] as String;
   String get _uid => AuthService.client.auth.currentUser!.id;
@@ -191,14 +193,26 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
     final controller = VideoPlayerController.networkUrl(Uri.parse(url));
     _video = controller;
     try {
-      await controller.initialize();
+      await controller.initialize().timeout(const Duration(seconds: 25));
       await controller.setLooping(true);
       await controller.setVolume(1);
       if (widget.isActive) { await controller.play(); } else { await controller.pause(); }
       if (mounted) setState(() => _loading = false);
     } catch (_) {
       if (mounted) setState(() => _loading = false);
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+      await controller.dispose();
+      if (identical(_video, controller)) _video = null;
     }
+  }
+
+  Future<void> _toggleMute() async {
+    final controller = _video;
+    if (controller == null || !controller.value.isInitialized) return;
+    final nextMuted = !_muted;
+    await controller.setVolume(nextMuted ? 0 : 1);
+    if (mounted) setState(() => _muted = nextMuted);
   }
 
   @override
@@ -392,7 +406,9 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
     final safeBottom = MediaQuery.paddingOf(context).bottom;
     final avatarUrl = widget.reel['avatar_url'] as String?;
 
-    return Stack(
+    return DefaultTextStyle.merge(
+      style: const TextStyle(fontFamily: 'Estedad', decoration: TextDecoration.none),
+      child: Stack(
       fit: StackFit.expand,
       children: [
         const ColoredBox(color: Colors.black),
@@ -403,7 +419,7 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
               onTap: _togglePlayback,
               child: ClipRect(
                 child: FittedBox(
-                  fit: BoxFit.cover,
+                  fit: BoxFit.contain,
                   alignment: Alignment.center,
                   child: SizedBox(
                     width: controller.value.size.width,
@@ -691,8 +707,11 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
 
         Positioned(
           right: 11,
-          bottom: safeBottom + 24,
-          child: Column(
+          top: safeTop + 104,
+          bottom: safeBottom + 190,
+          child: Align(
+            alignment: Alignment.center,
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               _action(
@@ -719,10 +738,24 @@ class _ReelCardState extends State<_ReelCard> with WidgetsBindingObserver {
                 _t.reelsReport,
                 onTap: _reportReel,
               ),
+              const SizedBox(height: 17),
+              _action(
+                _showPlay ? Icons.play_arrow_rounded : Icons.pause_rounded,
+                _showPlay ? 'پخش' : 'توقف',
+                onTap: _togglePlayback,
+              ),
+              const SizedBox(height: 17),
+              _action(
+                _muted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                _muted ? 'بی‌صدا' : 'صدا',
+                onTap: _toggleMute,
+              ),
             ],
+          ),
           ),
         ),
       ],
+    ),
     );
   }
 
